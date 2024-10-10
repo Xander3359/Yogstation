@@ -13,11 +13,46 @@
 	defer_change = 1
 
 /turf/closed/mineral/dilithium/volcanic/hard
-	smooth_icon = 'icons/turf/smoothrocks_hard.dmi'
+	icon = MAP_SWITCH('icons/turf/smoothrocks_hard.dmi', 'icons/turf/mining.dmi')
+	base_icon_state = "smoothrocks_hard"
+	base_icon_state = ""
 	hardness = 2
 
-/turf/closed/mineral/dilithium/volcanic/hard/harder
-	smooth_icon = 'icons/turf/smoothrocks.dmi'
+/turf/closed/mineral/dilithium/volcanic/harder
 	mineralAmt = 5
 	color = "#eb9877"
 	hardness = 3
+
+/turf/closed/mineral/dilithium/ice
+	environment_type = "snow_cavern"
+	icon_state = "mountainrock"	
+	icon = MAP_SWITCH('icons/turf/walls/mountain_wall.dmi', 'icons/turf/mining.dmi')
+	base_icon_state = "mountain_wall"
+	smoothing_flags = SMOOTH_BITMASK | SMOOTH_BORDER
+	turf_type = /turf/open/floor/plating/asteroid/snow/ice
+	baseturfs = /turf/open/floor/plating/asteroid/snow/ice
+	initial_gas_mix = FROZEN_ATMOS
+	defer_change = TRUE
+
+/turf/closed/mineral/dilithium/ice/hard
+	name = "hardened ice"
+	icon_state = "icerock"
+	icon = MAP_SWITCH('icons/turf/walls/icerock_wall.dmi', 'icons/turf/mining.dmi')
+	base_icon_state = "icerock_wall"
+	hardness = 2
+	color = "#98c6eb"
+
+/turf/closed/mineral/dilithium/ice/hard/icemoon
+	turf_type = /turf/open/floor/plating/asteroid/snow/ice/icemoon
+	baseturfs = /turf/open/floor/plating/asteroid/snow/ice/icemoon
+	initial_gas_mix = ICEMOON_DEFAULT_ATMOS
+
+/turf/closed/mineral/dilithium/ice/icemoon
+	turf_type = /turf/open/floor/plating/asteroid/snow/ice/icemoon
+	baseturfs = /turf/open/floor/plating/asteroid/snow/ice/icemoon
+	initial_gas_mix = ICEMOON_DEFAULT_ATMOS
+
+/turf/closed/mineral/dilithium/ice/icemoon/top_layer
+	light_range = 2
+	light_power = NIGHT_TURF_BRIGHTNESS
+	light_color = COLOR_STARLIGHT

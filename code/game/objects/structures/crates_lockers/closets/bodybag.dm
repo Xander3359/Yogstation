@@ -12,11 +12,15 @@
 	material_drop = /obj/item/stack/sheet/cloth
 	delivery_icon = null //unwrappable
 	anchorable = FALSE
+	open_flags = HORIZONTAL_HOLD //intended for bodies, so people lying down
 	notreallyacloset = TRUE
 	door_anim_time = 0 // no animation
+
 	var/foldedbag_path = /obj/item/bodybag
 	var/obj/item/bodybag/foldedbag_instance = null
-	var/tagged = 0 // so closet code knows to put the tag overlay back
+
+	///The tagged name of the bodybag, also used to check if the bodybag IS tagged.
+	var/tag_name
 
 /obj/structure/closet/body_bag/Destroy()
 	// If we have a stored bag, and it's in nullspace (not in someone's hand), delete it.
@@ -24,33 +28,34 @@
 		QDEL_NULL(foldedbag_instance)
 	return ..()
 
-/obj/structure/closet/body_bag/attackby(obj/item/I, mob/user, params)
-	if (istype(I, /obj/item/pen) || istype(I, /obj/item/toy/crayon))
-		if(!user.is_literate())
+/obj/structure/closet/body_bag/attackby(obj/item/interact_tool, mob/user, params)
+	if (istype(interact_tool, /obj/item/pen) || istype(interact_tool, /obj/item/toy/crayon))
+		if(!user.is_literate(interact_tool))
 			to_chat(user, span_notice("You scribble illegibly on [src]!"))
 			return
-		var/t = stripped_input(user, "What would you like the label to be?", name, null, 53)
-		if(user.get_active_held_item() != I)
+		var/t = tgui_input_text(user, "What would you like the label to be?", name, max_length = 53)
+		if(user.get_active_held_item() != interact_tool)
 			return
 		if(!user.canUseTopic(src, BE_CLOSE))
 			return
-		if(t)
-			name = "[initial(name)] - [t]"
-			tagged = 1
-			update_icon()
-		else
-			name = initial(name)
+		handle_tag("[t ? t : initial(name)]")
 		return
-	else if((I.tool_behaviour == TOOL_WIRECUTTER) && tagged)
+	if(!tag_name)
+		return
+	if(interact_tool.tool_behaviour == TOOL_WIRECUTTER || interact_tool.get_sharpness())
 		to_chat(user, span_notice("You cut the tag off [src]."))
-		name = initial(name)
-		tagged = 0
-		update_icon()
+		handle_tag()
 
-/obj/structure/closet/body_bag/update_icon()
-	..()
-	if (tagged)
-		add_overlay("bodybag_label")
+///Handles renaming of the bodybag's examine tag.
+/obj/structure/closet/body_bag/proc/handle_tag(new_name)
+	tag_name = new_name
+	name = tag_name ? "[initial(name)] - [tag_name]" : initial(name)
+	update_appearance()
+
+/obj/structure/closet/body_bag/update_overlays()
+	. = ..()
+	if (tag_name)
+		. += "bodybag_label"
 
 /obj/structure/closet/body_bag/close()
 	if(..())
@@ -155,8 +160,8 @@
 	mob_storage_capacity = 1
 	contents_pressure_protection = 0.8
 	contents_thermal_insulation = 0.5
-	foldedbag_path = /obj/item/bodybag/environmental/
-	weather_protection = list(WEATHER_ACID, WEATHER_ASH, WEATHER_RAD, WEATHER_SNOW, ) // Does not protect against lava or the The Floor Is Lava spell.
+	foldedbag_path = /obj/item/bodybag/environmental
+	weather_protection = WEATHER_STORM
 
 /obj/structure/closet/body_bag/environmental/nanotrasen
 	name = "elite environmental protection bag"
@@ -166,7 +171,7 @@
 	contents_pressure_protection = 1
 	contents_thermal_insulation = 1
 	foldedbag_path = /obj/item/bodybag/environmental/nanotrasen/
-	weather_protection = list(WEATHER_ALL)
+	weather_protection = WEATHER_STORM
 
 /// Securable enviro. bags
 
@@ -189,7 +194,7 @@
 		to_chat(the_folder, span_warning("You wrestle with [src], but it won't fold while its straps are fastened."))
 	return ..()
 
-/obj/structure/closet/body_bag/environmental/prisoner/update_icon()
+/obj/structure/closet/body_bag/environmental/prisoner/update_icon_state()
 	. = ..()
 	if(sinched)
 		icon_state = initial(icon_state) + "_sinched"
@@ -215,7 +220,7 @@
 	if(!dense_when_open)
 		density = FALSE
 	dump_contents()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	return TRUE
 
 /obj/structure/closet/body_bag/environmental/prisoner/container_resist(mob/living/user)
@@ -277,7 +282,7 @@
 							span_notice("You [sinched ? null : "un"]sinch [src]."),
 							span_hear("You hear stretching followed by metal clicking from [src]."))
 	log_game("[key_name(user)] [sinched ? "sinched":"unsinched"] secure environmental bag [src] at [AREACOORD(src)]")
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/structure/closet/body_bag/environmental/prisoner/syndicate
 	name = "syndicate prisoner transport bag"
@@ -287,14 +292,43 @@
 	contents_pressure_protection = 1
 	contents_thermal_insulation = 1
 	foldedbag_path = /obj/item/bodybag/environmental/prisoner/syndicate
-	weather_protection = list(WEATHER_ALL)
+	weather_protection = WEATHER_STORM
 	breakout_time = 8 MINUTES
 	sinch_time = 4 SECONDS
 
-/obj/structure/closet/body_bag/environmental/prisoner/syndicate/Initialize()
+/obj/structure/closet/body_bag/environmental/prisoner/syndicate/update_overlays()
+	. = ..()
+	var/obj/item/bodybag/environmental/prisoner/syndicate/inner_bag = foldedbag_instance
+	if(sinched && inner_bag && inner_bag.killing)
+		. += "kill_flash"
+
+/obj/structure/closet/body_bag/environmental/prisoner/syndicate/Initialize(mapload)
 	. = ..()
 	update_airtightness()
+	START_PROCESSING(SSobj, src)
 
+/obj/structure/closet/body_bag/environmental/prisoner/syndicate/togglelock(mob/living/user, silent)
+	var/obj/item/bodybag/environmental/prisoner/syndicate/inner_bag = foldedbag_instance
+	if(sinched && inner_bag && inner_bag.killing) // let him cook
+		user.visible_message(span_notice("You begin prying back the buckles on [src]."))
+		if(!(do_after(user, (sinch_time), src)))
+			return
+	. = ..()
+
+/obj/structure/closet/body_bag/environmental/prisoner/syndicate/process(delta_time)
+	var/obj/item/bodybag/environmental/prisoner/syndicate/inner_bag = foldedbag_instance
+	if(!inner_bag || !inner_bag.killing || !sinched)
+		return
+	for(var/mob/living/target in contents)
+		if(!target.reagents)
+			continue
+		if(target.stat == DEAD)
+			target.adjustFireLoss(10 * delta_time) // Husks after a few seconds
+			continue
+		target.reagents.add_reagent(/datum/reagent/clf3, 3 * delta_time)
+		target.reagents.add_reagent(/datum/reagent/phlogiston, 3 * delta_time)
+		target.reagents.add_reagent(/datum/reagent/teslium, 3 * delta_time)
+		target.reagents.add_reagent(/datum/reagent/toxin/acid/fluacid, 3 * delta_time)
 
 /obj/structure/closet/body_bag/environmental/prisoner/syndicate/update_airtightness()
 	if(sinched)
@@ -306,13 +340,13 @@
 	air_contents = null
 	air_contents = new(50) // liters
 	air_contents.set_temperature(T20C)
-	air_contents.set_moles(/datum/gas/oxygen, (ONE_ATMOSPHERE*50)/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
-	air_contents.set_moles(/datum/gas/nitrous_oxide, (ONE_ATMOSPHERE*50)/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD)
+	air_contents.set_moles(GAS_O2, (ONE_ATMOSPHERE*50)/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD)
+	air_contents.set_moles(GAS_NITROUS, (ONE_ATMOSPHERE*50)/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD)
 
 /obj/structure/closet/body_bag/environmental/prisoner/syndicate/Destroy()
+	STOP_PROCESSING(SSobj, src)
 	if(air_contents)
 		QDEL_NULL(air_contents)
-
 	return ..()
 
 /obj/structure/closet/body_bag/environmental/prisoner/syndicate/return_air()

@@ -17,7 +17,7 @@
 	name = "scary clown shoes"
 	desc = "Clown shoes often seen being worn by sewer clowns."
 	icon = 'yogstation/icons/obj/clothing/shoes.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/feet/feet.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/feet/feet.dmi'
 	icon_state = "scaryclownshoes"
 	item_state = "scaryclownshoes"
 
@@ -25,7 +25,7 @@
 	name = "bee shoes"
 	desc = "It's hip to wear bees."
 	icon = 'yogstation/icons/obj/clothing/shoes.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/feet/feet.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/feet/feet.dmi'
 	icon_state = "bee_shoes"
 	item_state = "bee_shoes"
 
@@ -37,7 +37,7 @@
 	strip_delay = 50
 	equip_delay_other = 50
 	resistance_flags = NONE
-	permeability_coefficient = 0.05 //Thick soles, and covers the ankle
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 60, RAD = 0, FIRE = 0, ACID = 0) //Thick soles, and covers the ankle
 	pocket_storage_component_path = /datum/component/storage/concrete/pockets/shoes
 
 /obj/item/clothing/shoes/fire_crocs
@@ -47,6 +47,6 @@
 	icon_state = "fire_crocs"
 	item_state = "fire_crocs"
 
-/obj/item/clothing/shoes/fire_crocs/Initialize()
+/obj/item/clothing/shoes/fire_crocs/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/fishingbonus,5)

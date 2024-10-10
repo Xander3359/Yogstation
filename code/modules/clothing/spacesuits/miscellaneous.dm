@@ -57,7 +57,6 @@ Contains:
 	desc = "An old, NASA CentCom branch designed, dark red space suit helmet."
 	icon_state = "void"
 	item_state = "void"
-	flash_protect = 0 // Flimsy film on the helmet shouldnt protect you from bright lights.
 
 /obj/item/clothing/suit/space/nasavoid
 	name = "NASA Voidsuit"
@@ -71,7 +70,6 @@ Contains:
 	desc = "A CentCom engineering dark red space suit helmet. While old and dusty, it still gets the job done."
 	icon_state = "void"
 	item_state = "void"
-	flash_protect = 2
 
 /obj/item/clothing/suit/space/nasavoid/old
 	name = "Engineering Voidsuit"
@@ -228,12 +226,25 @@ Contains:
 	armor = list(MELEE = 5, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, RAD = 10, FIRE = 0, ACID = 0)
 	strip_delay = 65
 
-/obj/item/clothing/suit/space/fragile/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(!torn && prob(50))
-		to_chat(owner, span_warning("[src] tears from the damage, breaking the air-tight seal!"))
-		clothing_flags &= ~STOPSPRESSUREDAMAGE
-		name = "torn [src]."
-		desc = "A bulky suit meant to protect the user during emergency situations, at least until someone tore a hole in the suit."
-		torn = TRUE
-		playsound(loc, 'sound/weapons/slashmiss.ogg', 50, 1)
-		playsound(loc, 'sound/effects/refill.ogg', 50, 1)
+/obj/item/clothing/suit/space/fragile/equipped(mob/user, slot)
+	. = ..()
+	if(slot_flags & slot)
+		RegisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK, PROC_REF(after_block))
+	else
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
+
+/obj/item/clothing/suit/space/fragile/dropped(mob/user)
+	if(user.get_item_by_slot(ITEM_SLOT_OCLOTHING) == src)
+		UnregisterSignal(user, COMSIG_HUMAN_AFTER_BLOCK)
+	return ..()
+
+/obj/item/clothing/suit/space/fragile/proc/after_block(mob/living/carbon/human/owner, block_result)
+	if(block_result || prob(50))
+		return
+	to_chat(owner, span_warning("[src] tears from the damage, breaking the air-tight seal!"))
+	clothing_flags &= ~STOPSPRESSUREDAMAGE
+	name = "torn [src]."
+	desc = "A bulky suit meant to protect the user during emergency situations, at least until someone tore a hole in the suit."
+	torn = TRUE
+	playsound(loc, 'sound/weapons/slashmiss.ogg', 50, 1)
+	playsound(loc, 'sound/effects/refill.ogg', 50, 1)

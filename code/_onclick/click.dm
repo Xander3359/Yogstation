@@ -65,11 +65,14 @@
 	* mob/RangedAttack(atom,params) - used only ranged, only used for tk and laser eyes but could be changed
 */
 /mob/proc/ClickOn( atom/A, params )
+	if(HAS_TRAIT(src, TRAIT_NOINTERACT)) // INTERCEPTED
+		to_chat(src, span_danger("You can't interact with anything right now!"))
+		return
 	if(world.time <= next_click)
 		return
 	next_click = world.time + 1
 
-	if(check_click_intercept(params,A))
+	if(check_click_intercept(params, A))
 		return
 
 	if(notransform)
@@ -80,7 +83,7 @@
 
 	var/list/modifiers = params2list(params)
 	if(modifiers["shift"] && modifiers["middle"])
-		ShiftMiddleClickOn(A)
+		ShiftMiddleClickOn(A, params)
 		return
 	if(modifiers["shift"] && modifiers["ctrl"])
 		CtrlShiftClickOn(A)
@@ -94,8 +97,7 @@
 	if(modifiers["alt"]) // alt and alt-gr (rightalt)
 		AltClickOn(A)
 		return
-	if(modifiers["ctrl"])
-		CtrlClickOn(A)
+	if(modifiers["ctrl"] && CtrlClickOn(A))
 		return
 
 	if(incapacitated(ignore_restraints = 1))
@@ -113,9 +115,12 @@
 		var/obj/mecha/M = loc
 		return M.click_action(A,src,params)
 
-	if(restrained())
+	if(HAS_TRAIT(src, TRAIT_HANDS_BLOCKED))
 		changeNext_move(CLICK_CD_HANDCUFFED)   //Doing shit in cuffs shall be vey slow
-		RestrainedClickOn(A)
+		UnarmedAttack(A, FALSE, modifiers)
+		return
+	
+	if(grab_mode && pulled(A))
 		return
 
 	if(in_throw_mode)
@@ -125,7 +130,8 @@
 	var/obj/item/W = get_active_held_item()
 
 	if(W == A)
-		W.attack_self(src)
+		if(!(LAZYACCESS(modifiers, RIGHT_CLICK) && W.attack_self_secondary(src, modifiers) != SECONDARY_ATTACK_CALL_NORMAL))
+			W.attack_self(src, modifiers)
 		update_inv_hands()
 		return
 
@@ -137,7 +143,7 @@
 		else
 			if(ismob(A))
 				changeNext_move(CLICK_CD_MELEE)
-			UnarmedAttack(A)
+			UnarmedAttack(A, FALSE, modifiers)
 		return
 
 	//Can't reach anything else in lockers or other weirdness
@@ -151,10 +157,11 @@
 		else
 			if(ismob(A))
 				changeNext_move(CLICK_CD_MELEE)
-			UnarmedAttack(A,1)
+			UnarmedAttack(A, TRUE, modifiers)
 	else
 		if(W)
-			W.afterattack(A,src,0,params)
+			if(!(LAZYACCESS(modifiers, RIGHT_CLICK) && W.afterattack_secondary(A, src, FALSE, params) != SECONDARY_ATTACK_CALL_NORMAL))
+				W.afterattack(A, src, FALSE, params)
 		else
 			RangedAttack(A,params)
 
@@ -213,7 +220,7 @@
 	return ..() + contents
 
 /mob/living/DirectAccess(atom/target)
-	return ..() + GetAllContents()
+	return ..() + get_all_contents()
 
 /atom/proc/AllowClick()
 	return FALSE
@@ -258,7 +265,7 @@
 	proximity_flag is not currently passed to attack_hand, and is instead used
 	in human click code to allow glove touches only at melee range.
 */
-/mob/proc/UnarmedAttack(atom/A, proximity_flag)
+/mob/proc/UnarmedAttack(atom/A, proximity_flag, modifiers)
 	if(ismob(A))
 		changeNext_move(CLICK_CD_MELEE)
 	return
@@ -327,42 +334,30 @@
 */
 
 /mob/proc/CtrlClickOn(atom/A)
-	A.CtrlClick(src)
-	return
+	return A.CtrlClick(src)
 
 /atom/proc/CtrlClick(mob/user)
 	SEND_SIGNAL(src, COMSIG_CLICK_CTRL, user)
-	var/mob/living/ML = user
-	if(istype(ML))
-		ML.pulled(src)
+	return FALSE
 
-/mob/living/carbon/human/CtrlClick(mob/user)
-	if(ishuman(user) && Adjacent(user) && !user.incapacitated())
-		if(world.time < user.next_move)
-			return FALSE
-		var/mob/living/carbon/human/H = user
-		H.dna.species.grab(H, src, H.mind.martial_art)
-		H.changeNext_move(CLICK_CD_MELEE)
-	else
-		..()
+/mob/living/carbon/human/pulled(atom/movable/grabbed)
+	if(!ishuman(grabbed) || !Adjacent(grabbed) || incapacitated())
+		return ..()
+	if(world.time < next_move)
+		return TRUE
+	dna.species.grab(src, grabbed, mind.martial_art)
+	changeNext_move(CLICK_CD_MELEE)
+	return TRUE
+
 /*
 	Alt click
 	Unused except for AI
 */
 /mob/proc/AltClickOn(atom/A)
-	var/result = SEND_SIGNAL(src, COMSIG_ALT_CLICK_ON, A) //yogs start - has to be like this, otherwise stuff breaks
-	if(!result)
-		A.AltClick(src)
-	return //yogs end
-
-/mob/living/carbon/AltClickOn(atom/A)
-	if(!stat && mind && iscarbon(A) && A != src)
-		var/datum/antagonist/changeling/C = mind.has_antag_datum(/datum/antagonist/changeling)
-		if(C && C.chosen_sting)
-			C.chosen_sting.try_to_sting(src,A)
-			next_click = world.time + 5
-			return
-	..()
+	. = SEND_SIGNAL(src, COMSIG_MOB_ALTCLICKON, A)
+	if(. & COMSIG_MOB_CANCEL_CLICKON)
+		return
+	A.AltClick(src)
 
 /atom/proc/AltClick(mob/user)
 	SEND_SIGNAL(src, COMSIG_CLICK_ALT, user)
@@ -389,8 +384,8 @@
 	A.CtrlShiftClick(src)
 	return
 
-/mob/proc/ShiftMiddleClickOn(atom/A)
-	src.pointed(A)
+/mob/proc/ShiftMiddleClickOn(atom/A, params)
+	src.pointed(A, params)
 	return
 
 /atom/proc/CtrlShiftClick(mob/user)
@@ -409,7 +404,7 @@
 /mob/living/LaserEyes(atom/A, params)
 	changeNext_move(CLICK_CD_RANGE)
 
-	var/obj/item/projectile/beam/LE = new /obj/item/projectile/beam( loc )
+	var/obj/projectile/beam/LE = new /obj/projectile/beam( loc )
 	LE.icon = 'icons/effects/genetics.dmi'
 	LE.icon_state = "eyelasers"
 	playsound(usr.loc, 'sound/weapons/taser2.ogg', 75, 1)
@@ -420,32 +415,10 @@
 	LE.fire()
 
 // Simple helper to face what you clicked on, in case it should be needed in more than one place
-/mob/proc/face_atom(atom/A)
-	if( buckled || stat != CONSCIOUS || !A || !x || !y || !A.x || !A.y )
+/mob/face_atom(atom/A, forced = FALSE)
+	if(buckled || stat != CONSCIOUS)
 		return
-	var/dx = A.x - x
-	var/dy = A.y - y
-	if(!dx && !dy) // Wall items are graphically shifted but on the floor
-		if(A.pixel_y > 16)
-			setDir(NORTH)
-		else if(A.pixel_y < -16)
-			setDir(SOUTH)
-		else if(A.pixel_x > 16)
-			setDir(EAST)
-		else if(A.pixel_x < -16)
-			setDir(WEST)
-		return
-
-	if(abs(dx) < abs(dy))
-		if(dy > 0)
-			setDir(NORTH)
-		else
-			setDir(SOUTH)
-	else
-		if(dx > 0)
-			setDir(EAST)
-		else
-			setDir(WEST)
+	return ..()
 
 //debug
 /atom/movable/screen/proc/scale_to(x1,y1)
@@ -480,6 +453,16 @@
 	M.Scale(px/sx, py/sy)
 	transform = M
 
+/atom/movable/screen/click_catcher/Initialize(mapload, datum/hud/hud_owner)
+	. = ..()
+	RegisterSignal(SSmapping, COMSIG_PLANE_OFFSET_INCREASE, PROC_REF(offset_increased))
+	offset_increased(SSmapping, 0, SSmapping.max_plane_offset)
+
+// Draw to the lowest plane level offered
+/atom/movable/screen/click_catcher/proc/offset_increased(datum/source, old_offset, new_offset)
+	SIGNAL_HANDLER
+	SET_PLANE_W_SCALAR(src, initial(plane), new_offset)
+
 /atom/movable/screen/click_catcher/Click(location, control, params)
 	var/list/modifiers = params2list(params)
 	if(modifiers["middle"] && iscarbon(usr))
@@ -509,7 +492,7 @@
 
 /mob/proc/check_click_intercept(params,A)
 	//Client level intercept
-	if(client && client.click_intercept)
+	if(client?.click_intercept)
 		if(call(client.click_intercept, "InterceptClickOn")(src, params, A))
 			return TRUE
 

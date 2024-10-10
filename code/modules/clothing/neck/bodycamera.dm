@@ -9,6 +9,7 @@
 	desc = "A wearable camera, capable of streaming a live feed."
 	icon_state = "sec_bodycam_off"
 	item_state = "sec_bodycam"
+	worn_icon_state = "sec_bodycam"
 	var/prefix = "sec"//used for sprites, miner etc
 	strip_delay = 1 SECONDS //takes one second to strip, so a downed officer can be un-cammed quickly
 	actions_types = list(/datum/action/item_action/toggle_bodycam)
@@ -18,7 +19,7 @@
 	var/preset = FALSE //if true, the camera is already configured and cannot be reset
 	var/mob/listeningTo //This code is simular to the code for the RCL.
 
-/obj/item/clothing/neck/bodycam/Initialize()
+/obj/item/clothing/neck/bodycam/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NO_STORAGE, TRAIT_GENERIC)
 	bodcam = new(src)
@@ -26,7 +27,7 @@
 	bodcam.network = list("ss13")
 	bodcam.internal_light = FALSE
 	bodcam.status = FALSE
-	update_icon()
+	update_appearance()
 
 /obj/item/clothing/neck/bodycam/attack_self(mob/user)
 	if(!setup)
@@ -39,7 +40,7 @@
 		bodcam.status = TRUE
 		to_chat(user, span_notice("You turn on the body camera."))
 		getMobhook(user)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/item/clothing/neck/bodycam/AltClick(mob/user)
 	if(preset)
@@ -52,10 +53,10 @@
 		bodcam.network[1] = temp
 		setup = TRUE
 		bodcam.status = TRUE
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
-/obj/item/clothing/neck/bodycam/update_icon()
-	..()
+/obj/item/clothing/neck/bodycam/update_icon_state()
+	. = ..()
 	var/suffix = "off"
 	if(bodcam.status)
 		suffix = "on"
@@ -63,7 +64,7 @@
 	item_state = "[prefix]_bodycam_[suffix]"
 	for(var/X in actions)
 		var/datum/action/A = X
-		A.UpdateButtonIcon()
+		A.build_all_button_icons()
 
 /obj/item/clothing/neck/bodycam/examine(mob/user)
 	.=..()
@@ -88,11 +89,11 @@
 
 /obj/item/clothing/neck/bodycam/emp_act(severity)
 	. = ..()
-	if(prob(150/severity))
+	if(prob(15 * severity))
 		Disconnect()
 		bodcam.c_tag = null
 		bodcam.network[1] = null //requires a reset
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 /obj/item/clothing/neck/bodycam/Destroy()
 	Disconnect()
@@ -125,7 +126,8 @@
 	if(listeningTo)
 		UnregisterSignal(listeningTo, COMSIG_MOVABLE_MOVED)
 	listeningTo = to_hook
-	RegisterSignal(listeningTo, COMSIG_MOVABLE_MOVED, .proc/trigger)
+	RegisterSignal(listeningTo, COMSIG_MOVABLE_MOVED, PROC_REF(trigger))
+	GLOB.cameranet.updatePortableCamera(bodcam)
 
 /obj/item/clothing/neck/bodycam/proc/trigger(mob/user)
 	if(!bodcam.status)//this is a safety in case of some fucky wucky shit. This SHOULD not ever be true but sometimes it is anyway :(
@@ -140,11 +142,12 @@
 	prefix = "miner"
 	icon_state = "miner_bodycam_off"
 	item_state = "miner_bodycam"
+	worn_icon_state = "miner_bodycam"
 	setup = TRUE
 	preset = TRUE
 	resistance_flags = FIRE_PROOF //For showing off to your friends about how you can kill an ashdrake, or some shit
 
-/obj/item/clothing/neck/bodycam/miner/Initialize()
+/obj/item/clothing/neck/bodycam/miner/Initialize(mapload)
 	. = ..()
 	bodcam.network[1] = "mine"
 	bodcam.c_tag = "Unactivated Miner Body Camera"

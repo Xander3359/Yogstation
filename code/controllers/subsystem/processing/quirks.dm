@@ -11,27 +11,36 @@ PROCESSING_SUBSYSTEM_DEF(quirks)
 	var/list/quirks = list()		//Assoc. list of all roundstart quirk datum types; "name" = /path/
 	var/list/quirk_points = list()	//Assoc. list of quirk names and their "point cost"; positive numbers are good traits, and negative ones are bad
 	var/list/quirk_objects = list()	//A list of all quirk objects in the game, since some may process
-	var/list/quirk_blacklist = list() //A list a list of quirks that can not be used with each other. Format: list(quirk1,quirk2),list(quirk3,quirk4)
-
-/datum/controller/subsystem/processing/quirks/Initialize(timeofday)
-	if(!quirks.len)
-		SetupQuirks()
-
-	quirk_blacklist = list(
+	var/static/list/quirk_blacklist = list( //A list a list of quirks that can not be used with each other. Format: list(quirk1,quirk2),list(quirk3,quirk4)
 		list("Blind","Nearsighted"),
 		list("Jolly","Depression","Apathetic","Hypersensitive"),
 		list("Ageusia","Vegetarian","Deviant Tastes"),
 		list("Ananas Affinity","Ananas Aversion"),
 		list("Alcohol Tolerance","Light Drinker"),
-		list("Prosthetic Limb (Left Arm)","Prosthetic Limb"),
-		list("Prosthetic Limb (Right Arm)","Prosthetic Limb"),
-		list("Prosthetic Limb (Left Leg)","Prosthetic Limb"),
-		list("Prosthetic Limb (Right Leg)","Prosthetic Limb"),
-		list("Prosthetic Limb (Left Leg)","Paraplegic"),
-		list("Prosthetic Limb (Right Leg)","Paraplegic"),
-		list("Prosthetic Limb","Paraplegic")
-	)
+		list("Prosthetic Limb (Left Arm)","Prosthetic Limb", "Body Purist"),
+		list("Prosthetic Limb (Right Arm)","Prosthetic Limb", "Body Purist"),
+		list("Prosthetic Limb (Left Leg)","Prosthetic Limb", "Body Purist"),
+		list("Prosthetic Limb (Right Leg)","Prosthetic Limb", "Body Purist"),
+		list("Prosthetic Limb (Left Leg)","Paraplegic", "Body Purist"),
+		list("Prosthetic Limb (Right Leg)","Paraplegic", "Body Purist"),
+		list("Prosthetic Limb", "Paraplegic"),
+		list("Prosthetic Limb", "Body Purist"),
+		list("Cybernetic Organ (Lungs)", "Body Purist"),
+		list("Cybernetic Organ (Heart)", "Body Purist"),
+		list("Cybernetic Organ (Liver)", "Body Purist"),
+		list("Upgraded Cybernetic Organ", "Body Purist")
+	) 
+
+/datum/controller/subsystem/processing/quirks/Initialize(timeofday)
+	if(!quirks.len)
+		SetupQuirks()
 	return SS_INIT_SUCCESS
+
+//basically a lazily loaded list of quirks, never access .quirks directly.
+/datum/controller/subsystem/processing/quirks/proc/get_quirks()
+	if(!quirks.len)
+		SetupQuirks()
+	return quirks
 
 /datum/controller/subsystem/processing/quirks/proc/SetupQuirks()
 	// Sort by Positive, Negative, Neutral; and then by name
@@ -45,6 +54,16 @@ PROCESSING_SUBSYSTEM_DEF(quirks)
 /datum/controller/subsystem/processing/quirks/proc/AssignQuirks(mob/living/user, client/cli, spawn_effects)
 	if(!checkquirks(user,cli)) return// Yogs -- part of Adding Mood as Preference
 
+	if(user.job)
+		for(var/V in cli.prefs.all_quirks)
+			var/datum/quirk/Q = quirks[V]
+			if(Q)
+				Q = new Q (no_init = TRUE)
+				if(user.job in Q.job_blacklist)
+					to_chat(cli, span_danger("One or more of your quirks is incompatible with your job so all have been removed."))
+					return
+				qdel(Q)//clean up afterwards
+
 	var/badquirk = FALSE
 
 	for(var/V in cli.prefs.all_quirks)
@@ -57,3 +76,81 @@ PROCESSING_SUBSYSTEM_DEF(quirks)
 			badquirk = TRUE
 	if(badquirk)
 		cli.prefs.save_character()
+
+/// Takes a list of quirk names and returns a new list of quirks that would
+/// be valid.
+/// If no changes need to be made, will return the same list.
+/// Expects all quirk names to be unique, but makes no other expectations.
+/datum/controller/subsystem/processing/quirks/proc/filter_invalid_quirks(list/quirks, client_or_prefs)
+	var/list/new_quirks = list()
+	var/list/positive_quirks = list()
+	var/balance = 0
+
+	var/datum/preferences/prefs = client_or_prefs
+
+	if (istype(client_or_prefs, /client))
+		var/client/client = client_or_prefs
+		prefs = client.prefs
+
+	// If moods are globally enabled, or this guy does indeed have his mood pref set to Enabled
+	var/ismoody = (!CONFIG_GET(flag/disable_human_mood) || (prefs.read_preference(/datum/preference/toggle/mood_enabled)))
+
+	var/list/all_quirks = get_quirks() //forces a load of the quirks if they aren't setup already
+
+	for (var/quirk_name in quirks)
+		var/datum/quirk/quirk = all_quirks[quirk_name]
+		if (isnull(quirk))
+			continue
+
+		if (initial(quirk.mood_quirk) && !ismoody)
+			continue
+
+		// Returns error string, FALSE if quirk is okay to have
+		var/datum/quirk/quirk_obj = new quirk(no_init = TRUE)
+		if (quirk_obj?.check_quirk(prefs))
+			continue
+		qdel(quirk_obj)
+
+		var/blacklisted = FALSE
+
+		for (var/list/blacklist as anything in quirk_blacklist)
+			if (!(quirk in blacklist))
+				continue
+
+			for (var/other_quirk in blacklist)
+				if (other_quirk in new_quirks)
+					blacklisted = TRUE
+					break
+
+			if (blacklisted)
+				break
+
+		if (blacklisted)
+			continue
+
+		var/value = initial(quirk.value)
+		if (value > 0)
+			if (positive_quirks.len == MAX_QUIRKS)
+				continue
+
+			positive_quirks[quirk_name] = value
+
+		balance += value
+		new_quirks += quirk_name
+
+	if (balance > 0)
+		var/balance_left_to_remove = balance
+
+		for (var/positive_quirk in positive_quirks)
+			var/value = positive_quirks[positive_quirk]
+			balance_left_to_remove -= value
+			new_quirks -= positive_quirk
+
+			if (balance_left_to_remove <= 0)
+				break
+
+	// It is guaranteed that if no quirks are invalid, you can simply check through `==`
+	if (new_quirks.len == quirks.len)
+		return quirks
+
+	return new_quirks

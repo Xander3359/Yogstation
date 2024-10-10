@@ -3,7 +3,7 @@
 	icon_state = "0"
 	state = 0
 
-/obj/structure/frame/computer/attackby(obj/item/P, mob/user, params)
+/obj/structure/frame/computer/attackby(obj/item/P, mob/living/user, params)
 	add_fingerprint(user)
 	switch(state)
 		if(0)
@@ -118,7 +118,7 @@
 				transfer_fingerprints_to(B)
 				qdel(src)
 				return
-	if(user.a_intent == INTENT_HARM)
+	if(user.combat_mode)
 		return ..()
 
 
@@ -143,7 +143,7 @@
 	setDir(turn(dir, -90))
 
 /obj/structure/frame/computer/MouseDrop_T(atom/dropping, mob/user)
-	if(istype(dropping, /obj/item/circuitboard))
+	if(istype(dropping, /obj/item/circuitboard) && !issilicon(user))
 		attackby(dropping, user)
 	else
 		..()

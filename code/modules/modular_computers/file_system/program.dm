@@ -16,12 +16,12 @@
 	/// Short description of this program's function.
 	var/extended_desc = "N/A"
 	/// Category in the NTDownloader.
-	var/category = PROGRAM_CATEGORY_MISC
+	var/category
 	/// Program-specific screen icon state
 	var/program_icon_state = null
 	/// Set to 1 for program to require nonstop NTNet connection to run. If NTNet connection is lost program crashes.
 	var/requires_ntnet = FALSE
-	/// Optional, if above is set to 1 checks for specific function of NTNet (currently NTNET_SOFTWAREDOWNLOAD, NTNET_PEERTOPEER, NTNET_SYSTEMCONTROL and NTNET_COMMUNICATION)
+	/// Optional, if above is set to 1 checks for specific function of NTNet (currently NTNET_SOFTWAREDOWNLOAD and NTNET_COMMUNICATION)
 	var/requires_ntnet_feature = 0
 	/// NTNet status, updated every tick by computer running this program. Don't use this for checks if NTNet works, computers do that. Use this for calculations, etc.
 	var/ntnet_status = 1
@@ -68,7 +68,7 @@
 // Relays icon update to the computer.
 /datum/computer_file/program/proc/update_computer_icon()
 	if(computer)
-		computer.update_icon()
+		computer.update_appearance()
 
 // Attempts to create a log in global ntnet datum. Returns 1 on success, 0 on fail.
 /datum/computer_file/program/proc/generate_network_log(text)
@@ -121,7 +121,7 @@
   *transfer, if TRUE and access_to_check is null, will tell this proc to use the program's transfer_access in place of access_to_check
   *access can contain a list of access numbers to check against. If access is not empty, it will be used istead of checking any inserted ID.
 */
-/datum/computer_file/program/proc/can_run(mob/user, loud = FALSE, access_to_check, transfer = FALSE, var/list/access)
+/datum/computer_file/program/proc/can_run(mob/user, loud = FALSE, access_to_check, transfer = FALSE, list/access)
 	// Defaults to required_access
 	if(!access_to_check)
 		if(transfer && transfer_access)
@@ -237,7 +237,7 @@
 				program_state = PROGRAM_STATE_BACKGROUND // Should close any existing UIs
 
 				computer.active_program = null
-				computer.update_icon()
+				computer.update_appearance(UPDATE_ICON)
 				ui.close()
 
 				if(user && istype(user))

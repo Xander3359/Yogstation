@@ -21,9 +21,9 @@
 	///if the mask should cluwne you when you put it on
 	var/auto_cluwne = TRUE
 
-/obj/item/clothing/mask/yogs/cluwne/Initialize()
+/obj/item/clothing/mask/yogs/cluwne/Initialize(mapload)
 	.=..()
-	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT(type))
 
 /**
   * Plays one of three cluwne laughs
@@ -56,7 +56,7 @@
 	. = ..()
 	if(!ishuman(user))
 		return
-	if(slot == SLOT_WEAR_MASK)
+	if(slot == ITEM_SLOT_MASK)
 		play_laugh()
 		if(auto_cluwne)
 			var/mob/living/carbon/human/H = user
@@ -69,7 +69,7 @@
   */
 /obj/item/clothing/mask/yogs/cluwne/happy_cluwne
 	name = "Happy Cluwne Mask"
-	desc = "The mask of a poor cluwne that has been scrubbed of its curse by the Nanotrasen supernatural machinations division. Guaranteed to be 99% curse free and 99.9% not haunted. "
+	desc = "The mask of a poor cluwne that has been scrubbed of its curse by the Nanotrasen supernatural machinations division. Guaranteed to be 99% curse free and 99.9% not haunted."
 	item_flags = ABSTRACT
 	clothing_flags = VOICEBOX_TOGGLABLE
 	auto_cluwne = FALSE
@@ -79,9 +79,9 @@
 	/// If active, creates a floor cluwne with the user as a target
 	var/does_floor_cluwne = FALSE
 
-/obj/item/clothing/mask/yogs/cluwne/happy_cluwne/Initialize()
+/obj/item/clothing/mask/yogs/cluwne/happy_cluwne/Initialize(mapload)
 	.=..()
-	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+	REMOVE_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT(type))
 	if(prob(1)) //this function pre-determines the logic of the cluwne mask. applying and reapplying the mask does not alter or change anything
 		does_cluwne = TRUE
 		does_floor_cluwne = FALSE
@@ -94,13 +94,13 @@
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
-	if(slot == SLOT_WEAR_MASK)
+	if(slot == ITEM_SLOT_MASK)
 		if(does_cluwne)
 			log_admin("[key_name(H)] was made into a cluwne by [src]")
 			message_admins("[key_name(H)] got cluwned by [src]")
 			to_chat(H, span_userdanger("The masks straps suddenly tighten to your face and your thoughts are erased by a horrible green light!"))
 			H.dropItemToGround(src)
-			ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
+			ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT(type))
 			H.cluwneify()
 			qdel(src)
 		else if(does_floor_cluwne)
@@ -206,7 +206,7 @@
 	name = "banana mask"
 	desc = "Do you want a banana?"
 	clothing_flags = MASKINTERNALS
-	mob_overlay_icon = 'yogstation/icons/mob/large-worn-icons/64x64/masks.dmi'
+	worn_icon = 'yogstation/icons/mob/large-worn-icons/64x64/masks.dmi'
 	icon_state = "bananamask"
 	item_state = "bananamask"
 	worn_x_dimension = 64
@@ -226,7 +226,7 @@
 
 /obj/item/clothing/mask/yogs/freddy
 	name = "brown bear mask"
-	desc = "A mask representing a old pizza place mascot."
+	desc = "A mask representing an old pizza place mascot."
 	clothing_flags = MASKINTERNALS
 	flags_inv = HIDEEARS|HIDEFACE|HIDEFACIALHAIR|HIDEHAIR
 	icon_state = "freddy"
@@ -235,7 +235,7 @@
 
 /obj/item/clothing/mask/yogs/bonnie
 	name = "purple bunny mask"
-	desc = "A mask representing a old pizza place mascot."
+	desc = "A mask representing an old pizza place mascot."
 	clothing_flags = MASKINTERNALS
 	flags_inv = HIDEEARS|HIDEFACE|HIDEFACIALHAIR|HIDEHAIR
 	icon_state = "bonnie"
@@ -244,7 +244,7 @@
 
 /obj/item/clothing/mask/yogs/chica
 	name = "yellow chicken mask"
-	desc = "A mask representing a old pizza place mascot."
+	desc = "A mask representing an old pizza place mascot."
 	clothing_flags = MASKINTERNALS
 	flags_inv = HIDEEARS|HIDEFACE|HIDEFACIALHAIR|HIDEHAIR
 	icon_state = "chica"
@@ -253,7 +253,7 @@
 
 /obj/item/clothing/mask/yogs/foxy
 	name = "red fox mask"
-	desc = "A mask representing a old pizza place mascot."
+	desc = "A mask representing an old pizza place mascot."
 	clothing_flags = MASKINTERNALS
 	flags_inv = HIDEEARS|HIDEFACE|HIDEFACIALHAIR|HIDEHAIR
 	icon_state = "foxy"

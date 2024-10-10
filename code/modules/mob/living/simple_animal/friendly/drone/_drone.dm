@@ -22,7 +22,6 @@
 	icon_state = "drone_maint_grey"
 	icon_living = "drone_maint_grey"
 	icon_dead = "drone_maint_dead"
-	possible_a_intents = list(INTENT_HELP, INTENT_HARM)
 	health = 30
 	maxHealth = 30
 	unsuitable_atmos_damage = 0
@@ -35,10 +34,10 @@
 	sight = (SEE_TURFS | SEE_OBJS)
 	status_flags = (CANPUSH | CANSTUN | CANKNOCKDOWN)
 	gender = NEUTER
-	mob_biotypes = list(MOB_ROBOTIC)
+	mob_biotypes = MOB_ROBOTIC
 	speak_emote = list("chirps")
 	speech_span = SPAN_ROBOT
-	bubble_icon = "machine"
+	bubble_icon = BUBBLE_MACHINE
 	initial_language_holder = /datum/language_holder/drone
 	mob_size = MOB_SIZE_SMALL
 	has_unlimited_silicon_privilege = 1
@@ -48,8 +47,10 @@
 	faction = list("neutral","silicon","turret")
 	dextrous = TRUE
 	dextrous_hud_type = /datum/hud/dextrous/drone
-	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-	see_in_dark = 7
+	// Going for a sort of pale green here
+	lighting_cutoff_red = 30
+	lighting_cutoff_green = 35
+	lighting_cutoff_blue = 25
 	can_be_held = TRUE
 	held_items = list(null, null)
 	ignores_capitalism = TRUE // Yogs -- Lets drones buy a damned smoke for christ's sake
@@ -62,7 +63,7 @@
 	var/laws = {"\
 1. You may not involve yourself in the matters of another being, even if such matters conflict with Law Two or Law Three, unless the other being is another Drone.
 2. You may not harm any being, regardless of intent or circumstance.
-3. Your goals are to build, maintain, repair, improve, and provide power to your assigned area to the best of your abilities, You must never actively work against these goals or leave your assigned area.\
+3. Your goals are to build, maintain, repair, improve, and provide power to your assigned area to the best of your abilities. You must never actively work against these goals or leave your assigned area.\
 "}
 	var/heavy_emp_damage = 25 //Amount of damage sustained if hit by a heavy EMP pulse
 	var/alarms = list("Atmosphere" = list(), "Fire" = list(), "Power" = list())
@@ -89,7 +90,7 @@
 	. += "<h2>Current Drone Laws:</h2>"
 	. += replacetext(laws, "\n", "<br>")
 
-/mob/living/simple_animal/drone/Initialize()
+/mob/living/simple_animal/drone/Initialize(mapload)
 	. = ..()
 	GLOB.drones_list += src
 	access_card = new /obj/item/card/id(src)
@@ -100,17 +101,17 @@
 	
 	if(default_storage)
 		var/obj/item/I = new default_storage(src)
-		equip_to_slot_or_del(I, SLOT_GENERC_DEXTROUS_STORAGE)
+		equip_to_slot_or_del(I, ITEM_SLOT_DEX_STORAGE)
 	if(default_hatmask)
 		var/obj/item/I = new default_hatmask(src)
-		equip_to_slot_or_del(I, SLOT_HEAD)
+		equip_to_slot_or_del(I, ITEM_SLOT_HEAD)
 
 	ADD_TRAIT(access_card, TRAIT_NODROP, ABSTRACT_ITEM_TRAIT)
 
 	alert_drones(DRONE_NET_CONNECT)
 
 	for(var/datum/atom_hud/data/diagnostic/diag_hud in GLOB.huds)
-		diag_hud.add_to_hud(src)
+		diag_hud.add_atom_to_hud(src)
 
 	if(pacifism)
 		ADD_TRAIT(src, TRAIT_PACIFISM, JOB_TRAIT)
@@ -161,8 +162,11 @@
 	alert_drones(DRONE_NET_DISCONNECT)
 
 
-/mob/living/simple_animal/drone/gib()
+/mob/living/simple_animal/drone/gib(no_brain, no_organs, no_bodyparts, no_items)
 	dust()
+
+/mob/living/simple_animal/drone/get_butt_sprite()
+	return BUTT_SPRITE_DRONE
 
 /mob/living/simple_animal/drone/ratvar_act()
 	if(status_flags & GODMODE)
@@ -229,9 +233,9 @@
 	. = ..()
 	if(. & EMP_PROTECT_SELF)
 		return
-	Stun(100)
+	Stun(10 * severity)
 	to_chat(src, span_danger("<b>ER@%R: MME^RY CO#RU9T!</b> R&$b@0tin)..."))
-	if(severity == 1)
+	if(severity > EMP_LIGHT)
 		adjustBruteLoss(heavy_emp_damage)
 		to_chat(src, span_userdanger("HeAV% DA%^MMA+G TO I/O CIR!%UUT!"))
 
@@ -288,5 +292,5 @@
 	// Why would bees pay attention to drones?
 	return 1
 
-/mob/living/simple_animal/drone/electrocute_act(shock_damage, obj/source, siemens_coeff = 1, safety = 0, tesla_shock = 0, illusion = 0, stun = TRUE)
+/mob/living/simple_animal/drone/electrocute_act(shock_damage, obj/source, siemens_coeff = 1, zone = null, override = FALSE, tesla_shock = FALSE, illusion = FALSE, stun = TRUE, gib = FALSE)
 	return 0 //So they don't die trying to fix wiring

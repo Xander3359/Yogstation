@@ -26,6 +26,10 @@
 		return
 	if(M.client)
 		cmd_mentor_pm(M, null)
+	if(isaicamera(M))
+		var/mob/camera/ai_eye/aiEye = M
+		if(aiEye.ai.client)
+			cmd_mentor_pm(aiEye.ai, null)
 
 //takes input from cmd_mentor_pm_context, cmd_Mentor_pm_panel or /client/Topic and sends them a PM.
 //Fetching a message if needed. src is the sender and C is the target client
@@ -83,6 +87,15 @@
 		message_admins(log_message)
 		log_mentor(log_message)
 		return
+		
+	var/datum/DBQuery/add_mhelp_query = SSdbcore.NewQuery(
+		"INSERT INTO `[format_table_name("mentor_interactions")]` (round_id, ckey, ckey_mentor, target_ckey, target_mentor, message) VALUES (:round, :send, :smentor, :receive, :rmentor, :msg);",
+		list("round" = GLOB.round_id, "send" = ckey, "smentor" = is_mentor(), "receive" = C.ckey, "rmentor" = C.is_mentor(), "msg" = msg)
+	)
+	if(!add_mhelp_query.Execute())
+		message_admins("Failed insert mhelp into mhelp DB. Check the SQL error logs for more details.")
+	qdel(add_mhelp_query)
+
 	msg = emoji_parse(msg)
 	if(C)
 		send_mentor_sound(C)

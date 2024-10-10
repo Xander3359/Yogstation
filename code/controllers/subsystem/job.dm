@@ -3,10 +3,19 @@ SUBSYSTEM_DEF(job)
 	init_order = INIT_ORDER_JOBS
 	flags = SS_NO_FIRE
 
-	var/list/occupations = list()		//List of all jobs
-	var/list/datum/job/name_occupations = list()	//Dict of jobs, keys are titles
-	var/list/datum/job/name_occupations_all = list()	//Dict of ALL JOBS, EVEN DISABLED ONES, keys are titles
+	/// List of all jobs.
+	var/list/occupations = list()
+	/// List of jobs that can be joined through the starting menu.
+	var/list/datum/job/joinable_occupations = list()
+	/// Dictionary of all jobs, keys are titles.
+	var/list/name_occupations = list()
+	/// Dictionary of all jobs EVEN DISABLED, keys are types.
+	var/list/name_occupations_all = list()
 	var/list/type_occupations = list()	//Dict of all jobs, keys are types
+	/// List of all departments with joinable jobs.
+	var/list/datum/job_department/joinable_departments = list()
+	/// List of all joinable departments indexed by their typepath, sorted by their own display order.
+	var/list/datum/job_department/joinable_departments_by_type = list()
 	var/list/unassigned = list()		//Players who need jobs
 	var/initial_players_to_assign = 0 	//used for checking against population caps
 
@@ -18,11 +27,10 @@ SUBSYSTEM_DEF(job)
 	var/list/level_order = list(JP_HIGH,JP_MEDIUM,JP_LOW)
 
 /datum/controller/subsystem/job/Initialize(timeofday)
-	if(!occupations.len)
+	if(!length(occupations))
 		SetupOccupations()
 	if(CONFIG_GET(flag/load_jobs_from_txt))
 		LoadJobs()
-	generate_selectable_species()
 	set_overflow_role(CONFIG_GET(string/overflow_job))
 	return SS_INIT_SUCCESS
 
@@ -46,6 +54,11 @@ SUBSYSTEM_DEF(job)
 	if(!all_jobs.len)
 		to_chat(world, span_boldannounce("Error setting up jobs, no job datums found"))
 		return 0
+	
+	var/list/new_occupations = list()
+	var/list/new_joinable_occupations = list()
+	var/list/new_joinable_departments = list()
+	var/list/new_joinable_departments_by_type = list()
 
 	for(var/J in all_jobs)
 		var/datum/job/job = new J()
@@ -58,25 +71,64 @@ SUBSYSTEM_DEF(job)
 
 		name_occupations_all[job.title] = job
 
-		if(SEND_SIGNAL(job, SSmapping.config.map_name))	//Even though we initialize before mapping, this is fine because the config is loaded at new
+		if(SEND_SIGNAL(job, SSmapping.config.internal_name != "" ? SSmapping.config.internal_name : SSmapping.config.map_name))	//Even though we initialize before mapping, this is fine because the config is loaded at new
 			testing("Removed [job.type] due to map config")
 			continue
-		occupations += job
+
+		// All jobs are late joinable at the moment
+
+		new_occupations += job
+		new_joinable_occupations += job
 		name_occupations[job.title] = job
 		type_occupations[J] = job
 
-	return 1
+		if(!LAZYLEN(job.departments_list))
+			var/datum/job_department/department = new_joinable_departments_by_type[/datum/job_department/undefined]
+			if(!department)
+				department = new /datum/job_department/undefined()
+				new_joinable_departments_by_type[/datum/job_department/undefined] = department
+			department.add_job(job)
+			continue
+		for(var/department_type in job.departments_list)
+			var/datum/job_department/department = new_joinable_departments_by_type[department_type]
+			if(!department)
+				department = new department_type()
+				new_joinable_departments_by_type[department_type] = department
+			department.add_job(job)
+
+	sortTim(new_occupations, /proc/cmp_job_display_asc)
+
+	sortTim(new_joinable_departments_by_type, /proc/cmp_department_display_asc, associative = TRUE)
+	for(var/department_type in new_joinable_departments_by_type)
+		var/datum/job_department/department = new_joinable_departments_by_type[department_type]
+		sortTim(department.department_jobs, /proc/cmp_job_display_asc)
+		new_joinable_departments += department
+
+	occupations = new_occupations
+	joinable_occupations = sortTim(new_joinable_occupations, /proc/cmp_job_display_asc)
+	joinable_departments = new_joinable_departments
+	joinable_departments_by_type = new_joinable_departments_by_type
+
+	return TRUE
 
 
 /datum/controller/subsystem/job/proc/GetJob(rank)
-	if(!occupations.len)
+	RETURN_TYPE(/datum/job)
+	if(!length(occupations))
 		SetupOccupations()
 	return name_occupations[rank]
 
 /datum/controller/subsystem/job/proc/GetJobType(jobtype)
-	if(!occupations.len)
+	RETURN_TYPE(/datum/job)
+	if(!length(occupations))
 		SetupOccupations()
 	return type_occupations[jobtype]
+
+/datum/controller/subsystem/job/proc/get_department_type(department_type)
+	RETURN_TYPE(/datum/job_department)
+	if(!length(occupations))
+		SetupOccupations()
+	return joinable_departments_by_type[department_type]
 
 /datum/controller/subsystem/job/proc/GetPlayerAltTitle(mob/dead/new_player/player, rank)
 	return player.client.prefs.GetPlayerAltTitle(GetJob(rank))
@@ -88,7 +140,7 @@ SUBSYSTEM_DEF(job)
 		var/datum/job/job = GetJob(rank)
 		if(!job)
 			return FALSE
-		if(is_banned_from(player.ckey, rank) || QDELETED(player))
+		if(QDELETED(player) || is_banned_from(player.ckey, rank))
 			return FALSE
 		if(!job.player_old_enough(player.client))
 			return FALSE
@@ -135,7 +187,7 @@ SUBSYSTEM_DEF(job)
 			JobDebug("FOC incompatible with antagonist role, Player: [player]")
 			continue
 		// yogs start - Donor features, quiet round
-		if(((job.title in GLOB.command_positions) || (job.title in GLOB.nonhuman_positions)) && (player.client.prefs.yogtoggles & QUIET_ROUND))
+		if(((job.title in GLOB.command_positions) || (job.title in GLOB.nonhuman_positions)) && (player.client.prefs.read_preference(/datum/preference/toggle/quiet_mode)))
 			JobDebug("FOC quiet check failed, Player: [player]")
 			continue
 		// yogs end
@@ -256,6 +308,21 @@ SUBSYSTEM_DEF(job)
 		return TRUE
 	return FALSE
 
+/datum/controller/subsystem/job/proc/FillNetminPosition()
+	var/datum/job/job = GetJob("Network Admin")
+	if(!job)
+		return
+	for(var/i = job.total_positions, i > 0, i--)
+		if(job.current_positions >= job.total_positions) //If we assign a netmin before this proc is run, (malf rework?)
+			return TRUE
+		for(var/level in level_order)
+			var/list/candidates = list()
+			candidates = FindOccupationCandidates(job, level)
+			if(candidates.len)
+				var/mob/dead/new_player/candidate = pick(candidates)
+				if(AssignRole(candidate, "Network Admin"))
+					break
+
 /// Rolls a number of security based on the roundstart population
 /datum/controller/subsystem/job/proc/FillSecurityPositions()
 	var/coeff = CONFIG_GET(number/min_security_scaling_coeff)
@@ -302,6 +369,7 @@ SUBSYSTEM_DEF(job)
 	initial_players_to_assign = unassigned.len
 
 	JobDebug("DO, Len: [unassigned.len]")
+	GLOB.event_role_manager.setup_event_positions()
 	if(unassigned.len == 0)
 		return validate_required_jobs(required_jobs)
 
@@ -339,7 +407,8 @@ SUBSYSTEM_DEF(job)
 
 	//Check for an AI
 	JobDebug("DO, Running AI Check")
-	FillAIPosition()
+	if(FillAIPosition())
+		FillNetminPosition()
 	JobDebug("DO, AI Check end")
 
 	//Check for Security
@@ -436,28 +505,34 @@ SUBSYSTEM_DEF(job)
 
 //We couldn't find a job from prefs for this guy.
 /datum/controller/subsystem/job/proc/HandleUnassigned(mob/dead/new_player/player)
+	var/jobless_role = player.client.prefs.read_preference(/datum/preference/choiced/jobless_role)
+
 	if(PopcapReached())
 		RejectPlayer(player)
-	else if(player.client.prefs.joblessrole == BEOVERFLOW)
-		var/allowed_to_be_a_loser = !is_banned_from(player.ckey, SSjob.overflow_role)
-		if(QDELETED(player) || !allowed_to_be_a_loser)
-			RejectPlayer(player)
-		else
-			if(!AssignRole(player, SSjob.overflow_role))
+		return
+	
+	switch (jobless_role)
+		if (BEOVERFLOW)
+			var/allowed_to_be_a_loser = !is_banned_from(player.ckey, SSjob.overflow_role)
+			if(QDELETED(player) || !allowed_to_be_a_loser)
 				RejectPlayer(player)
-	else if(player.client.prefs.joblessrole == BERANDOMJOB)
-		if(!GiveRandomJob(player))
+			else
+				if(!AssignRole(player, SSjob.overflow_role))
+					RejectPlayer(player)
+		if (BERANDOMJOB)
+			if(!GiveRandomJob(player))
+				RejectPlayer(player)
+		if (RETURNTOLOBBY)
 			RejectPlayer(player)
-	else if(player.client.prefs.joblessrole == RETURNTOLOBBY)
-		RejectPlayer(player)
-	else //Something gone wrong if we got here.
-		var/message = "DO: [player] fell through handling unassigned"
-		JobDebug(message)
-		log_game(message)
-		message_admins(message)
-		RejectPlayer(player)
+		else //Something gone wrong if we got here.
+			var/message = "DO: [player] fell through handling unassigned"
+			JobDebug(message)
+			log_game(message)
+			message_admins(message)
+			RejectPlayer(player)
+
 //Gives the player the stuff he should have with his rank
-/datum/controller/subsystem/job/proc/EquipRank(mob/M, rank, joined_late = FALSE)
+/datum/controller/subsystem/job/proc/EquipRank(mob/living/M, rank, joined_late = FALSE)
 	var/mob/dead/new_player/newplayer
 	var/mob/living/living_mob
 	if(!joined_late)
@@ -491,7 +566,7 @@ SUBSYSTEM_DEF(job)
 		if(S)
 			S.JoinPlayerHere(living_mob, FALSE)
 		if(!S && !spawning_handled) //if there isn't a spawnpoint send them to latejoin, if there's no latejoin go yell at your mapper
-			log_world("Couldn't find a round start spawn point for [rank]")
+			log_mapping("Job [job.title] ([job.type]) couldn't find a round start spawn point.")
 			SendToLateJoin(living_mob)
 
 	var/alt_title = null
@@ -517,7 +592,7 @@ SUBSYSTEM_DEF(job)
 				handle_auto_deadmin_roles(M.client, rank)
 		to_chat(M, "<b>As the [alt_title ? alt_title : rank] you answer directly to [job.supervisors]. Special circumstances may change this.</b>")
 		job.radio_help_message(M)
-		if(job.req_admin_notify)
+		if((GLOB.admin_event && GLOB.admin_event.greet_role(M, job.type)) || job.req_admin_notify)
 			to_chat(M, "<b>You are playing a job that is important for Game Progression. If you have to disconnect, please notify the admins via adminhelp.</b>")
 		//YOGS start
 		if(job.space_law_notify)
@@ -537,9 +612,9 @@ SUBSYSTEM_DEF(job)
 	job.give_donor_stuff(living_mob, M) // yogs - Donor Features
 	job.give_cape(living_mob, M)
 	job.give_map_flare(living_mob, M)
-	var/obj/item/modular_computer/RPDA = locate(/obj/item/modular_computer/tablet) in living_mob.GetAllContents()
+	var/obj/item/modular_computer/RPDA = locate(/obj/item/modular_computer/tablet) in living_mob.get_all_contents()
 	if(istype(RPDA))
-		RPDA.device_theme = GLOB.pda_themes[M.client.prefs.pda_theme]
+		RPDA.device_theme = GLOB.pda_themes[M.client?.prefs.read_preference(/datum/preference/choiced/pda_theme)]
 		var/obj/item/computer_hardware/hard_drive/hard_drive = RPDA.all_components[MC_HDD]
 		var/datum/computer_file/program/pdamessager/msgr = locate(/datum/computer_file/program/pdamessager) in hard_drive.stored_files
 		if(msgr)
@@ -547,25 +622,27 @@ SUBSYSTEM_DEF(job)
 			msgr.receiving = TRUE
 	if(SSevents.holidays && SSevents.holidays["St. Patrick's Day"])
 		irish_override() // Assuming direct control.
-	else if(living_mob.job == "Bartender")
-		job.give_bar_choice(living_mob, M)
+	else if(living_mob.job == "Clerk")
+		job.give_clerk_choice(living_mob, M)
+	else if(living_mob.job == "Chaplain")
+		job.give_chapel_choice(living_mob, M)
 	log_game("[living_mob.real_name]/[M.client.ckey] joined the round as [living_mob.job].") //yogs - Job logging
 
 	return living_mob
 
 /datum/controller/subsystem/job/proc/irish_override()
-	var/datum/map_template/template = SSmapping.station_room_templates["St. Patrick's Day"]
+	var/datum/map_template/template = SSmapping.station_room_templates["Bar Irish"]
 
 	for(var/obj/effect/landmark/stationroom/box/bar/B in GLOB.landmarks_list)
 		template.load(B.loc, centered = FALSE)
 		qdel(B)
 
-/datum/controller/subsystem/job/proc/random_bar_init()
+/datum/controller/subsystem/job/proc/random_chapel_init()
 	try
 		var/list/player_box = list()
 		for(var/mob/H in GLOB.player_list)
-			if(H.client && H.client.prefs) // Prefs was null once and there was no bar
-				player_box += H.client.prefs.bar_choice
+			if(H.client && H.client.prefs) // Prefs was null once and there was no CHAPEL
+				player_box += H.client.prefs.read_preference(/datum/preference/choiced/chapel_choice)
 
 		var/choice
 		if(player_box.len == 0)
@@ -574,53 +651,117 @@ SUBSYSTEM_DEF(job)
 			choice = pick(player_box)
 
 		if(choice != "Random")
-			var/bar_sanitize = FALSE
-			for(var/A in GLOB.potential_box_bars)
+			var/chapel_sanitize = FALSE
+			for(var/A in GLOB.potential_box_chapels)
 				if(choice == A)
-					bar_sanitize = TRUE
+					chapel_sanitize = TRUE
 					break
-		
-			if(!bar_sanitize)
+
+			if(!chapel_sanitize)
 				choice = "Random"
-		
+
 		if(choice == "Random")
-			choice = pick(GLOB.potential_box_bars)
+			choice = pick(GLOB.potential_box_chapels)
 
 		var/datum/map_template/template = SSmapping.station_room_templates[choice]
 
 		if(isnull(template))
-			message_admins("WARNING: BAR TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
-			log_game("WARNING: BAR TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
-			for(var/backup_bar in GLOB.potential_box_bars)
-				template = SSmapping.station_room_templates[backup_bar]
+			message_admins("WARNING: CHAPEL TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+			log_game("WARNING: CHAPEL TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+			for(var/backup_chapel in GLOB.potential_box_chapels)
+				template = SSmapping.station_room_templates[backup_chapel]
 				if(!isnull(template))
 					break
-				message_admins("WARNING: BAR TEMPLATE [backup_bar] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
-				log_game("WARNING: BAR TEMPLATE [backup_bar] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+				message_admins("WARNING: CHAPEL TEMPLATE [backup_chapel] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+				log_game("WARNING: CHAPEL TEMPLATE [backup_chapel] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
 
 		if(isnull(template))
-			message_admins("WARNING: BAR RECOVERY FAILED! THERE WILL BE NO BAR FOR THIS ROUND!")
-			log_game("WARNING: BAR RECOVERY FAILED! THERE WILL BE NO BAR FOR THIS ROUND!")
+			message_admins("WARNING: CHAPEL RECOVERY FAILED! THERE WILL BE NO CHAPEL FOR THIS ROUND!")
+			log_game("WARNING: CHAPEL RECOVERY FAILED! THERE WILL BE NO CHAPEL FOR THIS ROUND!")
 			return
 
-		for(var/obj/effect/landmark/stationroom/box/bar/B in GLOB.landmarks_list)
+		for(var/obj/effect/landmark/stationroom/box/chapel/B in GLOB.landmarks_list)
 			template.load(B.loc, centered = FALSE)
 			qdel(B)
 	catch(var/exception/e)
-		message_admins("RUNTIME IN RANDOM_BAR_INIT")
-		spawn_bar()
+		message_admins("RUNTIME IN RANDOM_CHAPEL_INIT")
+		spawn_chapel()
 		throw e
 
-/proc/spawn_bar()
+/proc/spawn_chapel()
 	var/datum/map_template/template
-	for(var/backup_bar in GLOB.potential_box_bars)
-		template = SSmapping.station_room_templates[backup_bar]
+	for(var/backup_chapel in GLOB.potential_box_chapels)
+		template = SSmapping.station_room_templates[backup_chapel]
 		if(!isnull(template))
 			break
 	if(isnull(template))
-		message_admins("UNABLE TO SPAWN BAR")
+		message_admins("UNABLE TO SPAWN CHAPEL")
+
+	for(var/obj/effect/landmark/stationroom/box/chapel/B in GLOB.landmarks_list)
+		template.load(B.loc, centered = FALSE)
+		qdel(B)
+
+/datum/controller/subsystem/job/proc/random_clerk_init()
+	try
+		var/list/player_box = list()
+		for(var/mob/H in GLOB.player_list)
+			if(H.client && H.client.prefs) // Prefs was null once and there was no clerk
+				player_box += H.client.prefs.read_preference(/datum/preference/choiced/clerk_choice)
+
+		var/choice
+		if(player_box.len == 0)
+			choice = "Random"
+		else
+			choice = pick(player_box)
+
+		if(choice != "Random")
+			var/clerk_sanitize = FALSE
+			for(var/A in GLOB.potential_box_clerk)
+				if(choice == A)
+					clerk_sanitize = TRUE
+					break
+		
+			if(!clerk_sanitize)
+				choice = "Random"
+		
+		if(choice == "Random")
+			choice = pick(GLOB.potential_box_clerk)
+
+		var/datum/map_template/template = SSmapping.station_room_templates[choice]
+
+		if(isnull(template))
+			message_admins("WARNING: CLERK TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+			log_game("WARNING: CLERK TEMPLATE [choice] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+			for(var/backup_clerk in GLOB.potential_box_clerk)
+				template = SSmapping.station_room_templates[backup_clerk]
+				if(!isnull(template))
+					break
+				message_admins("WARNING: CLERK TEMPLATE [backup_clerk] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+				log_game("WARNING: CLERK TEMPLATE [backup_clerk] FAILED TO LOAD! ATTEMPTING TO LOAD BACKUP")
+
+		if(isnull(template))
+			message_admins("WARNING: CLERK RECOVERY FAILED! THERE WILL BE NO CLERK SHOP FOR THIS ROUND!")
+			log_game("WARNING: CLERK RECOVERY FAILED! THERE WILL BE NO CLERK SHOP FOR THIS ROUND!")
+			return
+
+		for(var/obj/effect/landmark/stationroom/box/clerk/B in GLOB.landmarks_list)
+			template.load(B.loc, centered = FALSE)
+			qdel(B)
+	catch(var/exception/e)
+		message_admins("RUNTIME IN RANDOM_CLERK_INIT")
+		spawn_clerk()
+		throw e
+
+/proc/spawn_clerk()
+	var/datum/map_template/template
+	for(var/backup_clerk in GLOB.potential_box_clerk)
+		template = SSmapping.station_room_templates[backup_clerk]
+		if(!isnull(template))
+			break
+	if(isnull(template))
+		message_admins("UNABLE TO SPAWN CLERK")
 	
-	for(var/obj/effect/landmark/stationroom/box/bar/B in GLOB.landmarks_list)
+	for(var/obj/effect/landmark/stationroom/box/clerk/B in GLOB.landmarks_list)
 		template.load(B.loc, centered = FALSE)
 		qdel(B)
 
@@ -734,7 +875,7 @@ SUBSYSTEM_DEF(job)
 	var/oldjobs = SSjob.occupations
 	sleep(2 SECONDS)
 	for (var/datum/job/J in oldjobs)
-		INVOKE_ASYNC(src, .proc/RecoverJob, J)
+		INVOKE_ASYNC(src, PROC_REF(RecoverJob), J)
 
 /datum/controller/subsystem/job/proc/RecoverJob(datum/job/J)
 	var/datum/job/newjob = GetJob(J.title)
@@ -749,10 +890,16 @@ SUBSYSTEM_DEF(job)
 	M.forceMove(get_turf(src))
 
 /obj/structure/chair/JoinPlayerHere(mob/M, buckle)
+	. = ..()
 	// Placing a mob in a chair will attempt to buckle it, or else fall back to default.
 	if (buckle && isliving(M) && buckle_mob(M, FALSE, FALSE))
 		return
-	..()
+
+/obj/machinery/cryopod/JoinPlayerHere(mob/M, buckle)
+	. = ..()
+	open_machine()
+	if(iscarbon(M))
+		apply_effects_to_mob(M)
 
 /datum/controller/subsystem/job/proc/SendToLateJoin(mob/M, buckle = TRUE)
 	var/atom/destination
@@ -767,38 +914,50 @@ SUBSYSTEM_DEF(job)
 		return
 
 	//bad mojo
-	var/area/shuttle/arrival/A = GLOB.areas_by_type[/area/shuttle/arrival]
-	if(A)
-		//first check if we can find a chair
-		var/obj/structure/chair/C = locate() in A
-		if(C)
-			C.JoinPlayerHere(M, buckle)
-			return
-
-		//last hurrah
-		var/list/avail = list()
-		for(var/turf/T in A)
-			if(!is_blocked_turf(T, TRUE))
-				avail += T
-		if(avail.len)
-			destination = pick(avail)
-			destination.JoinPlayerHere(M, FALSE)
-			return
-
-	//pick an open spot on arrivals and dump em
-	var/list/arrivals_turfs = shuffle(get_area_turfs(/area/shuttle/arrival))
-	if(arrivals_turfs.len)
-		for(var/turf/T in arrivals_turfs)
-			if(!is_blocked_turf(T, TRUE))
-				T.JoinPlayerHere(M, FALSE)
-				return
-		//last chance, pick ANY spot on arrivals and dump em
-		destination = arrivals_turfs[1]
-		destination.JoinPlayerHere(M, FALSE)
+	if(SSmapping.config.cryo_spawn)
+		destination = get_cryo_spawn_points()
 	else
-		var/msg = "Unable to send mob [M] to late join!"
-		message_admins(msg)
-		CRASH(msg)
+		destination = get_last_resort_spawn_points()
+	
+	destination.JoinPlayerHere(M, buckle)
+
+/datum/controller/subsystem/job/proc/get_cryo_spawn_points()
+	var/area/shuttle/arrival/cryo_spawn_area = GLOB.areas_by_type[/area/crew_quarters/cryopods]
+	if(!isnull(cryo_spawn_area))
+		var/list/turf/available_turfs = list()
+		for (var/list/zlevel_turfs as anything in cryo_spawn_area.get_zlevel_turf_lists())
+			for (var/turf/arrivals_turf as anything in zlevel_turfs)
+				var/obj/machinery/cryopod/spawn_pod = locate() in arrivals_turf
+				if(!isnull(spawn_pod))
+					return spawn_pod
+				if(arrivals_turf.is_blocked_turf(TRUE))
+					continue
+				available_turfs += arrivals_turf
+
+		if(length(available_turfs))
+			return pick(available_turfs)
+
+	stack_trace("Unable to find cryo spawn point.")
+	return GET_ERROR_ROOM
+
+/datum/controller/subsystem/job/proc/get_last_resort_spawn_points()
+	var/area/shuttle/arrival/arrivals_area = GLOB.areas_by_type[/area/shuttle/arrival]
+	if(!isnull(arrivals_area))
+		var/list/turf/available_turfs = list()
+		for (var/list/zlevel_turfs as anything in arrivals_area.get_zlevel_turf_lists())
+			for (var/turf/arrivals_turf as anything in zlevel_turfs)
+				var/obj/structure/chair/shuttle_chair = locate() in arrivals_turf
+				if(!isnull(shuttle_chair))
+					return shuttle_chair
+				if(arrivals_turf.is_blocked_turf(TRUE))
+					continue
+				available_turfs += arrivals_turf
+
+		if(length(available_turfs))
+			return pick(available_turfs)
+
+	stack_trace("Unable to find last resort spawn point.")
+	return GET_ERROR_ROOM
 
 ///Lands specified mob at a random spot in the hallways
 /datum/controller/subsystem/job/proc/DropLandAtRandomHallwayPoint(mob/living/living_mob)

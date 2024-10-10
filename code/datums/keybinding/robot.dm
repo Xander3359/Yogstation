@@ -50,7 +50,7 @@
 
 /datum/keybinding/robot/intent_cycle/down(client/user)
 	var/mob/living/silicon/robot/R = user.mob
-	R.a_intent_change(INTENT_HOTKEY_LEFT)
+	R.set_combat_mode(!R.combat_mode)
 	return TRUE
 
 
@@ -63,4 +63,22 @@
 /datum/keybinding/robot/unequip_module/down(client/user)
 	var/mob/living/silicon/robot/R = user.mob
 	R.uneq_active()
+	return TRUE
+
+/datum/keybinding/robot/undeploy
+	category = CATEGORY_AI
+	hotkey_keys = list("=")
+	name = "undeploy"
+	full_name = "Disconnect from shell"
+	description = "Returns you to your AI core"
+
+/datum/keybinding/robot/undeploy/down(client/user)
+	. = ..()
+	if(.)
+		return
+	var/mob/living/silicon/robot/shell/our_shell = user.mob
+	//We make sure our shell is actually a shell
+	if(our_shell.shell == FALSE)
+		return
+	our_shell.undeploy()
 	return TRUE

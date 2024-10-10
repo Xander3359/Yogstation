@@ -6,18 +6,18 @@
 	desc = "A rare collectable hat."
 
 /obj/item/clothing/head/collectable/petehat
-	name = "ultra rare Pete's hat!"
+	name = "ultra rare Pete's hat"
 	desc = "It smells faintly of plasma."
 	icon_state = "petehat"
 
 /obj/item/clothing/head/collectable/slime
-	name = "collectable slime cap!"
+	name = "collectable slime cap"
 	desc = "It just latches right in place!"
 	icon_state = "slime"
 	dynamic_hair_suffix = ""
 
 /obj/item/clothing/head/collectable/xenom
-	name = "collectable xenomorph helmet!"
+	name = "collectable xenomorph helmet"
 	desc = "Hiss hiss hiss!"
 	icon_state = "xenom"
 
@@ -104,14 +104,17 @@
 	dog_fashion = /datum/dog_fashion/head/kitty
 
 /obj/item/clothing/head/collectable/kitty/equipped(mob/living/carbon/human/user, slot)
-	if(ishuman(user) && slot == SLOT_HEAD)
-		update_icon(user)
+	if(ishuman(user) && slot == ITEM_SLOT_HEAD)
+		update_appearance(UPDATE_ICON)
 		user.update_inv_head() //Color might have been changed by update_icon.
 	..()
 
-/obj/item/clothing/head/collectable/kitty/update_icon(mob/living/carbon/human/user)
-	if(ishuman(user))
-		add_atom_colour("#[user.hair_color]", FIXED_COLOUR_PRIORITY)
+/obj/item/clothing/head/collectable/kitty/update_icon(updates=ALL)
+	. = ..()
+	if(!ishuman(loc))
+		return
+	var/mob/living/carbon/human/loc_human = loc
+	add_atom_colour(loc_human.hair_color, FIXED_COLOUR_PRIORITY)
 
 /obj/item/clothing/head/collectable/rabbitears
 	name = "collectable rabbit ears"

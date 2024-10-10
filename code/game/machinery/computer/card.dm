@@ -14,7 +14,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 	desc = "You can use this to manage jobs and ID access."
 	icon_screen = "id"
 	icon_keyboard = "id_key"
-	req_one_access = list(ACCESS_HEADS, ACCESS_CHANGE_IDS)
+	req_one_access = list(ACCESS_COMMAND, ACCESS_CHANGE_IDS)
 	circuit = /obj/item/circuitboard/computer/card
 	var/obj/item/card/id/modify = null
 	var/mode = 0
@@ -32,6 +32,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 		"AI",
 		"Assistant",
 		"Cyborg",
+		"Synthetic",
 		"Captain",
 		"Head of Personnel",
 		"Head of Security",
@@ -59,7 +60,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 	if(modify)
 		. += span_notice("Alt-click to eject the ID card.")
 
-/obj/machinery/computer/card/Initialize()
+/obj/machinery/computer/card/Initialize(mapload)
 	. = ..()
 	change_position_cooldown = CONFIG_GET(number/id_console_jobslot_delay)
 
@@ -573,7 +574,7 @@ GLOBAL_VAR_INIT(time_last_changed_position, 0)
 	icon_screen = "idminor"
 	circuit = /obj/item/circuitboard/computer/card/minor
 
-/obj/machinery/computer/card/minor/Initialize()
+/obj/machinery/computer/card/minor/Initialize(mapload)
 	. = ..()
 	var/obj/item/circuitboard/computer/card/minor/typed_circuit = circuit
 	if(target_dept)

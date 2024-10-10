@@ -16,7 +16,7 @@
 	from doing this unless you absolutely know what you are doing, and have defined a
 	conversion in savefile.dm
 */
-/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female,var/roundstart = FALSE)//Roundstart argument builds a specific list for roundstart parts where some parts may be locked
+/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female, roundstart = FALSE)//Roundstart argument builds a specific list for roundstart parts where some parts may be locked
 	if(!istype(L))
 		L = list()
 	if(!istype(male))
@@ -61,6 +61,7 @@
 	var/dimension_y = 32
 	var/limbs_id // The limbs id supplied for full-body replacing features.
 	var/center = FALSE	//Should we center the sprite?
+	var/emissive = FALSE //is this emissive?
 
 //////////////////////
 // Hair Definitions //
@@ -857,6 +858,7 @@
 /datum/sprite_accessory/ipc_screens
 	icon = 'icons/mob/ipc_accessories.dmi'
 	color_src = EYECOLOR
+	emissive = TRUE
 
 /datum/sprite_accessory/ipc_screens/blue
 	name = "Blue"
@@ -875,6 +877,7 @@
 /datum/sprite_accessory/ipc_screens/blank
 	name = "Null"
 	icon_state = "blank"
+	emissive = FALSE
 
 /datum/sprite_accessory/ipc_screens/console
 	name = "Console"
@@ -2016,6 +2019,14 @@
 	name = "Light Tiger"
 	icon_state = "ltiger"
 
+/datum/sprite_accessory/tails/lizard/plated
+	name = "Plated"
+	icon_state = "plated"
+
+/datum/sprite_accessory/tails_animated/lizard/plated
+	name = "Plated"
+	icon_state = "plated"
+
 /datum/sprite_accessory/tails/lizard/spikes
 	name = "Spikes"
 	icon_state = "spikes"
@@ -2040,6 +2051,16 @@
 /datum/sprite_accessory/tails_animated/human/cat
 	name = "Cat"
 	icon_state = "cat"
+	color_src = HAIR
+
+/datum/sprite_accessory/tails/human/fox
+	name = "Fox"
+	icon_state = "fox"
+	color_src = HAIR
+
+/datum/sprite_accessory/tails_animated/human/fox
+	name = "Fox"
+	icon_state = "fox"
 	color_src = HAIR
 
 /datum/sprite_accessory/snouts
@@ -2114,7 +2135,13 @@
 /datum/sprite_accessory/ears/cat
 	name = "Cat"
 	icon_state = "cat"
-	hasinner = 1
+	hasinner = TRUE
+	color_src = HAIR
+
+/datum/sprite_accessory/ears/fox
+	name = "Fox"
+	icon_state = "fox"
+	hasinner = TRUE
 	color_src = HAIR
 
 /datum/sprite_accessory/wings/none
@@ -2143,6 +2170,24 @@
 	dimension_x = 46
 	center = TRUE
 	dimension_y = 34
+
+/datum/sprite_accessory/wings/plant
+	name = "Plant"
+	icon_state = "plant"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+	locked = TRUE
+	color_src = HAIR
+
+/datum/sprite_accessory/wings_open/plant
+	name = "Plant"
+	icon_state = "plant"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+	locked = TRUE
+	color_src = HAIR
 
 /datum/sprite_accessory/wings/dragon
 	name = "Dragon"
@@ -2192,6 +2237,93 @@
 	dimension_x = 96
 	center = TRUE
 	dimension_y = 32
+
+/datum/sprite_accessory/wings/plant
+	name = "Plant"
+	icon_state = "plant"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+	locked = TRUE
+	color_src = HAIR
+
+/datum/sprite_accessory/wings_open/plant
+	name = "Plant"
+	icon_state = "plant"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+	color_src = HAIR
+
+/datum/sprite_accessory/wings/plantdetails
+	name = "Plantdetails"
+	icon_state = "plantdetails"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+	locked = TRUE
+
+/datum/sprite_accessory/wings_open/plantdetails
+	name = "Plantdetails"
+	icon_state = "plantdetails"
+	dimension_x = 96
+	center = TRUE
+	dimension_y = 32
+
+/datum/sprite_accessory/wings/ethereal
+	name = "Ethereal"
+	icon_state = "ethereal"
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+	locked = TRUE
+	emissive = TRUE
+
+/datum/sprite_accessory/wings_open/ethereal
+	name = "Ethereal"
+	icon_state = "ethereal"
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+	emissive = TRUE
+
+/datum/sprite_accessory/wings/etherealdetails
+	name = "Etherealdetails"
+	icon_state = "etherealdetails"
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+	locked = TRUE
+	color_src = null
+	emissive = TRUE
+
+/datum/sprite_accessory/wings_open/etherealdetails
+	name = "Etherealdetails"
+	icon_state = "etherealdetails"
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+	color_src = null
+	emissive = TRUE
+
+/datum/sprite_accessory/wings/elytra
+	name = "Elytra"
+	icon_state = "elytra"
+	dimension_x = 32
+	center = TRUE
+	dimension_y = 32
+	locked = TRUE
+	color_src = EYECOLOR
+	emissive = TRUE
+
+/datum/sprite_accessory/wings_open/elytra
+	name = "Elytra"
+	icon_state = "elytra"
+	dimension_x = 64
+	center = TRUE
+	dimension_y = 32
+	color_src = EYECOLOR
+	emissive = TRUE
 
 /datum/sprite_accessory/frills
 	icon = 'icons/mob/mutant_bodyparts.dmi'
@@ -2278,6 +2410,14 @@
 	name = "Aquatic"
 	icon_state = "aqua"
 
+/datum/sprite_accessory/spines/plated
+	name = "Plated"
+	icon_state = "plated"
+
+/datum/sprite_accessory/spines_animated/plated
+	name = "Plated"
+	icon_state = "plated"
+
 /datum/sprite_accessory/legs 	//legs are a special case, they aren't actually sprite_accessories but are updated with them.
 	icon = null					//These datums exist for selecting legs on preference, and little else
 
@@ -2298,7 +2438,7 @@
 /datum/sprite_accessory/moth_wings
 	icon = 'yogstation/icons/mob/wings.dmi' //yogs moth sprite fix
 	color_src = null
-	
+
 /datum/sprite_accessory/moth_wingsopen
 	icon = 'icons/mob/moth_wingsopen.dmi'
 	color_src = null
@@ -2507,10 +2647,23 @@
 /datum/sprite_accessory/ethereal_mark
 	icon = 'icons/mob/mutant_bodyparts.dmi'
 	color_src = EYECOLOR
+	emissive = TRUE
+
+/datum/sprite_accessory/ethereal_mark/cheese
+	name = "Cheese"
+	icon_state = "cheese"
+
+/datum/sprite_accessory/ethereal_mark/druid
+	name = "Druid"
+	icon_state = "druid"
 
 /datum/sprite_accessory/ethereal_mark/eyes
 	name = "Eyes"
 	icon_state = "eyes"
+
+/datum/sprite_accessory/ethereal_mark/full
+	name = "Full"
+	icon_state = "full"
 
 /datum/sprite_accessory/ethereal_mark/diamond
 	name = "Diamond"
@@ -2520,13 +2673,33 @@
 	name = "Heart"
 	icon_state = "heart"
 
+/datum/sprite_accessory/ethereal_mark/mc
+	name = "M.C."
+	icon_state = "mc"
+
+/datum/sprite_accessory/ethereal_mark/nova
+	name = "Nova"
+	icon_state = "nova"
+
 /datum/sprite_accessory/ethereal_mark/omega
 	name = "Omega"
 	icon_state = "omega"
 
+/datum/sprite_accessory/ethereal_mark/onion
+	name = "Onion"
+	icon_state = "onion"
+
 /datum/sprite_accessory/ethereal_mark/plus
 	name = "Plus"
 	icon_state = "plus"
+
+/datum/sprite_accessory/ethereal_mark/shard
+	name = "Shard"
+	icon_state = "shard"
+
+/datum/sprite_accessory/ethereal_mark/stars
+	name = "Stars"
+	icon_state = "stars"
 
 /datum/sprite_accessory/ethereal_mark/triangle
 	name = "Triangle"
@@ -2535,6 +2708,140 @@
 /datum/sprite_accessory/ethereal_mark/x
 	name = "X"
 	icon_state = "x"
+
+//Preternis body weathering
+/datum/sprite_accessory/preternis_weathering
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+	color_src = null
+
+/datum/sprite_accessory/preternis_weathering/none
+	name = "None"
+	icon_state = "none"
+
+/datum/sprite_accessory/preternis_weathering/damaged
+	name = "Damaged"
+	icon_state = "damaged"
+
+/datum/sprite_accessory/preternis_weathering/rusted
+	name = "Rusted"
+	icon_state = "rusted"
+
+/datum/sprite_accessory/preternis_weathering/repaired
+	name = "Repaired"
+	icon_state = "repaired"
+
+/datum/sprite_accessory/preternis_weathering/fullchasis
+	name = "Full chassis"
+	icon_state = "fullchassis"
+
+/datum/sprite_accessory/preternis_weathering/fullbody
+	name = "Upper body"
+	icon_state = "fullbody"
+
+/datum/sprite_accessory/preternis_weathering/halfbody
+	name = "Upper body (minor)"
+	icon_state = "halfbody"
+
+/datum/sprite_accessory/preternis_weathering/rightarm
+	name = "Right arm"
+	icon_state = "rightarm"
+
+/datum/sprite_accessory/preternis_weathering/leftarm
+	name = "Left arm"
+	icon_state = "leftarm"
+
+/datum/sprite_accessory/preternis_weathering/fullarm
+	name = "Both arms"
+	icon_state = "fullarm"
+
+/datum/sprite_accessory/preternis_weathering/halfarm
+	name = "Both arms (minor)"
+	icon_state = "halfarm"
+
+/datum/sprite_accessory/preternis_weathering/waist
+	name = "Waist"
+	icon_state = "waist"
+
+//Preternis body weathering
+/datum/sprite_accessory/preternis_antenna
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+	color_src = MUTCOLORS
+
+/datum/sprite_accessory/preternis_antenna/none
+	name = "None"
+	icon_state = "none"
+
+/datum/sprite_accessory/preternis_antenna/dracula
+	name = "Dracula"
+	icon_state = "dracula"
+
+/datum/sprite_accessory/preternis_antenna/ghost
+	name = "Ghost"
+	icon_state = "ghost"
+
+/datum/sprite_accessory/preternis_antenna/army
+	name = "Army"
+	icon_state = "army"
+
+/datum/sprite_accessory/preternis_antenna/praetor
+	name = "Praetor"
+	icon_state = "praetor"
+
+/datum/sprite_accessory/preternis_antenna/field
+	name = "Field"
+	icon_state = "field"
+
+/datum/sprite_accessory/preternis_antenna/driver
+	name = "Driver"
+	icon_state = "driver"
+
+//Preternis eye
+/datum/sprite_accessory/preternis_eye
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+	color_src = EYECOLOR
+	emissive = TRUE
+
+/datum/sprite_accessory/preternis_eye/one
+	name = "Standard"
+	icon_state = "1"
+
+/datum/sprite_accessory/preternis_eye/two
+	name = "Focused"
+	icon_state = "2"
+	
+/datum/sprite_accessory/preternis_eye/three
+	name = "Fanned"
+	icon_state = "3"
+
+/datum/sprite_accessory/preternis_eye/four
+	name = "Horizontal"
+	icon_state = "4"
+
+/datum/sprite_accessory/preternis_eye/six
+	name = "Vertical"
+	icon_state = "6"
+
+/datum/sprite_accessory/preternis_eye/five
+	name = "Chambered"
+	icon_state = "5"
+
+/datum/sprite_accessory/preternis_eye/seven
+	name = "Compound"
+	icon_state = "7"
+
+/datum/sprite_accessory/preternis_eye/visionary
+	name = "Visionary"
+	icon_state = "8"
+
+//preternis core
+/datum/sprite_accessory/preternis_core
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+	color_src = EYECOLOR
+	emissive = TRUE
+
+/datum/sprite_accessory/preternis_core/core
+	name = "Core"
+	icon_state = "core"
 
 //Phytosian hair
 /datum/sprite_accessory/pod_hair

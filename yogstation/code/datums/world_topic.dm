@@ -31,6 +31,8 @@ GLOBAL_VAR_INIT(mentornoot, FALSE)
 	var/list/admin_keys = list()
 	for(var/adm in GLOB.permissions.admins)
 		var/client/C = adm
+		if(isnull(C)) //Yog we're having issues with null holders breaking adminwho, so let's skip nulls
+			continue
 		if(input["adminchannel"])
 			admin_keys += "[C][C.holder.fakekey ? "(Stealth)" : ""][C.is_afk() ? "(AFK)" : ""]"
 		else if(!C.holder.fakekey)
@@ -66,7 +68,7 @@ GLOBAL_VAR_INIT(mentornoot, FALSE)
 	require_comms_key = TRUE
 
 /datum/world_topic/msay/Run(list/input)
-	to_chat(GLOB.permissions.admins | GLOB.mentors, "<b><font color ='#8A2BE2'>[span_prefix("DISCORD MENTOR:")]</span> <EM>[input["admin"]]</EM>: [span_message("[input["msay"]]")]</span>")
+	to_chat(GLOB.permissions.admins | GLOB.mentors, "<b><font color ='#8A2BE2'>[span_prefix("DISCORD MENTOR:")]</span> <EM>[input["admin"]]</EM>: [span_message("[input["msay"]]")]</span>", confidential = TRUE)
 
 /datum/world_topic/mhelp
 	keyword = "mhelp"
@@ -84,11 +86,11 @@ GLOBAL_VAR_INIT(mentornoot, FALSE)
 		SEND_SOUND(C, sound('sound/misc/nootnoot.ogg'))
 	else
 		SEND_SOUND(C, sound('sound/items/bikehorn.ogg'))
-	to_chat(C, "<font color='purple'>Mentor PM from-<b>[discord_mentor_link(from, from_id)]</b>: [msg]</font>")
+	to_chat(C, "<font color='purple'>Mentor PM from-<b>[discord_mentor_link(from, from_id)]</b>: [msg]</font>", confidential = TRUE)
 	var/show_char_recip = !C.is_mentor() && CONFIG_GET(flag/mentors_mobname_only)
 	for(var/client/X in GLOB.mentors | GLOB.permissions.admins)
 		if(X != C)
-			to_chat(X, "<B><font color='green'>Mentor PM: [discord_mentor_link(from, from_id)]-&gt;[key_name_mentor(C, X, 0, 0, show_char_recip)]:</B> <font color ='cyan'> [msg]</font>")
+			to_chat(X, "<B><font color='green'>Mentor PM: [discord_mentor_link(from, from_id)]-&gt;[key_name_mentor(C, X, 0, 0, show_char_recip)]:</B> <font color ='cyan'> [msg]</font>", confidential = TRUE)
 	return 1
 
 /datum/world_topic/unlink

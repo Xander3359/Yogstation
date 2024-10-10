@@ -69,7 +69,7 @@
 
 
 /obj/mecha/proc/get_stats_part()
-	var/integrity = obj_integrity/max_integrity*100
+	var/integrity = 100 * (atom_integrity - integrity_failure) / (max_integrity - integrity_failure)
 	var/cell_charge = get_charge()
 	var/datum/gas_mixture/int_tank_air = 0
 	var/tank_pressure = 0
@@ -91,6 +91,8 @@
 	. = {"[report_internal_damage()]
 						[integrity<30?"[span_userdanger("DAMAGE LEVEL CRITICAL")]<br>":null]
 						<b>Integrity: </b> [integrity]%<br>
+						[overheat >= OVERHEAT_THRESHOLD ? "[span_userdanger("TEMPERATURE CRITICAL")]<br>" : ""]
+						<b>Temperature: </b> [overheat]&deg;C<br>
 						<b>Powercell charge: </b>[isnull(cell_charge)?"No powercell installed":"[cell.percent()]%"]<br>
 						<b>Air source: </b>[internal_tank?"[use_internal_tank?"Internal Airtank":"Environment"]":"Environment"]<br>
 						<b>Airtank pressure: </b>[internal_tank?"[tank_pressure]kPa":"N/A"]<br>
@@ -100,8 +102,7 @@
 						<b>Environment pressure: </b>[environment_pressure>WARNING_HIGH_PRESSURE ? span_danger("[environment_pressure]"): environment_pressure]kPa<br>
 						<b>Environment temperature: </b> [environment_temperature]&deg;K|[environment_temperature - T0C]&deg;C<br>
 						[dna_lock?"<b>DNA-locked:</b><br> <span style='font-size:10px;letter-spacing:-1px;'>[dna_lock]</span> \[<a href='?src=[REF(src)];reset_dna=1'>Reset</a>\]<br>":""]<br>
-						[thrusters_action.owner ? "<b>Thrusters: </b> [thrusters_active ? "Enabled" : "Disabled"]<br>" : ""]
-						[defence_action.owner ? "<b>Defence Mode: </b> [defence_mode ? "Enabled" : "Disabled"]<br>" : ""]
+						[defence_action.owner ? "<b>Defense Mode: </b> [defence_mode ? "Enabled" : "Disabled"]<br>" : ""]
 						[overload_action.owner ? "<b>Leg Actuators Overload: </b> [leg_overload_mode ? "Enabled" : "Disabled"]<br>" : ""]
 						[smoke_action.owner ? "<b>Smoke: </b> [smoke]<br>" : ""]
 						[zoom_action.owner ? "<b>Zoom: </b> [zoom_mode ? "Enabled" : "Disabled"]<br>" : ""]
@@ -210,6 +211,7 @@
 				[(state == 3) ?"[cell?"<a href='?src=[REF(src)];drop_cell=1;id_card=[REF(id_card)];user=[REF(user)]'>Drop power cell</a>":"No cell installed</br>"]":null]
 				[(state == 3) ?"[scanmod?"<a href='?src=[REF(src)];drop_scanmod=1;id_card=[REF(id_card)];user=[REF(user)]'>Drop scanning module</a>":"No scanning module installed</br>"]":null]
 				[(state == 3) ?"[capacitor?"<a href='?src=[REF(src)];drop_cap=1;id_card=[REF(id_card)];user=[REF(user)]'>Drop capacitor</a>":"No capacitor installed</br>"]":null]
+				[(state == 3) ?"[(silicon_pilot&&occupant)?"<a href='?src=[REF(src)];drop_mmi=1;id_card=[REF(id_card)];user=[REF(user)]'>Drop neural interface</a>":"No neural interface installed</br>"]":null]
 				[(state == 3) ?"--------------------</br>":null]
 				[(state>0) ?"<a href='?src=[REF(src)];set_internal_tank_valve=1;user=[REF(user)]'>Set Cabin Air Pressure</a>":null]
 			</body>
@@ -234,9 +236,15 @@
 
 	if(in_range(src, usr))
 		var/obj/item/card/id/id_card
-		if (href_list["id_card"])
+		if(href_list["id_card"])
 			id_card = locate(href_list["id_card"])
-			if (!istype(id_card))
+			if(!istype(id_card))
+				return
+		
+		var/mob/user
+		if(href_list["user"])
+			user = locate(href_list["user"])
+			if(!istype(user))
 				return
 
 		if(href_list["req_access"] && add_req_access && id_card)
@@ -258,20 +266,28 @@
 
 		if(href_list["drop_cell"])
 			if(state == 3)
-				cell.forceMove(get_turf(src))
+				if(!user.put_in_hands(cell))
+					cell.forceMove(get_turf(user))
 				cell = null
 			output_maintenance_dialog(id_card,usr)
 			return
 		if(href_list["drop_scanmod"])
 			if(state == 3)
-				scanmod.forceMove(get_turf(src))
+				if(!user.put_in_hands(scanmod))
+					scanmod.forceMove(get_turf(user))
 				scanmod = null
 			output_maintenance_dialog(id_card,usr)
 			return
 		if(href_list["drop_cap"])
 			if(state == 3)
-				capacitor.forceMove(get_turf(src))
+				if(!user.put_in_hands(capacitor))
+					capacitor.forceMove(get_turf(user))
 				capacitor = null
+			output_maintenance_dialog(id_card,usr)
+			return
+		if(href_list["drop_mmi"])
+			if(state == 3)
+				remove_mmi(user)
 			output_maintenance_dialog(id_card,usr)
 			return
 
@@ -284,13 +300,13 @@
 		if(href_list["add_req_access"])
 			if(!(add_req_access && id_card))
 				return
-			operation_req_access += text2num(href_list["add_req_access"])
+			operation_req_access += href_list["add_req_access"]
 			output_access_dialog(id_card,usr)
 
 		if(href_list["del_req_access"])
 			if(!(add_req_access && id_card))
 				return
-			operation_req_access -= text2num(href_list["del_req_access"])
+			operation_req_access -= href_list["del_req_access"]
 			output_access_dialog(id_card, usr)
 
 		if(href_list["finish_req_access"])
@@ -379,12 +395,10 @@
 	if(href_list["repair_int_control_lost"])
 		occupant_message("Recalibrating coordination system...")
 		log_message("Recalibration of coordination system started.", LOG_MECHA)
-		var/T = loc
-		spawn(100)
-			if(T == loc)
-				clearInternalDamage(MECHA_INT_CONTROL_LOST)
-				occupant_message(span_notice("Recalibration successful."))
-				log_message("Recalibration of coordination system finished with 0 errors.", LOG_MECHA)
-			else
-				occupant_message(span_warning("Recalibration failed!"))
-				log_message("Recalibration of coordination system failed with 1 error.", LOG_MECHA, color="red")
+		if(do_after(occupant, 10 SECONDS, src))
+			clearInternalDamage(MECHA_INT_CONTROL_LOST)
+			occupant_message(span_notice("Recalibration successful."))
+			log_message("Recalibration of coordination system finished with 0 errors.", LOG_MECHA)
+		else
+			occupant_message(span_warning("Recalibration failed!"))
+			log_message("Recalibration of coordination system failed with 1 error.", LOG_MECHA, color="red")

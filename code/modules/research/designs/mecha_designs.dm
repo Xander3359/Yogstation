@@ -149,6 +149,30 @@
 	category = list("Exosuit Modules")
 	departmental_flags = DEPARTMENTAL_FLAG_SCIENCE
 
+/datum/design/board/sidewinder_main
+	name = "\"Sidewinder\" Central Control module"
+	desc = "Allows for the construction of a \"Sidewinder\" Central Control module."
+	id = "sidewinder_main"
+	build_path = /obj/item/circuitboard/mecha/sidewinder/main
+	category = list("Exosuit Modules")
+	departmental_flags = DEPARTMENTAL_FLAG_SCIENCE
+
+/datum/design/board/sidewinder_peri
+	name = "\"Sidewinder\" Peripherals Control module"
+	desc = "Allows for the construction of a \"Sidewinder\" Peripheral Control module."
+	id = "sidewinder_peri"
+	build_path = /obj/item/circuitboard/mecha/sidewinder/peripherals
+	category = list("Exosuit Modules")
+	departmental_flags = DEPARTMENTAL_FLAG_SCIENCE
+
+/datum/design/board/sidewinder_targ
+	name = "\"Sidewinder\" Kinetics & Mobility Control module"
+	desc = "Allows for the construction of a \"Sidewinder\" Kinetics & Mobility Control module."
+	id = "sidewinder_targ"
+	build_path = /obj/item/circuitboard/mecha/sidewinder/targeting
+	category = list("Exosuit Modules")
+	departmental_flags = DEPARTMENTAL_FLAG_SCIENCE
+
 ////////////////////////////////////////
 /////////// Mecha Equpment /////////////
 ////////////////////////////////////////
@@ -162,6 +186,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_scattershot_ammo
 	name = "LBX AC 10 Scattershot Ammunition"
@@ -173,6 +198,7 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
 
 /datum/design/mech_carbine
 	name = "Exosuit Weapon (FNX-99 \"Hades\" Carbine)"
@@ -183,6 +209,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_carbine_ammo
 	name = "FNX-99 Carbine Ammunition"
@@ -194,6 +221,30 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
+
+/datum/design/mech_bfg
+	name = "Exosuit Weapon (BFG-90 \"Graze\" Radioactive Cannon)"
+	desc = "Allows for the construction of the BFG-90 \"Graze\" Radioactive Cannon."
+	id = "mech_bfg"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/weapon/ballistic/bfg
+	materials = list(/datum/material/iron=12000,/datum/material/uranium=6000,/datum/material/diamond=2000)
+	construction_time = 10 SECONDS
+	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_bfg_ammo
+	name = "BFG-90 Radioactive Cannon Ammunition"
+	desc = "Ammunition for the BFG-90 \"Graze\" Radioactive Cannon."
+	id = "mech_bfg_ammo"
+	build_type = PROTOLATHE | MECHFAB
+	build_path = /obj/item/mecha_ammo/bfg
+	materials = list(/datum/material/iron=6000,/datum/material/uranium=6000,/datum/material/diamond=2000)
+	construction_time = 20
+	category = list("Exosuit Ammunition", "Ammo")
+	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
 
 /datum/design/mech_ion
 	name = "Exosuit Weapon (MKIV Ion Heavy Cannon)"
@@ -204,6 +255,7 @@
 	materials = list(/datum/material/iron=20000,/datum/material/silver=6000,/datum/material/uranium=2000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_tesla
 	name = "Exosuit Weapon (MKI Tesla Cannon)"
@@ -214,6 +266,7 @@
 	materials = list(/datum/material/iron=20000,/datum/material/silver=8000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_laser
 	name = "Exosuit Weapon (CH-PS \"Immolator\" Laser)"
@@ -224,6 +277,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_laser_heavy
 	name = "Exosuit Weapon (CH-LC \"Solaris\" Laser Cannon)"
@@ -234,6 +288,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_xray
 	name = "Exosuit Weapon (CH-XC \"Transitum\" X-Ray Laser)"
@@ -244,6 +299,7 @@
 	materials = list(/datum/material/iron=10000,/datum/material/gold = 6000,/datum/material/uranium = 5000,/datum/material/titanium = 3000,/datum/material/bluespace = 3000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_disabler
 	name = "Exosuit Weapon (CH-DS \"Peacemaker\" Disabler)"
@@ -254,6 +310,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_grenade_launcher
 	name = "Exosuit Weapon (SGL-6 Grenade Launcher)"
@@ -264,6 +321,7 @@
 	materials = list(/datum/material/iron=22000,/datum/material/gold=6000,/datum/material/silver=8000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_grenade_launcher_ammo
 	name = "SGL-6 Grenade Launcher Ammunition"
@@ -275,6 +333,7 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
 
 /datum/design/mech_missile_rack
 	name = "Exosuit Weapon (BRM-6 Missile Rack)"
@@ -285,6 +344,7 @@
 	materials = list(/datum/material/iron=22000,/datum/material/gold=6000,/datum/material/silver=8000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_missile_rack_ammo
 	name = "BRM-8 Missile Rack Ammunition"
@@ -296,6 +356,7 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
 
 /datum/design/clusterbang_launcher
 	name = "Exosuit Weapon (SOB-3 Clusterbang Launcher)"
@@ -306,6 +367,7 @@
 	materials = list(/datum/material/iron=20000,/datum/material/gold=10000,/datum/material/uranium=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/clusterbang_launcher_ammo
 	name = "SOB-3 Clusterbang Launcher Ammunition"
@@ -317,6 +379,7 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_SECURITY
+	combat_design = TRUE
 
 /datum/design/mech_wormhole_gen
 	name = "Exosuit Module (Localized Wormhole Generator)"
@@ -346,6 +409,66 @@
 	build_path = /obj/item/mecha_parts/mecha_equipment/rcd
 	materials = list(/datum/material/iron=30000,/datum/material/gold=20000,/datum/material/plasma=25000,/datum/material/silver=20000)
 	construction_time = 1200
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_thrusters
+	name = "Exosuit Module (RCS Thruster Package)"
+	desc = "A thruster package for exosuits. Expels gas from the internal life-support air tank to generate thrust."
+	id = "mech_thrusters"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/thrusters/gas
+	materials = list(/datum/material/iron=25000,/datum/material/titanium=5000,/datum/material/silver=3000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_pipe_dispenser
+	name = "Exosuit Module (Pipe Dispenser Module)"
+	desc = "An exosuit-mounted Rapid Pipe Dispenser."
+	id = "mech_pipe_dispenser"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/pipe_dispenser
+	materials = list(/datum/material/iron=10000,/datum/material/glass=2000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_t_scanner
+	name = "Exosuit Module (T-ray Scanner Module)"
+	desc = "An exosuit-mounted Terahertz-Ray Scanner."
+	id = "mech_t_scanner"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/t_scanner
+	materials = list(/datum/material/iron=2000)
+	construction_time = 50
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_washer
+	name = "Exosuit Module (Pressure Washer)"
+	desc = "An exosuit-mounted pressure washer."
+	id = "mech_washer"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/weapon/pressure_washer
+	materials = list(/datum/material/iron=2000)
+	construction_time = 50
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_mop
+	name = "Exosuit Module (Mop)"
+	desc = "An exosuit-mounted mop."
+	id = "mech_mop"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/mop
+	materials = list(/datum/material/iron=2000)
+	construction_time = 50
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_flyswatter
+	name = "Exosuit Module (Flyswatter)"
+	desc = "An exosuit-mounted flyswatter."
+	id = "mech_flyswatter"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/flyswatter
+	materials = list(/datum/material/iron=2000)
+	construction_time = 50
 	category = list("Exosuit Equipment")
 
 /datum/design/mech_gravcatapult
@@ -383,7 +506,7 @@
 	desc = "Exosuit-mounted armor booster."
 	id = "mech_ccw_armor"
 	build_type = MECHFAB
-	build_path = /obj/item/mecha_parts/mecha_equipment/anticcw_armor_booster
+	build_path = /obj/item/mecha_parts/mecha_equipment/armor/melee
 	materials = list(/datum/material/iron=20000,/datum/material/silver=5000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
@@ -393,9 +516,49 @@
 	desc = "Exosuit-mounted armor booster."
 	id = "mech_proj_armor"
 	build_type = MECHFAB
-	build_path = /obj/item/mecha_parts/mecha_equipment/antiproj_armor_booster
+	build_path = /obj/item/mecha_parts/mecha_equipment/armor/ranged
 	materials = list(/datum/material/iron=20000,/datum/material/gold=5000)
 	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_afterburner
+	name = "Exosuit Module (CL-56 \"Hardlight\" Afterburner)"
+	desc = "Repurposed shuttle engine."
+	id = "mech_afterburner"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/afterburner
+	materials = list(/datum/material/iron = 10000, /datum/material/plasma = 5000, /datum/material/uranium = 1000, /datum/material/bluespace = 50)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_crusher
+	name = "Exosuit Module (Kinetic Crusher)"
+	desc = "A mounted version of the kinetic crusher."
+	id = "mech_crusher"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/kinetic_crusher
+	materials = list(/datum/material/iron = 10000, /datum/material/glass = 2000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_scythe
+	name = "Exosuit Module (Hydraulic Scythe)"
+	desc = "Hydraulic-actuated scythe for exosuits."
+	id = "mech_scythe"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/scythe
+	materials = list(/datum/material/iron = 10000, /datum/material/glass = 2000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_magtreads
+	name = "Exosuit Module (Magnetic Treads)"
+	desc = "A set of magnetic exosuit treads."
+	id = "mech_magtreads"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/mag_treads
+	materials = list(/datum/material/iron = 5000, /datum/material/gold = 2000)
+	construction_time = 50
 	category = list("Exosuit Equipment")
 
 /datum/design/mech_diamond_drill
@@ -415,6 +578,36 @@
 	build_type = MECHFAB
 	build_path = /obj/item/mecha_parts/mecha_equipment/generator/nuclear
 	materials = list(/datum/material/iron=10000,/datum/material/glass=1000,/datum/material/silver=500)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_passive_cooling
+	name = "Exosuit Module (Passive Cooling)"
+	desc = "Passive cooling system. Requires an atmosphere."
+	id = "mech_passive_cooling"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/cooling/passive
+	materials = list(/datum/material/iron=5000,)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_active_cooling
+	name = "Exosuit Module (Active Cooling)"
+	desc = "Active cooling system. Requires power."
+	id = "mech_active_cooling"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/cooling/active
+	materials = list(/datum/material/iron=10000,/datum/material/gold=100)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+
+/datum/design/mech_heat_sink
+	name = "Exosuit Module (Heat Sink)"
+	desc = "Slows down both heating and cooling."
+	id = "mech_heat_sink"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/heat_sink
+	materials = list(/datum/material/iron=10000,/datum/material/plasma=1000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
 
@@ -447,6 +640,7 @@
 	materials = list(/datum/material/iron=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_lmg_ammo
 	name = "Ultra AC 2 Ammunition"
@@ -458,6 +652,7 @@
 	construction_time = 20
 	category = list("Exosuit Ammunition", "Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_ARMORY
+	combat_design = TRUE
 
 /datum/design/mech_sleeper
 	name = "Exosuit Medical (Mounted Sleeper)"
@@ -490,13 +685,14 @@
 	category = list("Exosuit Equipment")
 
 /datum/design/mech_rocket_fist
-	name = "Exosuit Weapon (DD-2 \"Atom Smasher\" Rocket Fist)"
+	name = "Exosuit Weapon (RS-77 \"Atom Smasher\" Rocket Fist)"
 	id = "mech_rocket_fist"
 	build_type = MECHFAB
 	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/rocket_fist
 	materials = list(/datum/material/iron=20000,/datum/material/plasma=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
 
 /datum/design/mech_shortsword
 	name = "Exosuit Weapon (GD6 \"Jaeger\" Shortsword)"
@@ -506,3 +702,54 @@
 	materials = list(/datum/material/iron=15000,/datum/material/titanium=10000,/datum/material/plasma=10000)
 	construction_time = 100
 	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_katana
+	name = "Exosuit Weapon (HR-2 \"Ronin\" katana)"
+	id = "mech_katana"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/katana
+	materials = list(/datum/material/iron=15000,/datum/material/titanium=10000,/datum/material/bluespace=5000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_trogdor
+	name = "Exosuit Weapon (TO-4 \"Tahu\" flaming chainsword)"
+	id = "mech_trogdor"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/trogdor
+	materials = list(/datum/material/iron=15000,/datum/material/silver=10000,/datum/material/gold=10000,/datum/material/plasma=10000 )
+	construction_time = 100
+	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_batong
+	name = "Exosuit Weapon (AV-98 \"Ingram\" heavy stun baton)"
+	id = "mech_batong"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/batong
+	materials = list(/datum/material/iron=15000,/datum/material/gold=10000,/datum/material/plasma=10000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_maul
+	name = "Exosuit Weapon (ASW-8 \"Barbatos\" heavy maul)"
+	id = "mech_maul"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/sword/maul
+	materials = list(/datum/material/iron=25000 ,/datum/material/uranium=10000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+	combat_design = TRUE
+
+/datum/design/mech_spear
+	name = "Exosuit Weapon (S5-C \"White Witch\" shortspear)"
+	id = "mech_spear"
+	build_type = MECHFAB
+	build_path = /obj/item/mecha_parts/mecha_equipment/melee_weapon/spear
+	materials = list(/datum/material/iron=10000,/datum/material/titanium=10000,/datum/material/silver=10000)
+	construction_time = 100
+	category = list("Exosuit Equipment")
+	combat_design = TRUE

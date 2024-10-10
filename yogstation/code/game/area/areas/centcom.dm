@@ -5,10 +5,9 @@
 	blob_allowed = FALSE
 	requires_power = FALSE
 	has_gravity = TRUE
-	noteleport = TRUE
+	area_flags = NOTELEPORT
 	flags_1 = NONE
-	ambientsounds = HIGHSEC
-	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
+	ambience_index = AMBIENCE_DANGER
 
 /area/yogs/infiltrator_base/poweralert(state, obj/source)
 	return
@@ -23,12 +22,11 @@
 /area/yogs/infiltrator_base/outside
 	name = "Syndicate Base X-77"
 	icon_state = "yellow"
-	dynamic_lighting = DYNAMIC_LIGHTING_DISABLED
 
 /area/brazil
 	name = "Location Unresolved"
 	icon_state = "execution_room"
 	blob_allowed = FALSE
 	has_gravity = TRUE
-	noteleport = TRUE
 	flags_1 = NONE
+	area_flags = NOTELEPORT

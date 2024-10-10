@@ -34,7 +34,7 @@
 	if(check_glasses && glasses && (glasses.flags_cover & GLASSESCOVERSEYES))
 		return glasses
 
-/mob/living/carbon/check_projectile_dismemberment(obj/item/projectile/P, def_zone)
+/mob/living/carbon/check_projectile_dismemberment(obj/projectile/P, def_zone)
 	var/obj/item/bodypart/affecting = get_bodypart(def_zone)
 	if(affecting && affecting.dismemberable && affecting.get_damage() >= (affecting.max_damage - P.dismemberment))
 		affecting.dismember(P.damtype)
@@ -71,10 +71,7 @@
 						I.pixel_x = initial(I.pixel_x)
 						I.pixel_y = initial(I.pixel_y)
 						I.transform = initial(I.transform)
-						//If() explanation: if we have a mind and a martial art that we can use, check if it has a block or deflect chance or it's sleeping carp
-						//Assuming any of that isnt true, then throw mode isnt helpful and it gets turned off. Otherwise, it stays on.
-						if(!(mind && mind.martial_art && mind.martial_art.can_use(src) && (mind.martial_art.deflection_chance || mind.martial_art.block_chance || mind.martial_art.id == "sleeping carp")))
-							throw_mode_off()
+						throw_mode_off()
 						return TRUE
 	..()
 
@@ -82,7 +79,7 @@
   *	Embeds an object into this carbon
   */
 /mob/living/carbon/proc/embed_object(obj/item/embedding, part, deal_damage, silent, forced)
-	if(!(forced || (can_embed(embedding) && !HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))))
+	if(!(forced || (can_embed(embedding) && !HAS_TRAIT(src, TRAIT_PIERCEIMMUNE))) || get_embedded_part(embedding))
 		return FALSE
 	var/obj/item/bodypart/body_part = part
 	// In case its a zone
@@ -94,10 +91,11 @@
 		// Thats probably not good
 		if(!istype(body_part))
 			return FALSE
-	if(!embedding.on_embed(src, body_part))
-		return
-	body_part.embedded_objects |= embedding
-	embedding.add_mob_blood(src)//it embedded itself in you, of course it's bloody!
+	if(CHECK_BITFIELD(SEND_SIGNAL(embedding, COMSIG_ITEM_EMBEDDED, src), COMSIG_ITEM_BLOCK_EMBED) || !embedding)
+		return FALSE
+	LAZYADD(body_part.embedded_objects, embedding)
+	if(embedding.embedding.embedded_bleed_rate)
+		embedding.add_mob_blood(src)//it embedded itself in you, of course it's bloody!
 	embedding.forceMove(src)
 	SEND_SIGNAL(src, COMSIG_ADD_MOOD_EVENT, "embedded", /datum/mood_event/embedded)
 	if(deal_damage)
@@ -110,22 +108,33 @@
 /**
   *	Removes the given embedded object from this carbon
   */
-/mob/living/carbon/proc/remove_embedded_object(obj/item/embedded, new_loc, silent, forced)
-	var/obj/item/bodypart/body_part
-	for(var/obj/item/bodypart/part in bodyparts)
-		if(embedded in part.embedded_objects)
-			body_part = part
+/mob/living/carbon/proc/remove_embedded_object(obj/item/embedded, new_loc, silent, forced, unsafe)
+	var/obj/item/bodypart/body_part = get_embedded_part(embedded)
 	if(!body_part)
-		return
-	body_part.embedded_objects -= embedded
-	if(!silent)
-		emote("scream")
+		return FALSE
+	var/sig_return = SEND_SIGNAL(embedded, COMSIG_ITEM_EMBED_REMOVAL, src)
+	if(CHECK_BITFIELD(sig_return, COMSIG_ITEM_BLOCK_EMBED_REMOVAL))
+		LAZYADD(body_part.embedded_objects, embedded)
+		return FALSE
+	LAZYREMOVE(body_part.embedded_objects, embedded)
+	if(unsafe)
+		var/damage_amount = embedded.embedding.embedded_unsafe_removal_pain_multiplier * embedded.w_class
+		if(embedded.embedding.embedded_bleed_rate)
+			body_part.receive_damage(damage_amount * 0.25, sharpness = SHARP_EDGED)//It hurts to rip it out, get surgery you dingus.
+			body_part.check_wounding(WOUND_SLASH, damage_amount, 20, 0)
+		else
+			body_part.receive_damage(stamina = damage_amount * 0.25, sharpness = SHARP_EDGED)//Non-harmful stuff causes stamina damage when removed
+
+		if(!silent && damage_amount)
+			INVOKE_ASYNC(src, TYPE_PROC_REF(/mob, emote), "scream")
+
 	if(!has_embedded_objects())
 		clear_alert("embeddedobject")
 		SEND_SIGNAL(src, COMSIG_CLEAR_MOOD_EVENT, "embedded")
-	if(new_loc)
+	if(CHECK_BITFIELD(sig_return, COMSIG_ITEM_QDEL_EMBED_REMOVAL))
+		qdel(embedded)
+	else if(new_loc)
 		embedded.forceMove(new_loc)
-	embedded.on_embed_removal(src)
 	return TRUE
 
 /**
@@ -138,22 +147,46 @@
 		for(var/obj/item/embedded in part.embedded_objects)
 			choice_list[embedded] = image(embedded)
 	var/obj/item/choice = show_radial_menu(user, src, choice_list, tooltips = TRUE)
-	for(var/obj/item/bodypart/part in bodyparts)
-		if(choice in part.embedded_objects)
-			body_part = part
+	body_part = get_embedded_part(choice)
 	if(!istype(choice) || !(choice in choice_list))
 		return
 	var/time_taken = choice.embedding.embedded_unsafe_removal_time * choice.w_class
 	user.visible_message(span_warning("[user] attempts to remove [choice] from [user.p_their()] [body_part.name]."),span_notice("You attempt to remove [choice] from your [body_part.name]... (It will take [DisplayTimeText(time_taken)].)"))
-	if(!do_after(user, time_taken, needhand = 1, target = src) && !(choice in body_part.embedded_objects))
+	if(!do_after(user, time_taken, target = src) && !(choice in body_part.embedded_objects))
 		return
-	var/damage_amount = choice.embedding.embedded_unsafe_removal_pain_multiplier * choice.w_class
-	body_part.receive_damage(damage_amount * 0.25, sharpness = SHARP_EDGED)//It hurts to rip it out, get surgery you dingus.
-	body_part.check_wounding(WOUND_SLASH, damage_amount, 20, 0)
-	if(remove_embedded_object(choice, get_turf(src), damage_amount))
+	if(remove_embedded_object(choice, get_turf(src), unsafe = TRUE) && !QDELETED(choice))
 		user.put_in_hands(choice)
 		user.visible_message("[user] successfully rips [choice] out of [user == src? p_their() : "[src]'s"] [body_part.name]!", span_notice("You successfully remove [choice] from your [body_part.name]."))
 	return TRUE
+
+/**
+  *	Returns the bodypart that the item is embedded in or returns false if it is not currently embedded
+  */
+/mob/living/carbon/proc/get_embedded_part(obj/item/embedded)
+	if(!embedded)
+		return FALSE
+	var/obj/item/bodypart/body_part
+	for(var/obj/item/bodypart/part in bodyparts)
+		if(embedded in part.embedded_objects)
+			body_part = part
+	if(!body_part)
+		return FALSE
+
+	if(embedded.loc != src)
+		LAZYREMOVE(body_part.embedded_objects, embedded)
+		if(!has_embedded_objects())
+			clear_alert("embeddedobject")
+			SEND_SIGNAL(src, COMSIG_CLEAR_MOOD_EVENT, "embedded")
+		return FALSE
+	return body_part
+
+/**
+  *	Returns a list of all embedded objects
+  */
+/mob/living/carbon/proc/get_embedded_objects()
+	for(var/obj/item/bodypart/part in bodyparts)
+		if(part.embedded_objects)
+			LAZYADD(., part.embedded_objects)
 
 /mob/living/carbon/proc/get_interaction_efficiency(zone)
 	var/obj/item/bodypart/limb = get_bodypart(zone)
@@ -174,7 +207,8 @@
 	SEND_SIGNAL(I, COMSIG_ITEM_ATTACK_ZONE, src, user, affecting)
 	send_item_attack_message(I, user, affecting.name, affecting)
 	if(I.force)
-		apply_damage(I.force, I.damtype, affecting, wound_bonus = I.wound_bonus, bare_wound_bonus = I.bare_wound_bonus, sharpness = I.sharpness)
+		var/attack_direction = get_dir(user, src)
+		apply_damage(I.force, I.damtype, affecting, wound_bonus = I.wound_bonus, bare_wound_bonus = I.bare_wound_bonus, sharpness = I.sharpness, attack_direction = attack_direction)
 		if(I.damtype == BRUTE && affecting.status == BODYPART_ORGANIC)
 			if(prob(33))
 				I.add_mob_blood(src)
@@ -231,7 +265,7 @@
 	return //so we don't call the carbon's attack_hand().
 
 //ATTACK HAND IGNORING PARENT RETURN VALUE
-/mob/living/carbon/attack_hand(mob/living/carbon/human/user)
+/mob/living/carbon/attack_hand(mob/living/carbon/human/user, modifiers)
 
 	for(var/thing in diseases)
 		var/datum/disease/D = thing
@@ -245,8 +279,8 @@
 
 	for(var/datum/surgery/S in surgeries)
 		if(!(mobility_flags & MOBILITY_STAND) || !S.lying_required)
-			if((S.self_operable || user != src) && (user.a_intent == INTENT_HELP || user.a_intent == INTENT_DISARM))
-				if(S.next_step(user, user.a_intent))
+			if((S.self_operable || user != src) && !user.combat_mode)
+				if(S.next_step(user, modifiers))
 					return TRUE
 
 	for(var/datum/wound/W in all_wounds)
@@ -256,7 +290,7 @@
 	return FALSE
 
 
-/mob/living/carbon/attack_paw(mob/living/carbon/monkey/M)
+/mob/living/carbon/attack_paw(mob/living/carbon/monkey/M, modifiers)
 
 	if(can_inject(M, TRUE))
 		for(var/thing in diseases)
@@ -269,7 +303,7 @@
 		if(D.spread_flags & DISEASE_SPREAD_CONTACT_SKIN)
 			ContactContractDisease(D)
 
-	if(M.a_intent == INTENT_HELP)
+	if(!M.combat_mode)
 		help_shake_act(M)
 		return FALSE
 
@@ -281,26 +315,19 @@
 
 
 /mob/living/carbon/attack_slime(mob/living/simple_animal/slime/M)
-	if(..()) //successful slime attack
+	. = ..()
+	if(.) //successful slime attack
 		if(M.powerlevel > 0)
-			var/stunprob = M.powerlevel * 7 + 10  // 17 at level 1, 80 at level 10
-			if(prob(stunprob))
-				M.powerlevel -= 3
-				if(M.powerlevel < 0)
-					M.powerlevel = 0
+			var/dazeprob = M.powerlevel * 10  // 10 at level 1, 100 at level 10
+			if(!prob(dazeprob))
+				return
 
-				visible_message(span_danger("The [M.name] has shocked [src]!"), \
-				span_userdanger("The [M.name] has shocked [src]!"))
+			visible_message(span_danger("The [M.name] has dazed [src]!"), span_userdanger("The [M.name] has dazed [src]!"))
 
-				do_sparks(5, TRUE, src)
-				var/power = M.powerlevel + rand(0,3)
-				Paralyze(power*20)
-				if(stuttering < power)
-					stuttering = power
-				if (prob(stunprob) && M.powerlevel >= 8)
-					adjustFireLoss(M.powerlevel * rand(6,10))
-					updatehealth()
-		return TRUE
+			var/power = M.powerlevel + rand(0,3)
+			set_stutter_if_lower(power SECONDS)
+			Daze(power SECONDS)
+		return
 
 /mob/living/carbon/proc/dismembering_strike(mob/living/attacker, dam_zone)
 	if(!attacker.limb_destroyer)
@@ -336,22 +363,39 @@
 	. = ..()
 	if(. & EMP_PROTECT_SELF)
 		return
-	for(var/X in internal_organs)
-		var/obj/item/organ/O = X
-		O.emp_act(severity)
 
-/mob/living/carbon/electrocute_act(shock_damage, obj/source, siemens_coeff = 1, safety = 0, override = 0, tesla_shock = 0, illusion = 0, stun = TRUE)
+	if(dna?.species)
+		severity *= dna.species.emp_mod
+	if(severity < 1)
+		return
+
+	var/emp_message = TRUE
+	for(var/obj/item/bodypart/BP as anything in get_damageable_bodyparts(BODYPART_ROBOTIC))
+		if(!(BP.emp_act(severity, emp_message) & EMP_PROTECT_SELF))
+			emp_message = FALSE // if the EMP was successful, don't spam the chat with more messages
+
+/mob/living/carbon/electrocute_act(shock_damage, obj/source, siemens_coeff = 1, zone = HANDS, override = FALSE, tesla_shock = FALSE, illusion = FALSE, stun = TRUE, gib = FALSE)
 	if(tesla_shock && (flags_1 & TESLA_IGNORE_1))
 		return FALSE
 	if(HAS_TRAIT(src, TRAIT_SHOCKIMMUNE))
 		return FALSE
+	if(!override) // override variable bypasses protection
+		siemens_coeff *= (100 - getarmor(zone, ELECTRIC)) / 100
+
+	var/stuntime = 8*siemens_coeff SECONDS // do this before species adjustments or balancing will be a pain
+	if(reagents.has_reagent(/datum/reagent/teslium))
+		siemens_coeff *= 1.5 //If the mob has teslium in their body, shocks are 50% more damaging!
+
+	if(SEND_SIGNAL(src, COMSIG_LIVING_ELECTROCUTE_ACT, shock_damage, source, siemens_coeff, zone, tesla_shock) & COMPONENT_NO_ELECTROCUTE_ACT)
+		return FALSE
+
 	shock_damage *= siemens_coeff
 	if(dna && dna.species)
 		shock_damage *= dna.species.siemens_coeff
+		dna.species.spec_electrocute_act(src, shock_damage,source,siemens_coeff,zone,override,tesla_shock, illusion, stun)
 	if(shock_damage<1 && !override)
 		return FALSE
-	if(reagents.has_reagent(/datum/reagent/teslium))
-		shock_damage *= 1.5 //If the mob has teslium in their body, shocks are 50% more damaging!
+
 	if(illusion)
 		adjustStaminaLoss(shock_damage)
 	else
@@ -361,32 +405,53 @@
 		span_userdanger("You feel a powerful shock coursing through your body!"), \
 		span_italics("You hear a heavy electrical crack.") \
 		)
-	jitteriness += 1000 //High numbers for violent convulsions
-	do_jitter_animation(jitteriness)
-	stuttering += 2
-	if((!tesla_shock || (tesla_shock && siemens_coeff > 0.5)) && stun)
-		Paralyze(40)
-	spawn(20)
-		jitteriness = max(jitteriness - 990, 10) //Still jittery, but vastly less
-		if((!tesla_shock || (tesla_shock && siemens_coeff > 0.5)) && stun)
-			Paralyze(60)
+	do_jitter_animation(stuntime * 3)
+	adjust_stutter(stuntime / 2)
+	adjust_jitter(stuntime * 2)
+
+	var/should_stun = !tesla_shock || (tesla_shock && siemens_coeff > 0.5)
+	if(stun && should_stun)
+		Paralyze(min(stuntime, 4 SECONDS))
+		if(stuntime > 2 SECONDS)
+			addtimer(CALLBACK(src, PROC_REF(secondary_shock), should_stun, stuntime - (2 SECONDS)), 2 SECONDS)
+
 	if(stat == DEAD && can_defib()) //yogs: ZZAPP
 		if(!illusion && (shock_damage * siemens_coeff >= 1) && prob(80))
 			set_heartattack(FALSE)
 			adjustOxyLoss(-50)
 			adjustToxLoss(-50)
 			revive()
-			INVOKE_ASYNC(src, .proc/emote, "gasp")
-			Jitter(100)
-			adjustOrganLoss(ORGAN_SLOT_BRAIN, 100, 199) //yogs end
+			INVOKE_ASYNC(src, PROC_REF(emote), "gasp")
+			adjust_jitter(10 SECONDS)
+			adjustOrganLoss(ORGAN_SLOT_BRAIN, 100, 199)
+
+	if(gib && siemens_coeff > 0 && stat >= SOFT_CRIT)
+		visible_message(
+			span_danger("[src] body is emitting a loud noise!"), \
+			span_userdanger("You feel like you are about to explode!"), \
+			span_italics("You hear a loud noise!"), \
+		)
+		addtimer(CALLBACK(src, PROC_REF(supermatter_tesla_gib)), 4 SECONDS) //yogs end
+
+	if(undergoing_cardiac_arrest() && !illusion)
+		if(shock_damage * siemens_coeff >= 1 && prob(25))
+			var/obj/item/organ/heart/heart = getorganslot(ORGAN_SLOT_HEART)
+			heart.beating = TRUE
+			if(stat == CONSCIOUS)
+				to_chat(src, span_notice("You feel your heart beating again!"))
+
 	if(override)
 		return override
 	else
 		return shock_damage
 
+///Called slightly after electrocute act to apply a secondary stun.
+/mob/living/carbon/proc/secondary_shock(should_stun, stuntime = 6 SECONDS)
+	if(should_stun)
+		Paralyze(stuntime)
+
 /mob/living/carbon/proc/help_shake_act(mob/living/carbon/M)
-	if(on_fire)
-		to_chat(M, span_warning("You can't put [p_them()] out with just your bare hands!"))
+	if(try_extinguish(M))
 		return
 
 	if(!(mobility_flags & MOBILITY_STAND))
@@ -416,31 +481,36 @@
 				SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "friendly_hug", /datum/mood_event/lamphug, src)
 		for(var/datum/brain_trauma/trauma in M.get_traumas())
 			trauma.on_hug(M, src)
+		for(var/datum/brain_trauma/trauma in get_traumas())
+			trauma.on_hug(M, src)
 
 		var/averagestacks = (fire_stacks + M.fire_stacks)/2 //transfer firestacks between players
-		fire_stacks = averagestacks
-		M.fire_stacks = averagestacks
 		if(averagestacks > 1)
+			adjust_fire_stacks(averagestacks)
+			M.adjust_fire_stacks(-averagestacks)
 			to_chat(src, span_notice("The hug [M] gave covered you in some weird flammable stuff..."))
 		else if(averagestacks < -1)
+			adjust_wet_stacks(averagestacks)
+			M.adjust_wet_stacks(-averagestacks)
 			to_chat(src, span_notice("The hug [M] gave you was a little wet..."))
 
-	AdjustStun(-60)
-	AdjustKnockdown(-60)
-	AdjustUnconscious(-60)
-	AdjustSleeping(-100)
-	AdjustParalyzed(-60)
-	AdjustImmobilized(-60)
-	if(dna && dna.check_mutation(ACTIVE_HULK))
-		if(prob(30))
-			adjustStaminaLoss(10)
-			to_chat(src, span_notice("[M] calms you down a little."))
-		else
-			to_chat(src, span_warning("[M] tries to calm you!"))
+	adjust_status_effects_on_shake_up()
+
+//	adjustStaminaLoss(-10) if you want hugs to recover stamina damage, uncomment this
 	set_resting(FALSE)
 
 	playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 
+/mob/living/carbon/proc/try_extinguish(mob/living/carbon/C)
+	if(!on_fire)
+		return FALSE
+	if(HAS_TRAIT(C, TRAIT_RESISTHEAT) || HAS_TRAIT(C, TRAIT_RESISTHEATHANDS) || HAS_TRAIT(C, TRAIT_NOFIRE))
+		extinguish_mob()
+		to_chat(C, span_notice("You extinguish [src]!"))
+		to_chat(src, span_userdanger("[C] extinguishes you!"))
+		return TRUE
+	to_chat(C, span_warning("You can't put [p_them()] out with just your bare hands!"))
+	return TRUE
 
 /mob/living/carbon/flash_act(intensity = 1, override_blindness_check = 0, affect_silicon = 0, visual = 0)
 	if(NOFLASH in dna?.species?.species_traits)
@@ -471,7 +541,7 @@
 
 		if(eyes.damage > 10)
 			blind_eyes(damage)
-			blur_eyes(damage * rand(3, 6))
+			adjust_eye_blur(damage * rand(3, 6))
 
 			if(eyes.damage > 20)
 				if(prob(eyes.damage - 20))
@@ -486,14 +556,10 @@
 
 			else
 				to_chat(src, span_warning("Your eyes are really starting to hurt. This can't be good for you!"))
-		if(has_bane(BANE_LIGHT))
-			mind.disrupt_spells(-500)
 		return TRUE
 	else if(damage == 0) // just enough protection
 		if(prob(20))
 			to_chat(src, span_notice("Something bright flashes in the corner of your vision!"))
-		if(has_bane(BANE_LIGHT))
-			mind.disrupt_spells(0)
 
 
 /mob/living/carbon/soundbang_act(intensity = 1, conf_pwr = 20, damage_pwr = 5, deafen_pwr = 15)
@@ -505,7 +571,7 @@
 	var/effect_amount = intensity - ear_safety
 	if(effect_amount > 0)
 		if(conf_pwr)
-			confused += conf_pwr*effect_amount
+			adjust_confusion(conf_pwr*effect_amount)
 
 		if(istype(ears) && (deafen_pwr || damage_pwr))
 			var/ear_damage = damage_pwr * effect_amount
@@ -573,7 +639,7 @@
 /obj/item/self_grasp
 	name = "self-grasp"
 	desc = "Sometimes all you can do is slow the bleeding."
-	icon = 'icons/obj/toy.dmi'
+	icon = 'icons/obj/weapons/hand.dmi'
 	icon_state = "latexballon"
 	item_state = "nothing"
 	force = 0
@@ -588,9 +654,9 @@
 /obj/item/self_grasp/Destroy()
 	if(user)
 		to_chat(user, span_warning("You stop holding onto your[grasped_part ? " [grasped_part.name]" : "self"]."))
-		UnregisterSignal(user, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(user, COMSIG_QDELETING)
 	if(grasped_part)
-		UnregisterSignal(grasped_part, list(COMSIG_CARBON_REMOVE_LIMB, COMSIG_PARENT_QDELETING))
+		UnregisterSignal(grasped_part, list(COMSIG_CARBON_REMOVE_LIMB, COMSIG_QDELETING))
 		grasped_part.grasped_by = null
 	grasped_part = null
 	user = null
@@ -610,8 +676,8 @@
 
 	grasped_part = grasping_part
 	grasped_part.grasped_by = src
-	RegisterSignal(user, COMSIG_PARENT_QDELETING, .proc/qdel_void)
-	RegisterSignals(grasped_part, list(COMSIG_CARBON_REMOVE_LIMB, COMSIG_PARENT_QDELETING), .proc/qdel_void)
+	RegisterSignal(user, COMSIG_QDELETING, PROC_REF(qdel_void))
+	RegisterSignals(grasped_part, list(COMSIG_CARBON_REMOVE_LIMB, COMSIG_QDELETING), PROC_REF(qdel_void))
 
 	user.visible_message(span_danger("[user] grasps at [user.p_their()] [grasped_part.name], trying to stop the bleeding."), span_notice("You grab hold of your [grasped_part.name] tightly."), vision_distance=COMBAT_MESSAGE_RANGE)
 	playsound(get_turf(src), 'sound/weapons/thudswoosh.ogg', 50, TRUE, -1)

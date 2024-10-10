@@ -10,11 +10,11 @@
 	var/obj/machinery/mineral/stacking_machine/machine
 	var/machinedir = SOUTHEAST
 
-/obj/machinery/mineral/stacking_unit_console/Initialize()
+/obj/machinery/mineral/stacking_unit_console/Initialize(mapload)
 	. = ..()
 	machine = locate(/obj/machinery/mineral/stacking_machine, get_step(src, machinedir))
 	if (machine)
-		machine.CONSOLE = src
+		machine.console = src
 
 /obj/machinery/mineral/stacking_unit_console/ui_interact(mob/user)
 	. = ..()
@@ -42,8 +42,7 @@
 /obj/machinery/mineral/stacking_unit_console/multitool_act(mob/living/user, obj/item/I)
 	if(!multitool_check_buffer(user, I))
 		return
-	var/obj/item/multitool/M = I
-	M.buffer = src
+	multitool_set_buffer(user, I, src)
 	to_chat(user, span_notice("You store linkage information in [I]'s buffer."))
 	return TRUE
 
@@ -84,7 +83,7 @@
 	circuit = /obj/item/circuitboard/machine/stacking_machine
 	input_dir = EAST
 	output_dir = WEST
-	var/obj/machinery/mineral/stacking_unit_console/CONSOLE
+	var/obj/machinery/mineral/stacking_unit_console/console
 	var/stk_types = list()
 	var/stk_amt   = list()
 	var/stack_list[0] //Key: Type.  Value: Instance of type.
@@ -175,12 +174,12 @@
 	return ..()
 
 /obj/machinery/mineral/stacking_machine/multitool_act(mob/living/user, obj/item/multitool/M)
-	if(istype(M))
-		if(istype(M.buffer, /obj/machinery/mineral/stacking_unit_console) && !panel_open)
-			CONSOLE = M.buffer
-			CONSOLE.machine = src
-			to_chat(user, span_notice("You link [src] to the console in [M]'s buffer."))
-			return TRUE
+	var/atom/buffer_atom = multitool_get_buffer(user, M)
+	if(istype(buffer_atom, /obj/machinery/mineral/stacking_unit_console) && !panel_open)
+		console = buffer_atom
+		console.machine = src
+		to_chat(user, span_notice("You link [src] to the console in [M]'s buffer."))
+		return TRUE
 	if(panel_open)
 		io = !io
 		to_chat(user, span_notice("You set the I/O to change [io ? "output" : "input"]."))

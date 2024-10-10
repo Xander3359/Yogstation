@@ -21,6 +21,7 @@ The console is located at computer/gulag_teleporter.dm
 	var/message_cooldown
 	var/breakout_time = 600
 	var/jumpsuit_type = /obj/item/clothing/under/rank/prisoner
+	var/jumpskirt_type = /obj/item/clothing/under/rank/prisoner/skirt
 	var/shoes_type = /obj/item/clothing/shoes/sneakers/orange
 	var/obj/machinery/gulag_item_reclaimer/linked_reclaimer
 	var/static/list/telegulag_required_items = typecacheof(list(
@@ -32,7 +33,7 @@ The console is located at computer/gulag_teleporter.dm
 		/obj/item/clothing/mask/breath,
 		/obj/item/clothing/mask/gas))
 
-/obj/machinery/gulag_teleporter/Initialize()
+/obj/machinery/gulag_teleporter/Initialize(mapload)
 	. = ..()
 	locate_reclaimer()
 
@@ -53,7 +54,7 @@ The console is located at computer/gulag_teleporter.dm
 
 /obj/machinery/gulag_teleporter/attackby(obj/item/I, mob/user)
 	if(!occupant && default_deconstruction_screwdriver(user, "[icon_state]", "[icon_state]",I))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		return
 
 	if(default_deconstruction_crowbar(I))
@@ -64,7 +65,8 @@ The console is located at computer/gulag_teleporter.dm
 
 	return ..()
 
-/obj/machinery/gulag_teleporter/update_icon()
+/obj/machinery/gulag_teleporter/update_icon_state()
+	. = ..()
 	icon_state = initial(icon_state) + (state_open ? "_open" : "")
 	//no power or maintenance
 	if(stat & (NOPOWER|BROKEN))
@@ -80,7 +82,6 @@ The console is located at computer/gulag_teleporter.dm
 	//running and someone in there
 	if(occupant)
 		icon_state += "_occupied"
-		return
 
 
 /obj/machinery/gulag_teleporter/relaymove(mob/user)
@@ -150,13 +151,14 @@ The console is located at computer/gulag_teleporter.dm
 	strip_occupant()
 	var/mob/living/carbon/human/prisoner = occupant
 	if(!isplasmaman(prisoner) && jumpsuit_type)
-		prisoner.equip_to_appropriate_slot(new jumpsuit_type)
+		var/suit_or_skirt = prisoner.jumpsuit_style == PREF_SKIRT ? jumpskirt_type : jumpsuit_type //Check player prefs for jumpsuit or jumpskirt toggle, then give appropriate prison outfit.
+		prisoner.equip_to_appropriate_slot(new suit_or_skirt)
 	if(shoes_type)
 		prisoner.equip_to_appropriate_slot(new shoes_type)
 	if(id)
 		prisoner.equip_to_appropriate_slot(id)
 	if(R)
-		R.fields["criminal"] = "Incarcerated"
+		R.fields["criminal"] = WANTED_PRISONER
 
 /obj/item/circuitboard/machine/gulag_teleporter
 	name = "labor camp teleporter (Machine Board)"

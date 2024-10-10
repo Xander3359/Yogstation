@@ -612,7 +612,7 @@
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "ek" = (
-/obj/item/book/granter/spell/charge,
+/obj/item/book/granter/action/spell/charge,
 /turf/open/floor/bronze{
 	initial_gas_mix = "o2=14;n2=23;TEMP=300"
 	},
@@ -625,7 +625,7 @@
 	},
 /area/awaymission/vr/syndicate)
 "eq" = (
-/obj/item/book/granter/spell/forcewall,
+/obj/item/book/granter/action/spell/forcewall,
 /turf/open/floor/bronze{
 	initial_gas_mix = "o2=14;n2=23;TEMP=300"
 	},
@@ -1026,6 +1026,9 @@
 /area/awaymission/vr/syndicate)
 "kb" = (
 /obj/structure/chair/sofa/left,
+/obj/effect/turf_decal/ramp_middle{
+	dir = 8
+	},
 /turf/open/floor/plasteel/chapel,
 /area/awaymission/vr/hub)
 "kh" = (
@@ -1187,6 +1190,11 @@
 /obj/item/reagent_containers/glass/rag,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"ne" = (
+/turf/open/floor/plasteel/stairs/goon/stairs_middle{
+	dir = 8
+	},
+/area/awaymission/vr/hub)
 "nn" = (
 /obj/effect/spawner/structure/window/reinforced/indestructable,
 /turf/open/indestructible,
@@ -1213,7 +1221,9 @@
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "nN" = (
-/turf/open/floor/plasteel/stairs/medium,
+/turf/open/floor/plasteel/stairs/goon/stairs_wide{
+	dir = 8
+	},
 /area/awaymission/vr/hub)
 "os" = (
 /obj/structure/filingcabinet,
@@ -1289,7 +1299,7 @@
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "pX" = (
-/obj/item/twohanded/required/kirbyplants,
+/obj/item/kirbyplants,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "pY" = (
@@ -1311,6 +1321,14 @@
 "qk" = (
 /turf/open/floor/fakespace,
 /area/awaymission/vr/hub)
+"ql" = (
+/obj/effect/turf_decal/ramp_middle{
+	dir = 4
+	},
+/turf/open/floor/plasteel/chapel{
+	dir = 1
+	},
+/area/awaymission/vr/hub)
 "qs" = (
 /obj/structure/table/reinforced,
 /obj/item/reagent_containers/spray/plantbgone{
@@ -1324,7 +1342,7 @@
 /area/awaymission/vr/syndicate)
 "qD" = (
 /obj/structure/table,
-/obj/item/storage/box/fancy/donut_box,
+/obj/item/storage/fancy/donut_box,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "qF" = (
@@ -1453,12 +1471,6 @@
 	},
 /turf/open/floor/plasteel,
 /area/awaymission/vr/syndicate)
-"sy" = (
-/obj/machinery/vending/boozeomat{
-	req_access_txt = ""
-	},
-/turf/closed/indestructible/riveted,
-/area/awaymission/vr/syndicate)
 "sG" = (
 /obj/structure/closet/emcloset,
 /turf/open/floor/mineral/titanium/blue,
@@ -1497,7 +1509,7 @@
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "sT" = (
-/obj/structure/sign/barsign,
+/obj/machinery/barsign,
 /turf/closed/indestructible/iron,
 /area/awaymission/vr/hub)
 "sX" = (
@@ -1565,7 +1577,7 @@
 /turf/closed/indestructible/fakeglass,
 /area/awaymission/vr/syndicate)
 "uE" = (
-/obj/item/book/granter/spell/fireball,
+/obj/item/book/granter/action/spell/fireball,
 /turf/open/floor/bronze{
 	initial_gas_mix = "o2=14;n2=23;TEMP=300"
 	},
@@ -1574,6 +1586,11 @@
 /obj/structure/closet/crate/trashcart,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"uJ" = (
+/turf/open/floor/plasteel/stairs/goon/stairs_alone{
+	dir = 4
+	},
+/area/awaymission/vr/hub)
 "uL" = (
 /obj/machinery/disposal/bin,
 /obj/structure/disposalpipe/trunk{
@@ -1585,6 +1602,11 @@
 /obj/machinery/door/window/southright,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"va" = (
+/turf/open/floor/plasteel/chapel{
+	dir = 4
+	},
+/area/awaymission/vr/hub)
 "vg" = (
 /obj/structure/bed,
 /turf/open/indestructible,
@@ -1600,9 +1622,9 @@
 /area/awaymission/vr/hub)
 "vs" = (
 /obj/machinery/door/airlock{
-	name = "Bar Storage";
-	req_access_txt = "25"
+	name = "Bar Storage"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/service/bar,
 /turf/open/indestructible,
 /area/awaymission/vr/hub)
 "vE" = (
@@ -1935,7 +1957,7 @@
 /area/awaymission/vr/hub)
 "Bp" = (
 /obj/structure/table/reinforced,
-/obj/item/storage/box/fancy/donut_box,
+/obj/item/storage/fancy/donut_box,
 /turf/open/floor/mineral/titanium/yellow,
 /area/awaymission/vr/syndicate)
 "Bq" = (
@@ -1965,16 +1987,22 @@
 /obj/machinery/vending/dinnerware,
 /turf/open/indestructible,
 /area/awaymission/vr/hub)
+"BJ" = (
+/obj/effect/turf_decal/ramp_middle{
+	dir = 8
+	},
+/turf/open/floor/plasteel/chapel,
+/area/awaymission/vr/hub)
 "BL" = (
 /obj/machinery/door/airlock/engineering/glass{
-	name = "Engineering";
-	req_access_txt = "32"
+	name = "Engineering"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/construction,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "BO" = (
 /obj/structure/safe/floor,
-/obj/item/clothing/under/rank/centcom_officer,
+/obj/item/clothing/under/rank/centcom/officer,
 /obj/item/clothing/suit/det_suit,
 /obj/item/gun/ballistic/revolver/mateba,
 /turf/open/indestructible,
@@ -2092,6 +2120,12 @@
 /obj/machinery/door/airlock/shuttle,
 /turf/open/floor/mineral/titanium/blue,
 /area/awaymission/vr/syndicate)
+"DR" = (
+/obj/structure/table,
+/turf/open/floor/plasteel/chapel{
+	dir = 8
+	},
+/area/awaymission/vr/hub)
 "Ea" = (
 /obj/structure/table,
 /obj/item/storage/firstaid/fire,
@@ -2193,7 +2227,7 @@
 	name = "Hangar Bay Blast Doors";
 	pixel_x = -28;
 	pixel_y = 7;
-	req_access_txt = "2"
+	req_access = list("brig")
 	},
 /obj/effect/turf_decal/stripes/line{
 	dir = 8
@@ -2239,6 +2273,14 @@
 	},
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"Gf" = (
+/obj/effect/turf_decal/ramp_middle{
+	dir = 8
+	},
+/turf/open/floor/plasteel/chapel{
+	dir = 4
+	},
+/area/awaymission/vr/hub)
 "Gl" = (
 /obj/structure/table/wood,
 /obj/item/reagent_containers/food/drinks/trophy/gold_cup,
@@ -2397,9 +2439,9 @@
 /area/awaymission/vr/syndicate)
 "Jb" = (
 /obj/machinery/door/airlock/hatch{
-	name = "Cockpit";
-	req_access_txt = "109"
+	name = "Cockpit"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/admin/captain,
 /turf/open/floor/mineral/titanium,
 /area/awaymission/vr/syndicate)
 "Jc" = (
@@ -2540,15 +2582,17 @@
 /turf/open/indestructible/necropolis,
 /area/awaymission/vr/megafauna_arena/arena)
 "Mi" = (
-/obj/structure/closet/secure_closet/bar{
-	req_access_txt = "25"
-	},
+/obj/structure/closet/secure_closet/bar,
 /turf/open/indestructible,
 /area/awaymission/vr/hub)
 "Mu" = (
 /obj/machinery/door/window/northleft,
 /obj/structure/chair,
 /turf/open/indestructible,
+/area/awaymission/vr/syndicate)
+"My" = (
+/obj/machinery/vending/boozeomat,
+/turf/closed/indestructible/riveted,
 /area/awaymission/vr/syndicate)
 "MG" = (
 /obj/structure/closet/crate,
@@ -2652,6 +2696,11 @@
 	},
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"NL" = (
+/turf/open/floor/plasteel/stairs/goon/stairs2_wide{
+	dir = 8
+	},
+/area/awaymission/vr/hub)
 "NP" = (
 /obj/effect/turf_decal/stripes/line{
 	dir = 5
@@ -2750,7 +2799,7 @@
 "Pm" = (
 /obj/structure/rack,
 /obj/item/restraints/legcuffs/beartrap,
-/obj/item/twohanded/fireaxe,
+/obj/item/fireaxe,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "Pn" = (
@@ -2903,7 +2952,7 @@
 	name = "Hangar Bay Shutters";
 	pixel_x = -28;
 	pixel_y = 7;
-	req_access_txt = "2"
+	req_access = list("brig")
 	},
 /obj/effect/turf_decal/stripes/line{
 	dir = 8
@@ -2920,6 +2969,14 @@
 /obj/effect/light_emitter/vr_hub,
 /turf/open/indestructible,
 /area/awaymission/vr/hub/boxing)
+"Rz" = (
+/obj/effect/turf_decal/ramp_middle{
+	dir = 4
+	},
+/turf/open/floor/plasteel/chapel{
+	dir = 8
+	},
+/area/awaymission/vr/hub)
 "RB" = (
 /obj/structure/table/wood,
 /obj/structure/window/reinforced{
@@ -2953,7 +3010,7 @@
 /turf/open/indestructible,
 /area/awaymission/vr/hub)
 "RY" = (
-/obj/item/book/granter/spell/sacredflame,
+/obj/item/book/granter/action/spell/sacredflame,
 /turf/open/floor/bronze{
 	initial_gas_mix = "o2=14;n2=23;TEMP=300"
 	},
@@ -2970,7 +3027,9 @@
 /area/awaymission/vr/murderdome)
 "Sp" = (
 /obj/structure/chair/sofa/right,
-/turf/open/floor/plasteel/chapel,
+/turf/open/floor/plasteel/chapel{
+	dir = 8
+	},
 /area/awaymission/vr/hub)
 "St" = (
 /obj/machinery/door/poddoor/shutters{
@@ -3008,9 +3067,9 @@
 /area/awaymission/vr/syndicate)
 "To" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engineering Access";
-	req_access_txt = "10"
+	name = "Engineering Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "Tx" = (
@@ -3034,9 +3093,9 @@
 /area/awaymission/vr/hub)
 "TD" = (
 /obj/machinery/door/airlock/public/glass{
-	name = "Med-Sci";
-	req_access_txt = "9"
+	name = "Med-Sci"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/genetics,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "TF" = (
@@ -3054,7 +3113,7 @@
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "Uf" = (
-/obj/item/book/granter/spell/barnyard,
+/obj/item/book/granter/action/spell/barnyard,
 /turf/open/floor/bronze{
 	initial_gas_mix = "o2=14;n2=23;TEMP=300"
 	},
@@ -3076,6 +3135,11 @@
 "UN" = (
 /obj/structure/table,
 /turf/open/floor/plasteel/chapel,
+/area/awaymission/vr/hub)
+"US" = (
+/turf/open/floor/plasteel/chapel{
+	dir = 8
+	},
 /area/awaymission/vr/hub)
 "UY" = (
 /obj/machinery/mass_driver{
@@ -3140,7 +3204,7 @@
 	dir = 4;
 	icon_state = "right";
 	name = "Security Desk";
-	req_access_txt = "103"
+	req_access = list("cent_specops")
 	},
 /turf/open/floor/mineral/titanium/yellow,
 /area/awaymission/vr/syndicate)
@@ -3210,6 +3274,13 @@
 /obj/structure/closet/crate,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"Xm" = (
+/obj/machinery/chem_dispenser/drinks/beer,
+/obj/effect/turf_decal/ramp_middle{
+	dir = 8
+	},
+/turf/open/floor/plasteel/chapel,
+/area/awaymission/vr/hub)
 "Xu" = (
 /obj/structure/toilet{
 	dir = 8
@@ -3222,9 +3293,9 @@
 /area/awaymission/vr/syndicate)
 "XE" = (
 /obj/machinery/door/airlock{
-	name = "Bar Access";
-	req_access_txt = "25"
+	name = "Bar Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/service/bar,
 /turf/open/indestructible,
 /area/awaymission/vr/hub)
 "XG" = (
@@ -3253,9 +3324,9 @@
 /area/awaymission/vr/syndicate)
 "XP" = (
 /obj/machinery/door/airlock/command/glass{
-	name = "Bridge";
-	req_access_txt = "19"
+	name = "Bridge"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/command/general,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
 "XQ" = (
@@ -3301,6 +3372,11 @@
 /obj/item/flashlight/flare,
 /turf/open/indestructible,
 /area/awaymission/vr/syndicate)
+"Yp" = (
+/turf/open/floor/plasteel/chapel{
+	dir = 1
+	},
+/area/awaymission/vr/hub)
 "Yr" = (
 /obj/structure/chair/stool{
 	pixel_y = 8
@@ -7461,8 +7537,8 @@ qk
 Gw
 Gw
 nN
-nN
-nN
+ne
+NL
 Gw
 Gw
 qk
@@ -7717,9 +7793,9 @@ qk
 qk
 Gw
 Gw
-Vs
-Vs
-Vs
+ql
+Rz
+ql
 Gw
 Gw
 qk
@@ -7974,9 +8050,9 @@ qk
 qk
 bI
 UN
+va
 Vs
-Vs
-Vs
+va
 Wd
 bI
 qk
@@ -8231,10 +8307,10 @@ qk
 qk
 bI
 Sp
-Vs
-Vs
-Vs
-UN
+Yp
+US
+Yp
+DR
 bI
 qk
 qk
@@ -8488,10 +8564,10 @@ qk
 qk
 Gw
 kb
-Vs
-Vs
-Vs
-Wd
+Gf
+BJ
+Gf
+Xm
 Gw
 qk
 qk
@@ -8746,7 +8822,7 @@ Gw
 Gw
 Gw
 Gw
-nN
+uJ
 Gw
 Gw
 Gw
@@ -56840,7 +56916,7 @@ gz
 gz
 gz
 xA
-sy
+My
 xA
 xA
 yx
@@ -56848,7 +56924,7 @@ yY
 yx
 xA
 xA
-sy
+My
 xA
 gz
 gz

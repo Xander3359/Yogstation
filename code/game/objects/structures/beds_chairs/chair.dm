@@ -20,14 +20,11 @@
 	if(can_buckle && !has_buckled_mobs())
 		. += span_notice("Drag your sprite to sit in it.")
 
-/obj/structure/chair/Initialize()
+/obj/structure/chair/Initialize(mapload)
 	. = ..()
 	if(!anchored)	//why would you put these on the shuttle?
-		addtimer(CALLBACK(src, .proc/RemoveFromLatejoin), 0)
-
-/obj/structure/chair/ComponentInitialize()
-	. = ..()
-	AddComponent(/datum/component/simple_rotation,ROTATION_ALTCLICK | ROTATION_CLOCKWISE, CALLBACK(src, .proc/can_user_rotate),CALLBACK(src, .proc/can_be_rotated),null)
+		addtimer(CALLBACK(src, PROC_REF(RemoveFromLatejoin)), 0)
+	AddComponent(/datum/component/simple_rotation,ROTATION_ALTCLICK | ROTATION_CLOCKWISE, CALLBACK(src, PROC_REF(can_user_rotate)),CALLBACK(src, PROC_REF(can_be_rotated)),null)
 
 /obj/structure/chair/proc/can_be_rotated(mob/user)
 	return TRUE
@@ -158,13 +155,13 @@
 	item_chair = null
 	var/mutable_appearance/armrest
 
-/obj/structure/chair/comfy/Initialize()
+/obj/structure/chair/comfy/Initialize(mapload)
 	armrest = GetArmrest()
 	armrest.layer = ABOVE_MOB_LAYER
 	return ..()
 
 /obj/structure/chair/comfy/proc/GetArmrest()
-	return mutable_appearance('icons/obj/chairs.dmi', "comfychair_armrest")
+	return mutable_appearance(icon, "[icon_state]_armrest")
 
 /obj/structure/chair/comfy/Destroy()
 	QDEL_NULL(armrest)
@@ -213,7 +210,7 @@
 	item_chair = null
 
 
-/obj/structure/chair/office/Moved()
+/obj/structure/chair/office/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change)
 	. = ..()
 	if(has_gravity())
 		playsound(src, 'sound/effects/roll.ogg', 100, 1)
@@ -299,14 +296,18 @@
 	lefthand_file = 'icons/mob/inhands/misc/chairs_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/misc/chairs_righthand.dmi'
 	w_class = WEIGHT_CLASS_HUGE
+	slot_flags = ITEM_SLOT_BACK
 	force = 8
 	throwforce = 10
 	throw_range = 3
 	hitsound = 'sound/items/trayhit1.ogg'
-	hit_reaction_chance = 50
 	materials = list(/datum/material/iron = 2000)
 	var/break_chance = 5 //Likely hood of smashing the chair.
 	var/obj/structure/chair/origin_type = /obj/structure/chair
+
+/obj/item/chair/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/blocking, block_force = 5, block_flags = UNARMED_ATTACK|PARRYING_BLOCK)
 
 /obj/item/chair/suicide_act(mob/living/carbon/user)
 	user.visible_message(span_suicide("[user] begins hitting [user.p_them()]self with \the [src]! It looks like [user.p_theyre()] trying to commit suicide!"))
@@ -349,15 +350,6 @@
 	else if(materials[/datum/material/iron])
 		new /obj/item/stack/rods(get_turf(loc), 2)
 	qdel(src)
-
-
-
-
-/obj/item/chair/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
-	if(attack_type == UNARMED_ATTACK && prob(hit_reaction_chance))
-		owner.visible_message(span_danger("[owner] fends off [attack_text] with [src]!"))
-		return 1
-	return 0
 
 /obj/item/chair/afterattack(atom/target, mob/living/carbon/user, proximity)
 	. = ..()
@@ -476,7 +468,7 @@
 	buildstackamount = 1
 	item_chair = null
 
-/obj/structure/chair/bronze/Moved()
+/obj/structure/chair/bronze/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change)
 	. = ..()
 	if(has_gravity())
 		playsound(src, 'sound/machines/clockcult/integration_cog_install.ogg', 50, TRUE)
@@ -523,13 +515,13 @@
 /obj/structure/chair/comfy/plastic/post_buckle_mob(mob/living/M)
 	. = ..()
 	music_time = world.time + 60 SECONDS
-	addtimer(CALLBACK(src, .proc/motivate, M), 60 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(motivate), M), 60 SECONDS)
 
 /obj/structure/chair/comfy/plastic/post_unbuckle_mob(mob/living/M)
 	. = ..()
 	if(world.time >= music_time)
 		SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "motivation", /datum/mood_event/motivation) //lets refresh the moodlet
-		M.stop_sound_channel(CHANNEL_AMBIENCE)
+		M.stop_sound_channel(CHANNEL_AMBIENT_EFFECTS)
 	music_time = 0
 
 /obj/structure/chair/comfy/plastic/proc/motivate(mob/living/M)
@@ -537,5 +529,5 @@
 		return
 	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "motivation", /datum/mood_event/motivation)
 	if(M.client && (M.client.prefs.toggles & SOUND_JUKEBOX))
-		M.stop_sound_channel(CHANNEL_AMBIENCE)
-		M.playsound_local(M, 'sound/ambience/burythelight.ogg',60,0, channel = CHANNEL_AMBIENCE)
+		M.stop_sound_channel(CHANNEL_AMBIENT_EFFECTS)
+		M.playsound_local(M, 'sound/ambience/burythelight.ogg',60,0, channel = CHANNEL_AMBIENT_EFFECTS)

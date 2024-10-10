@@ -119,21 +119,18 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	QDEL_NULL(keyslot2)
 	return ..()
 
-/obj/item/radio/Initialize()
+/obj/item/radio/Initialize(mapload)
 	wires = new /datum/wires/radio(src)
 	if(prison_radio)
 		wires.cut(WIRE_TX) // OH GOD WHY
 	secure_radio_connections = new
 	. = ..()
+	ADD_TRAIT(src, TRAIT_EMPPROOF_CONTENTS, "innate_empproof")
 	frequency = sanitize_frequency(frequency, freerange)
 	set_frequency(frequency)
 
 	for(var/ch_name in channels)
 		secure_radio_connections[ch_name] = add_radio(src, GLOB.radiochannels[ch_name])
-
-/obj/item/radio/ComponentInitialize()
-	. = ..()
-	AddComponent(/datum/component/empprotection, EMP_PROTECT_WIRES)
 
 /obj/item/radio/interact(mob/user)
 	if(unscrewed && !isAI(user))
@@ -224,7 +221,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 		spans = list(M.speech_span)
 	if(!language)
 		language = M.get_selected_language()
-	INVOKE_ASYNC(src, .proc/talk_into_impl, M, message, channel, spans.Copy(), language, message_mods)
+	INVOKE_ASYNC(src, PROC_REF(talk_into_impl), M, message, channel, spans.Copy(), language, message_mods)
 	return ITALICS | REDUCE_RANGE
 
 /obj/item/radio/proc/talk_into_impl(atom/movable/M, message, channel, list/spans, datum/language/language, list/message_mods)
@@ -295,7 +292,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 
 	// Non-subspace radios will check in a couple of seconds, and if the signal
 	// was never received, send a mundane broadcast (no headsets).
-	addtimer(CALLBACK(src, .proc/backup_transmission, signal), 20)
+	addtimer(CALLBACK(src, PROC_REF(backup_transmission), signal), 20)
 
 /obj/item/radio/proc/backup_transmission(datum/signal/subspace/vocal/signal)
 	var/turf/T = get_turf_global(src) // yogs - get_turf_global instead of get_turf
@@ -305,7 +302,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	// Okay, the signal was never processed, send a mundane broadcast.
 	signal.data["compression"] = 0
 	signal.transmission_method = TRANSMISSION_RADIO
-	signal.levels = list(T.z)
+	signal.levels = SSmapping.get_connected_levels(T)
 	signal.broadcast()
 
 /obj/item/radio/Hear(message, atom/movable/speaker, message_language, raw_message, radio_freq, list/spans, list/message_mods = list())
@@ -313,14 +310,11 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	if(radio_freq || !broadcasting || get_dist(src, speaker) > canhear_range)
 		return
 
-	if(message_mods[RADIO_EXTENSION] == MODE_L_HAND || message_mods[RADIO_EXTENSION] == MODE_R_HAND || message_mods[RADIO_EXTENSION] == MODE_DEPARTMENT || message_mods[RADIO_EXTENSION] == MODE_HEADSET)
-		// try to avoid being heard double
-		if (loc == speaker && ismob(speaker))
-			var/mob/M = speaker
-			var/idx = M.get_held_index_of_item(src)
-			// left hands are odd slots
-			if (idx && (idx % 2) == (message_mods[RADIO_EXTENSION] == MODE_L_HAND))
-				return
+	// try to avoid being heard double
+	if(loc == speaker && ismob(speaker))
+		var/mob/M = speaker
+		if(M.is_holding(src) && message_mods[RADIO_EXTENSION] == MODE_RADIO)
+			return
 
 	talk_into(speaker, raw_message, , spans, language=message_language)
 
@@ -432,7 +426,6 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	if (. & EMP_PROTECT_SELF)
 		return
 	emped++ //There's been an EMP; better count it
-	var/curremp = emped //Remember which EMP this was
 	if (listening && ismob(loc))	// if the radio is turned on and on someone's person they notice
 		to_chat(loc, span_warning("\The [src] overloads."))
 	broadcasting = FALSE
@@ -440,11 +433,9 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	for (var/ch_name in channels)
 		channels[ch_name] = 0
 	on = FALSE
-	addtimer(CALLBACK(src, .proc/end_emp_effect, curremp), 200)
+	addtimer(CALLBACK(src, PROC_REF(end_emp_effect)), 20 * severity, TIMER_UNIQUE | TIMER_OVERRIDE)
 
-/obj/item/radio/proc/end_emp_effect(curremp)
-	if(emped != curremp) //Don't fix it if it's been EMP'd again
-		return FALSE
+/obj/item/radio/proc/end_emp_effect()
 	emped = FALSE
 	on = TRUE
 	return TRUE
@@ -472,7 +463,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	syndie = 1
 	keyslot = new /obj/item/encryptionkey/syndicate
 
-/obj/item/radio/borg/syndicate/Initialize()
+/obj/item/radio/borg/syndicate/Initialize(mapload)
 	. = ..()
 	set_frequency(FREQ_SYNDICATE)
 

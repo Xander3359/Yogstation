@@ -44,9 +44,9 @@
 /obj/structure/extinguisher_cabinet/handle_atom_del(atom/A)
 	if(A == stored_extinguisher)
 		stored_extinguisher = null
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
-/obj/structure/extinguisher_cabinet/attackby(obj/item/I, mob/user, params)
+/obj/structure/extinguisher_cabinet/attackby(obj/item/I, mob/living/user, params)
 	if(I.tool_behaviour == TOOL_WRENCH && !stored_extinguisher)
 		to_chat(user, span_notice("You start unsecuring [name]..."))
 		I.play_tool_sound(src)
@@ -64,11 +64,11 @@
 				return
 			stored_extinguisher = I
 			to_chat(user, span_notice("You place [I] in [src]."))
-			update_icon()
+			update_appearance(UPDATE_ICON)
 			return TRUE
 		else
 			toggle_cabinet(user)
-	else if(user.a_intent != INTENT_HARM)
+	else if(!user.combat_mode)
 		toggle_cabinet(user)
 	else
 		return ..()
@@ -87,10 +87,13 @@
 		if(!opened)
 			opened = 1
 			playsound(loc, 'sound/machines/click.ogg', 15, 1, -3)
-		update_icon()
+		update_appearance(UPDATE_ICON)
 	else
 		toggle_cabinet(user)
 
+/obj/structure/extinguisher_cabinet/attack_hand_secondary(mob/user, modifiers)
+	toggle_cabinet(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/structure/extinguisher_cabinet/attack_tk(mob/user)
 	if(stored_extinguisher)
@@ -99,7 +102,7 @@
 		stored_extinguisher = null
 		opened = 1
 		playsound(loc, 'sound/machines/click.ogg', 15, 1, -3)
-		update_icon()
+		update_appearance(UPDATE_ICON)
 	else
 		toggle_cabinet(user)
 
@@ -118,9 +121,10 @@
 	else
 		playsound(loc, 'sound/machines/click.ogg', 15, 1, -3)
 		opened = !opened
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
-/obj/structure/extinguisher_cabinet/update_icon()
+/obj/structure/extinguisher_cabinet/update_icon_state()
+	. = ..()
 	if(!opened)
 		icon_state = "extinguisher_closed"
 		return
@@ -132,14 +136,15 @@
 	else
 		icon_state = "extinguisher_empty"
 
-/obj/structure/extinguisher_cabinet/obj_break(damage_flag)
+/obj/structure/extinguisher_cabinet/atom_break(damage_flag)
+	. = ..()
 	if(!broken && !(flags_1 & NODECONSTRUCT_1))
 		broken = 1
 		opened = 1
 		if(stored_extinguisher)
 			stored_extinguisher.forceMove(loc)
 			stored_extinguisher = null
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 
 /obj/structure/extinguisher_cabinet/deconstruct(disassembled = TRUE)

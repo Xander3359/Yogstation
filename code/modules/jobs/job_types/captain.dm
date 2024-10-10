@@ -3,23 +3,20 @@
 	description = "Be responsible for the station, manage your Heads of Staff, \
 		keep the crew alive, be prepared to do anything and everything or die \
 		horribly trying."
-	flag = CAPTAIN
 	orbit_icon = "crown"
 	auto_deadmin_role_flags = DEADMIN_POSITION_HEAD|DEADMIN_POSITION_SECURITY|DEADMIN_POSITION_CRITICAL
 	department_head = list("CentCom")
-	department_flag = ENGSEC
 	faction = "Station"
 	total_positions = 1
 	spawn_positions = 1
-	supervisors = "NanoTrasen officers and Space law" //Changed to officer to separate from CentCom officials being their superior.
-	selection_color = "#ccccff"
+	supervisors = "Nanotrasen officers and Space law" //Changed to officer to separate from CentCom officials being their superior.
 	req_admin_notify = 1
 	space_law_notify = 1 //Yogs
 	minimal_player_age = 14
-	exp_requirements = 300
+	exp_requirements = 900 //15 hours
 	exp_type = EXP_TYPE_CREW
 	exp_type_department = EXP_TYPE_COMMAND
-	alt_titles = list("Station Commander", "Facility Director", "Chief Executive Officer")
+	alt_titles = list("Station Commander", "Facility Director", "Chief Executive Officer", "Big Boss")
 
 	outfit = /datum/outfit/job/captain
 
@@ -28,12 +25,26 @@
 	paycheck = PAYCHECK_COMMAND
 	paycheck_department = ACCOUNT_SEC
 
+	department_for_prefs = /datum/job_department/captain
+	departments_list = list(
+		/datum/job_department/command,
+	)
+
 	mind_traits = list(TRAIT_DISK_VERIFIER)
 
 	mail_goodies = list(
 		/obj/item/clothing/mask/cigarette/cigar/havana = 20,
 		///obj/item/storage/fancy/cigarettes/cigars/havana = 15,
-		/obj/item/reagent_containers/food/drinks/bottle/champagne = 10
+		/obj/item/reagent_containers/food/drinks/bottle/champagne = 10,
+		/obj/item/fakeartefact = 5,
+		/obj/item/skub = 1,
+		/obj/item/greentext = 1
+	)
+	
+	minimal_lightup_areas = list(
+		/area/crew_quarters/heads/captain,
+		/area/crew_quarters/heads/hop,
+		/area/security
 	)
 
 	display_order = JOB_DISPLAY_ORDER_CAPTAIN
@@ -46,7 +57,7 @@
 
 /datum/job/captain/announce(mob/living/carbon/human/H)
 	..()
-	SSticker.OnRoundstart(CALLBACK(GLOBAL_PROC, .proc/minor_announce, "Captain [H.real_name] on deck!"))
+	SSticker.OnRoundstart(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(minor_announce), "Captain [H.real_name] on deck!"))
 
 /datum/outfit/job/captain
 	name = "Captain"
@@ -55,11 +66,11 @@
 	id_type = /obj/item/card/id/gold
 	pda_type = /obj/item/modular_computer/tablet/phone/preset/advanced/command/cap
 
-	glasses = /obj/item/clothing/glasses/sunglasses
+	glasses = /obj/item/clothing/glasses/hud/personnel
 	ears = /obj/item/radio/headset/heads/captain/alt
 	gloves = /obj/item/clothing/gloves/color/captain
-	uniform =  /obj/item/clothing/under/rank/captain
-	uniform_skirt = /obj/item/clothing/under/rank/captain/skirt
+	uniform =  /obj/item/clothing/under/rank/command/captain
+	uniform_skirt = /obj/item/clothing/under/rank/command/captain/skirt
 	suit = /obj/item/clothing/suit/armor/vest/capcarapace
 	shoes = /obj/item/clothing/shoes/sneakers/brown
 	digitigrade_shoes = /obj/item/clothing/shoes/xeno_wraps/command

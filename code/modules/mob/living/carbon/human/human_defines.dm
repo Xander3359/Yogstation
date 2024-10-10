@@ -1,27 +1,26 @@
 /mob/living/carbon/human
 	hud_possible = list(HEALTH_HUD,STATUS_HUD,ID_HUD,WANTED_HUD,IMPLOYAL_HUD,IMPCHEM_HUD,IMPTRACK_HUD, NANITE_HUD, DIAG_NANITE_FULL_HUD,ANTAG_HUD,GLAND_HUD,SENTIENT_DISEASE_HUD)
 	hud_type = /datum/hud/human
-	possible_a_intents = list(INTENT_HELP, INTENT_DISARM, INTENT_GRAB, INTENT_HARM)
 	pressure_resistance = 25
 	can_buckle = TRUE
 	buckle_lying = FALSE
-	mob_biotypes = list(MOB_ORGANIC, MOB_HUMANOID)
+	mob_biotypes = MOB_ORGANIC|MOB_HUMANOID
 	blocks_emissive = EMISSIVE_BLOCK_UNIQUE
 	//Hair colour and style
-	var/hair_color = "000"
+	var/hair_color = "#000000"
 	var/hair_style = "Bald"
 
 	///Colour used for the hair gradient.
-	var/grad_color = "000"
+	var/grad_color = "#000000"
 	///Style used for the hair gradient.
 	var/grad_style
 
 	//Facial hair colour and style
-	var/facial_hair_color = "000"
+	var/facial_hair_color = "#000000"
 	var/facial_hair_style = "Shaved"
 
 	//Eye colour
-	var/eye_color = "000"
+	var/eye_color = "#000000"
 
 	var/skin_tone = "caucasian1"	//Skin tone
 
@@ -35,7 +34,6 @@
 	var/socks = "Nude" //Which socks the player wants
 	var/backbag = DBACKPACK		//Which backpack type the player has chosen.
 	var/jumpsuit_style = PREF_SUIT //suit/skirt
-	var/id_in_pda = FALSE //Whether the player wants their ID to start in their PDA
 
 	//Equipment slots
 	var/obj/item/clothing/wear_suit = null
@@ -63,3 +61,5 @@
 	var/account_id
 	var/xylophone = 0 //For the spoooooooky xylophone cooldown
 	var/blood_in_hands = 0
+	///The Examine Panel TGUI.
+	var/datum/examine_panel/tgui = new() //create the datum

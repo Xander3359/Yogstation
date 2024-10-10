@@ -21,7 +21,9 @@
   * make sure you add an update to the schema_version stable in the db changelog
   */
 
-#define DB_MINOR_VERSION 11
+#define DB_MINOR_VERSION 14
+#define DB_BOUND_CREDENTIALS_FLAG_BYPASS_BANS "bypass_bans"
+#define DB_BOUND_CREDENTIALS_FLAG_ALLOW_PROXIES "allow_proxies"
 
 //! ## Timing subsystem
 /**
@@ -77,12 +79,12 @@
 ///Nothing happens
 #define INITIALIZE_HINT_NORMAL 0
 /**
-  * call LateInitialize at the end of all atom Initalization
-  *
-  * The item will be added to the late_loaders list, this is iterated over after
-  * initalization of subsystems is complete and calls LateInitalize on the atom
-  * see [this file for the LateIntialize proc](atom.html#proc/LateInitialize)
-  */
+ * call LateInitialize at the end of all atom Initalization
+ *
+ * The item will be added to the late_loaders list, this is iterated over after
+ * initalization of subsystems is complete and calls LateInitalize on the atom
+ * see [this file for the LateIntialize proc](atom.html#proc/LateInitialize)
+ */
 #define INITIALIZE_HINT_LATELOAD 1
 
 ///Call qdel on the atom after intialization
@@ -90,11 +92,14 @@
 
 ///type and all subtypes should always immediately call Initialize in New()
 #define INITIALIZE_IMMEDIATE(X) ##X/New(loc, ...){\
-    ..();\
-    if(!(flags_1 & INITIALIZED_1)) {\
-        args[1] = TRUE;\
-        SSatoms.InitAtom(src, args);\
-    }\
+	..();\
+	if(!(flags_1 & INITIALIZED_1)) {\
+		var/previous_initialized_value = SSatoms.initialized;\
+		SSatoms.initialized = INITIALIZATION_INNEW_MAPLOAD;\
+		args[1] = TRUE;\
+		SSatoms.InitAtom(src, FALSE, args);\
+		SSatoms.initialized = previous_initialized_value;\
+	}\
 }
 
 //! ### SS initialization hints
@@ -115,6 +120,9 @@
 /// Successful, but don't print anything. Useful if subsystem was disabled.
 #define SS_INIT_NO_NEED 3
 
+/// Succesfully initialized, BUT do not announce it to players (generally to hide game mechanics it would otherwise spoil)
+#define SS_INIT_NO_MESSAGE 4
+
 //! ### SS initialization load orders
 // Subsystem init_order, from highest priority to lowest priority
 // Subsystems shutdown in the reverse of the order they initialize in
@@ -129,16 +137,19 @@
 #define INIT_ORDER_INPUT			85
 #define INIT_ORDER_SOUNDS			83
 #define INIT_ORDER_INSTRUMENTS		82
+#define INIT_ORDER_GREYSCALE 81
 #define INIT_ORDER_VIS				80
+#define INIT_ORDER_SECURITY_LEVEL	79
 #define INIT_ORDER_MATERIALS		76
-#define INIT_ORDER_RESEARCH			75
-#define INIT_ORDER_STATION			74
+#define INIT_ORDER_STATION			75
+#define INIT_ORDER_RESEARCH			74
+#define INIT_ORDER_QUIRKS 			73
 #define INIT_ORDER_EVENTS			70
-#define INIT_ORDER_MAPPING			65
-#define INIT_ORDER_JOBS				60
-#define INIT_ORDER_QUIRKS			55
-#define INIT_ORDER_TICKER			50
-#define INIT_ORDER_NETWORKS			45
+#define INIT_ORDER_JOBS				65
+#define INIT_ORDER_PATH				61
+#define INIT_ORDER_TICKER			55
+#define INIT_ORDER_MAPPING			50
+#define INIT_ORDER_EARLY_ASSETS 	48
 #define INIT_ORDER_ECONOMY			40
 #define INIT_ORDER_OUTPUTS			35
 #define INIT_ORDER_ATOMS			30
@@ -147,47 +158,57 @@
 #define INIT_ORDER_CIRCUIT			15
 #define INIT_ORDER_TIMER			1
 #define INIT_ORDER_DEFAULT			0
+#define INIT_ORDER_AIR_MACHINERY	-0.5
 #define INIT_ORDER_AIR				-1
-#define INIT_ORDER_PERSISTENCE		-2 //before assets because some assets take data from SSPersistence
+#define INIT_ORDER_PERSISTENCE 		-2
+#define INIT_ORDER_PERSISTENT_PAINTINGS -3 // Assets relies on this
 #define INIT_ORDER_ASSETS			-4
 #define INIT_ORDER_ICON_SMOOTHING	-5
 #define INIT_ORDER_OVERLAY			-6
 #define INIT_ORDER_XKEYSCORE		-10
 #define INIT_ORDER_STICKY_BAN		-10
+#define INIT_ORDER_ECHELON			-10
 #define INIT_ORDER_LIGHTING			-20
 #define INIT_ORDER_SHUTTLE			-21
+#define INIT_ORDER_BACKROOMS		-30 // relies on basically everything to be initialized first
 #define INIT_ORDER_MINOR_MAPPING	-40
-#define INIT_ORDER_PATH				-50
+#define INIT_ORDER_BLUESPACE_LOCKER -45
 #define INIT_ORDER_DISCORD			-60
 #define INIT_ORDER_EXPLOSIONS		-69
-#define INIT_ORDER_STATPANELS   -98
+#define INIT_ORDER_STATPANELS 		-97
+#define INIT_ORDER_INIT_PROFILER 	-98 //Near the end, logs the costs of initialize
 #define INIT_ORDER_DEMO				-99 // To avoid a bunch of changes related to initialization being written, do this last
 #define INIT_ORDER_CHAT				-100 //Should be last to ensure chat remains smooth during init.
 
 // Subsystem fire priority, from lowest to highest priority
 // If the subsystem isn't listed here it's either DEFAULT or PROCESS (if it's a processing subsystem child)
 
+#define FIRE_PRIORITY_AMBIENCE		10
 #define FIRE_PRIORITY_IDLE_NPC		10
 #define FIRE_PRIORITY_SERVER_MAINT	10
 #define FIRE_PRIORITY_RESEARCH		10
 #define FIRE_PRIORITY_VIS			10
 #define FIRE_PRIORITY_GARBAGE		15
+#define FIRE_PRIORITY_ECHOLOCATION  15
 #define FIRE_PRIORITY_WET_FLOORS	20
+#define FIRE_PRIORITY_FLUIDS		20
 #define FIRE_PRIORITY_AIR			20
 #define FIRE_PRIORITY_NPC			20
 #define FIRE_PRIORITY_PROCESS		25
 #define FIRE_PRIORITY_THROWING		25
 #define FIRE_PRIORITY_SPACEDRIFT	30
 #define FIRE_PRIORITY_FIELDS		30
-#define FIRE_PRIOTITY_SMOOTHING		35
-#define FIRE_PRIORITY_NETWORKS		40
+#define FIRE_PRIORITY_SMOOTHING 	35
 #define FIRE_PRIORITY_OBJ			40
+#define FIRE_PRIORITY_MECHA			40
 #define FIRE_PRIORITY_ACID			40
-#define FIRE_PRIOTITY_BURNING		40
+#define FIRE_PRIORITY_BURNING		40
 #define FIRE_PRIORITY_DEFAULT		50
 #define FIRE_PRIORITY_PARALLAX		65
 #define FIRE_PRIORITY_INSTRUMENTS	80
+#define FIRE_PRIORITY_CALLBACKS		90
 #define FIRE_PRIORITY_MOBS			100
+#define FIRE_PRIORITY_ASSETS 		105
 #define FIRE_PRIORITY_TGUI			110
 #define FIRE_PRIORITY_TICKER		200
 #define FIRE_PRIORITY_ATMOS_ADJACENCY	300
@@ -200,45 +221,73 @@
 
 // SS runlevels
 
-#define RUNLEVEL_INIT 0
-#define RUNLEVEL_LOBBY 1
-#define RUNLEVEL_SETUP 2
-#define RUNLEVEL_GAME 4
-#define RUNLEVEL_POSTGAME 8
+#define RUNLEVEL_LOBBY (1<<0)
+#define RUNLEVEL_SETUP (1<<1)
+#define RUNLEVEL_GAME (1<<2)
+#define RUNLEVEL_POSTGAME (1<<3)
 
 #define RUNLEVELS_DEFAULT (RUNLEVEL_SETUP | RUNLEVEL_GAME | RUNLEVEL_POSTGAME)
 
+//SSticker.current_state values
+/// Game is loading
+#define GAME_STATE_STARTUP 0
+/// Game is loaded and in pregame lobby
+#define GAME_STATE_PREGAME 1
+/// Game is attempting to start the round
+#define GAME_STATE_SETTING_UP 2
+/// Game has round in progress
+#define GAME_STATE_PLAYING 3
+/// Game has round finished
+#define GAME_STATE_FINISHED 4
+
+// Used for SSticker.force_ending
+/// Default, round is not being forced to end.
+#define END_ROUND_AS_NORMAL 0
+/// End the round now as normal
+#define FORCE_END_ROUND 1
+/// For admin forcing roundend, can be used to distinguish the two
+#define ADMIN_FORCE_END_ROUND 2
+
+// SSair run section
+#define SSAIR_PIPENETS 1
+#define SSAIR_ATMOSMACHINERY 2
+#define SSAIR_EXCITEDGROUPS 3
+#define SSAIR_HIGHPRESSURE 4
+#define SSAIR_HOTSPOTS 5
+#define SSAIR_TURF_CONDUCTION 6
+#define SSAIR_REBUILD_PIPENETS 7
+#define SSAIR_EQUALIZE 8
+#define SSAIR_ACTIVETURFS 9
+#define SSAIR_TURF_POST_PROCESS 10
+#define SSAIR_FINALIZE_TURFS 11
+#define SSAIR_ATMOSMACHINERY_AIR 12
+#define SSAIR_DEFERRED_AIRS 13
+
+//Pipeline rebuild helper defines, these suck but it'll do for now //Fools you actually merged it
+#define SSAIR_REBUILD_PIPELINE 1
+#define SSAIR_REBUILD_QUEUE 2
 
 // Truly disgusting, TG. Truly disgusting.
 //! ## Overlays subsystem
 
-///Compile all the overlays for an atom from the cache lists
-#define COMPILE_OVERLAYS(A)\
-	do {\
-		var/list/ad = A.add_overlays;\
-		var/list/rm = A.remove_overlays;\
-		var/list/po = A.priority_overlays;\
-		if(LAZYLEN(rm)){\
-			A.overlays -= rm;\
-			rm.Cut();\
-		}\
-		if(LAZYLEN(ad)){\
-			A.overlays |= ad;\
-			ad.Cut();\
-		}\
-		if(LAZYLEN(po)){\
-			A.overlays |= po;\
-		}\
-		for(var/I in A.alternate_appearances){\
-			var/datum/atom_hud/alternate_appearance/AA = A.alternate_appearances[I];\
+#define POST_OVERLAY_CHANGE(changed_on) \
+	if(length(changed_on.overlays) >= MAX_ATOM_OVERLAYS) { \
+		var/text_lays = overlays2text(changed_on.overlays); \
+		stack_trace("Too many overlays on [changed_on.type] - [length(changed_on.overlays)], refusing to update and cutting.\
+			\n What follows is a printout of all existing overlays at the time of the overflow \n[text_lays]"); \
+		changed_on.overlays.Cut(); \
+		changed_on.add_overlay(mutable_appearance('icons/Testing/greyscale_error.dmi')); \
+	} \
+	if(alternate_appearances) { \
+		for(var/I in changed_on.alternate_appearances){\
+			var/datum/atom_hud/alternate_appearance/AA = changed_on.alternate_appearances[I];\
 			if(AA.transfer_overlays){\
-				AA.copy_overlays(A, TRUE);\
+				AA.copy_overlays(changed_on, TRUE);\
 			}\
-		}\
-		A.flags_1 &= ~OVERLAY_QUEUED_1;\
-		if(isturf(A)){SSdemo.mark_turf(A);}\
-		if(isobj(A) || ismob(A)){SSdemo.mark_dirty(A);}\
-	} while (FALSE)
+		} \
+	}\
+	if(isturf(changed_on)){SSdemo.mark_turf(changed_on);}\
+	if(isobj(changed_on) || ismob(changed_on)){SSdemo.mark_dirty(changed_on);}\
 
 /**
 	Create a new timer and add it to the queue.
@@ -250,18 +299,6 @@
 */
 #define addtimer(args...) _addtimer(args, file = __FILE__, line = __LINE__)
 
-// Air subsystem subtasks
-#define SSAIR_PIPENETS 1
-#define SSAIR_ATMOSMACHINERY 2
-#define SSAIR_EQUALIZE 3
-#define SSAIR_ACTIVETURFS 4
-#define SSAIR_EXCITEDGROUPS 5
-#define SSAIR_HIGHPRESSURE 6
-#define SSAIR_HOTSPOTS 7
-#define SSAIR_SUPERCONDUCTIVITY 8
-#define SSAIR_REBUILD_PIPENETS 9
-
-
 // Explosion Subsystem subtasks
 #define SSEXPLOSIONS_MOVABLES 1
 #define SSEXPLOSIONS_TURFS 2
@@ -269,7 +306,7 @@
 
 // Subsystem delta times or tickrates, in seconds. I.e, how many seconds in between each process() call for objects being processed by that subsystem.
 // Only use these defines if you want to access some other objects processing delta_time, otherwise use the delta_time that is sent as a parameter to process()
-#define SSFLUIDS_DT (SSfluids.wait/10)
+#define SSFLUIDS_DT (SSplumbing.wait/10)
 #define SSMACHINES_DT (SSmachines.wait/10)
 #define SSMOBS_DT (SSmobs.wait/10)
 #define SSOBJ_DT (SSobj.wait/10)
@@ -296,3 +333,13 @@
 //Wardrobe callback master list indexes
 #define WARDROBE_CALLBACK_INSERT 1
 #define WARDROBE_CALLBACK_REMOVE 2
+
+///liquid defines
+#define SSLIQUIDS_RUN_TYPE_TURFS 1
+#define SSLIQUIDS_RUN_TYPE_GROUPS 2
+#define SSLIQUIDS_RUN_TYPE_IMMUTABLES 3
+#define SSLIQUIDS_RUN_TYPE_EVAPORATION 4
+#define SSLIQUIDS_RUN_TYPE_FIRE 5
+#define SSLIQUIDS_RUN_TYPE_OCEAN 6
+#define SSLIQUIDS_RUN_TYPE_TEMPERATURE 7
+#define SSLIQUIDS_RUN_TYPE_CACHED_EDGES 8

@@ -60,15 +60,17 @@ export const SecretsPanel = (props, context) => {
           <Button.Confirm color={'bad'} content={'Everyone is the IAA (except sec/cap/hop)'} onClick={() => act('iaa_all')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'There can only be one!'} onClick={() => act('onlyone')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'There can only be one! (40-second delay)'} onClick={() => act('delayed_onlyone')} disabled={!funRights} /><br />
-          <Button.Confirm color={'bad'} content={'Make all players stupid'} onClick={() => act('retardify')} disabled={!funRights} /><br />
+          <Button.Confirm color={'bad'} content={'Make all players stupid'} onClick={() => act('stupify')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Egalitarian Station Mode (All doors are open access)'} onClick={() => act('eagles')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Anarcho-Capitalist Station Mode (More things cost money)'} onClick={() => act('ancap')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Break all lights'} onClick={() => act('blackout')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Fix all lights'} onClick={() => act('whiteout')} disabled={!funRights} /><br />
+          <Button.Confirm color={'bad'} content={'Flicker all lights'} onClick={() => act('flickerout')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'The floor is lava! (DANGEROUS: extremely lame)'} onClick={() => act('floorlava')} disabled={!funRights} /><br />
           <Button color={'bad'} content={'Change bomb cap'} onClick={() => act('changebombcap')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Mass Purrbation'} onClick={() => act('masspurrbation')} disabled={!funRights} /><br />
           <Button.Confirm color={'bad'} content={'Mass Remove Purrbation'} onClick={() => act('massremovepurrbation')} disabled={!funRights} /><br />
+          <Button.Confirm color={'bad'} content={'Resonance Cascade'} onClick={() => act('halflife')} disabled={!funRights} /><br />
         </Section>
         <Section title={'Debug Secrets'}>
           <Button.Confirm color={'bad'} content={'Change all maintenance doors to engie/brig access only'} onClick={() => act('maint_access_engiebrig')} disabled={!debugRights} /><br />

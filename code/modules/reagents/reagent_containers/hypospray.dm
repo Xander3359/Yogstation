@@ -1,7 +1,3 @@
-#define HYPO_INJECT "Inject"
-#define HYPO_SPRAY "Spray"
-#define HYPO_DRAW "Draw"
-
 /obj/item/reagent_containers/autoinjector
 	name = "autoinjector"
 	desc = "A sterile, air-needle autoinjector for rapid administration of drugs to patients."
@@ -109,7 +105,7 @@
 	amount_per_transfer_from_this = 12
 	volume = 12
 	ignore_flags = 1 //so you can medipen through hardsuits
-	reagent_flags = DRAWABLE
+	reagent_flags = NONE
 	flags_1 = null
 	list_reagents = list(/datum/reagent/medicine/epinephrine = 10, /datum/reagent/medicine/coagulant = 2)
 	custom_price = 40
@@ -126,17 +122,18 @@
 	if(!iscyborg(user))
 		reagents.maximum_volume = 0 //Makes them useless afterwards
 		reagents.flags = NONE
-	update_icon()
-	addtimer(CALLBACK(src, .proc/cyborg_recharge, user), 80)
+	update_appearance(UPDATE_ICON)
+	addtimer(CALLBACK(src, PROC_REF(cyborg_recharge), user), 80)
 
 /obj/item/reagent_containers/autoinjector/medipen/proc/cyborg_recharge(mob/living/silicon/robot/user)
 	if(!reagents.total_volume && iscyborg(user))
 		var/mob/living/silicon/robot/R = user
 		if(R.cell.use(100))
 			reagents.add_reagent_list(list_reagents)
-			update_icon()
+			update_appearance(UPDATE_ICON)
 
-/obj/item/reagent_containers/autoinjector/medipen/update_icon()
+/obj/item/reagent_containers/autoinjector/medipen/update_icon_state()
+	. = ..()
 	if(reagents.total_volume > 0)
 		icon_state = initial(icon_state)
 	else
@@ -165,24 +162,28 @@
 /obj/item/reagent_containers/autoinjector/medipen/stimpack //goliath kiting
 	name = "stimpack medipen"
 	desc = "A rapid way to stimulate your body's adrenaline, allowing for freer movement in restrictive armor."
-	icon_state = "stimpen"
+	icon_state = "medipenstim"
 	volume = 20
 	amount_per_transfer_from_this = 20
-	list_reagents = list(/datum/reagent/medicine/ephedrine = 10, /datum/reagent/consumable/coffee = 10)
+	list_reagents = list(/datum/reagent/medicine/ephedrine = 10, /datum/reagent/consumable/coffee/hot = 10)
 
 /obj/item/reagent_containers/autoinjector/medipen/stimpack/traitor
 	desc = "A modified stimulants autoinjector for use in combat situations. Has a mild healing effect."
+	icon_state = "medipenstimsyndie"
+	item_state = "medipensyndie"
 	list_reagents = list(/datum/reagent/medicine/stimulants = 10, /datum/reagent/medicine/omnizine = 10)
 
 /obj/item/reagent_containers/autoinjector/medipen/morphine
 	name = "morphine medipen"
+	icon_state = "medipenmorphine"
 	desc = "A rapid way to get you out of a tight situation and fast! You'll feel rather drowsy, though."
 	list_reagents = list(/datum/reagent/medicine/morphine = 10)
 
 /obj/item/reagent_containers/autoinjector/medipen/tuberculosiscure
 	name = "BVAK autoinjector"
 	desc = "Bio Virus Antidote Kit autoinjector. Has a two use system for yourself, and someone else. Inject when infected."
-	icon_state = "stimpen"
+	icon_state = "medipenbvak"
+	item_state = "medipensyndie"
 	volume = 60
 	amount_per_transfer_from_this = 30
 	list_reagents = list(/datum/reagent/medicine/atropine = 10, /datum/reagent/medicine/epinephrine = 10, /datum/reagent/medicine/omnizine = 20, /datum/reagent/medicine/perfluorodecalin = 15, /datum/reagent/medicine/spaceacillin = 20)
@@ -190,7 +191,7 @@
 /obj/item/reagent_containers/autoinjector/medipen/survival
 	name = "survival medipen"
 	desc = "A medipen for surviving in the harshest of environments, heals and protects from environmental hazards. WARNING: Do not inject more than one pen in quick succession."
-	icon_state = "stimpen"
+	icon_state = "medipensurvival"
 	volume = 57
 	amount_per_transfer_from_this = 57
 	list_reagents = list(/datum/reagent/medicine/salbutamol = 10, /datum/reagent/medicine/leporazine = 15, /datum/reagent/medicine/tricordrazine = 15, /datum/reagent/medicine/epinephrine = 10, /datum/reagent/medicine/lavaland_extract = 2, /datum/reagent/medicine/omnizine = 5)
@@ -220,7 +221,7 @@
 /obj/item/reagent_containers/autoinjector/medipen/atropine
 	name = "atropine autoinjector"
 	desc = "A rapid way to save a person from a critical injury state!"
-	icon_state = "atropine"
+	icon_state = "medipenatropine"
 	list_reagents = list(/datum/reagent/medicine/atropine = 10)
 
 /obj/item/reagent_containers/autoinjector/medipen/pumpup
@@ -234,6 +235,7 @@
 /obj/item/reagent_containers/autoinjector/medipen/ekit
 	name = "emergency first-aid autoinjector"
 	desc = "An epinephrine medipen with extra coagulant and antibiotics to help stabilize bad cuts and burns."
+	icon_state = "medipenemergency"
 	volume = 15
 	amount_per_transfer_from_this = 15
 	list_reagents = list(/datum/reagent/medicine/epinephrine = 12, /datum/reagent/medicine/coagulant = 2.5, /datum/reagent/medicine/spaceacillin = 0.5)
@@ -241,6 +243,7 @@
 /obj/item/reagent_containers/autoinjector/medipen/blood_loss
 	name = "hypovolemic-response autoinjector"
 	desc = "A medipen designed to stabilize and rapidly reverse severe bloodloss."
+	icon_state = "medipenhypervolemic"
 	volume = 15
 	amount_per_transfer_from_this = 15
 	list_reagents = list(/datum/reagent/medicine/epinephrine = 5, /datum/reagent/medicine/coagulant = 2.5, /datum/reagent/iron = 3.5, /datum/reagent/medicine/salglu_solution = 4)
@@ -261,10 +264,7 @@
 	righthand_file = 'icons/mob/inhands/equipment/medical_righthand.dmi'
 	desc = "A new development from DeForest Medical, this hypospray takes 15-unit vials as the drug supply for easy swapping."
 	w_class = WEIGHT_CLASS_SMALL
-	/// Determines what attacking someone with this hypospray does
-	var/mode = HYPO_INJECT
-	/// If the hypospray allows injecting multiple times while still injecting. Initial value determines if this hypospray prevents that, actual value is if the hypospray is currently injecting someone.
-	var/antispam = FALSE
+	item_flags = NOBLUDGEON
 	/// The amount to transfer from the hypospray
 	var/transfer_amount = 5
 	/// The different amounts for *transfer_amount* that this hypospray has available
@@ -283,9 +283,7 @@
 	var/spray_self = 1 SECONDS
 
 	//  Misc Vars  //
-	var/quickload = FALSE
-	var/penetrates = FALSE
-	var/speedup = FALSE
+	var/upgrade_flags = NONE
 	var/can_remove_container = TRUE
 
 	//	Sound Vars	//
@@ -300,54 +298,50 @@
 	/// The sound that plays when you draw from someone with the hypospray
 	var/draw_sound = 'sound/items/autoinjector.ogg'
 
-/obj/item/hypospray/Initialize()
+/obj/item/hypospray/Initialize(mapload)
 	. = ..()
 	if(ispath(container))
 		container = new container
-	antispam = FALSE
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/item/hypospray/update_icon()
-	..()
-	cut_overlays()
+/obj/item/hypospray/update_icon(updates=ALL)
+	. = ..()
 	if(ismob(loc))
 		var/mob/M = loc
 		M.update_inv_hands()
-	if(container?.reagents?.total_volume)
-		var/mutable_appearance/filling = mutable_appearance('icons/obj/reagentfillings.dmi', "[icon_state]-10")
 
-		var/percent = round((container.reagents.total_volume / container.volume) * 100)
-		switch(percent)
-			if(0 to 9)
-				filling.icon_state = "[icon_state]-10"
-			if(10 to 29)
-				filling.icon_state = "[icon_state]25"
-			if(30 to 49)
-				filling.icon_state = "[icon_state]50"
-			if(50 to 69)
-				filling.icon_state = "[icon_state]75"
-			if(70 to INFINITY)
-				filling.icon_state = "[icon_state]100"
+/obj/item/hypospray/update_overlays()
+	. = ..()
+	if(!container?.reagents?.total_volume)
+		return
+	var/mutable_appearance/filling = mutable_appearance('icons/obj/reagentfillings.dmi', "[icon_state]-10")
 
-		filling.color = mix_color_from_reagents(container.reagents.reagent_list)
-		add_overlay(filling)
-	return
+	var/percent = round((container.reagents.total_volume / container.volume) * 100)
+	switch(percent)
+		if(0 to 9)
+			filling.icon_state = "[icon_state]-10"
+		if(10 to 29)
+			filling.icon_state = "[icon_state]25"
+		if(30 to 49)
+			filling.icon_state = "[icon_state]50"
+		if(50 to 69)
+			filling.icon_state = "[icon_state]75"
+		if(70 to INFINITY)
+			filling.icon_state = "[icon_state]100"
+
+	filling.color = mix_color_from_reagents(container.reagents.reagent_list)
+	. += filling
 
 /obj/item/hypospray/examine(mob/user)
 	. = ..()
-	if(!initial(antispam))
-		. += span_notice("[src] has a rapispray needle, allowing for spraying multiple patients at once.")
-	if(quickload)
-		. += span_notice("[src] has a quickloading mechanism, allowing tactical reloads by using a container on it.")
-	if(penetrates)
+	if(upgrade_flags & PIERCING)
 		. += span_notice("[src] has a diamond tipped needle, allowing it to pierce thick clothing.")
-	if(speedup)
+	if(upgrade_flags & SPEED_UP)
 		. += span_notice("[src] has a springloaded mechanism, allowing it to inject with reduced delay.")
 	if(container)
 		. += span_notice("[container] has [container.reagents.total_volume]u remaining.")
 	else
 		. += span_notice("It has no container loaded in.")
-	. += span_notice("[src] is set to [mode] contents on application.")
 
 /obj/item/hypospray/proc/unload_hypo(mob/user)
 	if(container)
@@ -355,18 +349,13 @@
 		user.put_in_hands(container)
 		to_chat(user, span_notice("You remove [container] from [src]."))
 		container = null
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		playsound(loc, pick(eject_sound), 50, 1)
 	else
 		to_chat(user, span_notice("This hypo isn't loaded!"))
 		return
 
 /obj/item/hypospray/attackby(obj/item/I, mob/living/user)
-	if((istype(I, /obj/item/reagent_containers/glass/bottle/vial) && container != null))
-		if(!quickload)
-			to_chat(user, span_warning("[src] can not hold more than one container!"))
-			return FALSE
-		unload_hypo(user)
 	if(I.w_class <= max_container_size)
 		var/obj/item/reagent_containers/glass/bottle/vial/V = I
 		if(!is_type_in_list(V, allowed_containers))
@@ -374,37 +363,16 @@
 			return FALSE
 		if(!user.transferItemToLoc(V,src))
 			return FALSE
+		if(container)
+			unload_hypo(user)
 		container = V
 		user.visible_message(span_notice("[user] has loaded [container] into [src]."),span_notice("You have loaded [container] into [src]."))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		playsound(loc, pick(load_sound), 35, 1)
 		return TRUE
 	else
 		to_chat(user, span_notice("This doesn't fit in [src]."))
 		return FALSE
-
-/obj/item/hypospray/AltClick(mob/user)
-	. = ..()
-	if(possible_transfer_amounts.len)
-		var/i=0
-		for(var/A in possible_transfer_amounts)
-			i++
-			if(A == transfer_amount)
-				if(i<possible_transfer_amounts.len)
-					transfer_amount = possible_transfer_amounts[i+1]
-				else
-					transfer_amount = possible_transfer_amounts[1]
-				to_chat(user, span_notice("[src]'s transfer amount is now [transfer_amount] units."))
-				return
-
-/obj/item/hypospray/proc/switch_modes(mob/user)
-	switch(mode)
-		if(HYPO_SPRAY)
-			mode = HYPO_INJECT
-			to_chat(user, span_notice("[src] is now set to inject contents on application."))
-		if(HYPO_INJECT)
-			mode = HYPO_SPRAY
-			to_chat(user, span_notice("[src] is now set to spray contents on application."))
 
 /obj/item/hypospray/attack(obj/item/I, mob/user, params)
 	return
@@ -415,25 +383,41 @@
 		return
 	return ..()
 
-/obj/item/hypospray/CtrlClick(mob/user)
-	if(can_remove_container && loc == user && user.is_holding(src) && container)
-		unload_hypo(user)
-		return
-	return ..()
+/obj/item/hypospray/attack_hand_secondary(mob/user, modifiers)
+	if(!can_remove_container)
+		return SECONDARY_ATTACK_CALL_NORMAL
+	unload_hypo(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/hypospray/afterattack(atom/target, mob/user, proximity)
-	if(!container || !proximity || (antispam && initial(antispam)))
+	if(!can_use_hypo(target, user))
 		return
-	antispam = TRUE
-	switch(mode)
-		if(HYPO_INJECT)
-			inject(target, user)
-		if(HYPO_SPRAY)
-			spray(target, user)
-		if(HYPO_DRAW)
-			draw(target, user)
-	antispam = FALSE
-	update_icon()
+	inject(target, user)
+	update_appearance(UPDATE_ICON)
+
+/obj/item/hypospray/afterattack_secondary(atom/target, mob/user, proximity_flag, click_parameters)
+	if(!can_use_hypo(target, user))
+		return
+	spray(target, user)
+	update_appearance(UPDATE_ICON)
+
+/obj/item/hypospray/attack_self(mob/user)
+	if(!possible_transfer_amounts.len)
+		return
+	var/i=0
+	for(var/A in possible_transfer_amounts)
+		i++
+		if(A != transfer_amount)
+			continue
+		if(i < possible_transfer_amounts.len)
+			transfer_amount = possible_transfer_amounts[i+1]
+		else
+			transfer_amount = possible_transfer_amounts[1]
+		balloon_alert(user, "transferring [transfer_amount]u")
+		return
+
+/obj/item/hypospray/proc/can_use_hypo(atom/target, mob/user)
+	return (container && user.CanReach(target))
 
 /obj/item/hypospray/proc/inject(mob/living/carbon/target, mob/user)
 	//Initial Checks/Logging
@@ -442,7 +426,7 @@
 		return
 
 	var/mob/living/carbon/C = target
-	if(istype(C) && C.can_inject(user, 1, user.zone_selected, penetrates))
+	if(istype(C) && C.can_inject(user, 1, user.zone_selected, (upgrade_flags & PIERCING)))
 		if(ishuman(C))
 			var/obj/item/bodypart/affecting = C.get_bodypart(check_zone(user.zone_selected))
 			if(!affecting)
@@ -459,9 +443,10 @@
 		to_chat(user, span_notice("You begin to inject [C] with [src]."))
 
 		//Checks
-		if(!do_mob(user, C, (C == user) ? inject_self : inject_wait))
+		var/use_delay = (C == user) ? inject_self : inject_wait
+		if(use_delay && !do_after(user, use_delay, C))
 			return
-		if((!penetrates && !C.can_inject(user, 1)) || !container?.reagents?.total_volume || C.reagents.total_volume >= C.reagents.maximum_volume)
+		if((!(upgrade_flags & PIERCING) && !C.can_inject(user, 1)) || !container?.reagents?.total_volume || C.reagents.total_volume >= C.reagents.maximum_volume)
 			return
 
 		//Post Messages/sounds
@@ -472,7 +457,7 @@
 		var/contained = container.reagents.log_list()
 		user.log_message("applied [src] to  [C == user ? "themselves" : C ] ([contained]).", INDIVIDUAL_ATTACK_LOG)
 		if(C != user)
-			log_attack("[user.name] ([user.ckey]) applied [src] to [C.name] ([C.ckey]), which had [contained] (INTENT: [uppertext(user.a_intent)]) (MODE: [mode])")
+			log_attack("[user.name] ([user.ckey]) applied [src] to [C.name] ([C.ckey]), which had [contained] (COMBAT MODE: [user.combat_mode ? "ON" : "OFF"])")
 	else
 		if(!target.is_injectable(user))
 			to_chat(user, span_warning("You cannot directly fill [target]!"))
@@ -506,7 +491,8 @@
 		to_chat(user, span_notice("You begin to spray [C] with [src]."))
 
 		//Checks Again
-		if(!do_mob(user, C, (C == user) ? spray_self : spray_wait))
+		var/use_delay = (C == user) ? spray_self : spray_wait
+		if(use_delay && !do_after(user, use_delay, C))
 			return
 		if(!C.can_inject(user, 1) || C.reagents.total_volume >= C.reagents.maximum_volume)
 			return
@@ -519,7 +505,7 @@
 		var/contained = container.reagents.log_list()
 		user.log_message("applied [src] to  [C == user ? "themselves" : C ] ([contained]).", INDIVIDUAL_ATTACK_LOG)
 		if(C != user)
-			log_attack("[user.name] ([user.ckey]) applied [src] to [C.name] ([C.ckey]), which had [contained] (INTENT: [uppertext(user.a_intent)]) (MODE: [mode])")
+			log_attack("[user.name] ([user.ckey]) applied [src] to [C.name] ([C.ckey]), which had [contained] (COMBAT MODE: [user.combat_mode ? "ON" : "OFF"])")
 	else
 		if(!target.is_injectable(user))
 			to_chat(user, span_warning("You cannot directly fill [target]!"))
@@ -543,7 +529,7 @@
 		if(target != user)
 			target.visible_message(span_danger("[user] is trying to take a blood sample from [target]!"), \
 							span_userdanger("[user] is trying to take a blood sample from [target]!"))
-			if(!do_mob(user, target))
+			if(!do_after(user, 3 SECONDS, target))
 				return
 			if(container.reagents.total_volume >= container.reagents.maximum_volume)
 				return
@@ -567,33 +553,15 @@
 	playsound(loc, pick(draw_sound), 25)
 	to_chat(user, span_notice("[transfered_amount] unit\s drawn. [container] now contains [container.reagents.total_volume] unit\s."))
 
-/obj/item/hypospray/attack_self(mob/user)
-	if(loc != user)
-		return
-	switch_modes(user)
-
 /obj/item/hypospray/deluxe
 	name = "hypospray deluxe"
 	desc = "The Deluxe Hypospray can take larger-size vials. It also acts faster and delivers more reagents per spray."
 	icon_state = "hypo_deluxe"
-	max_container_size = WEIGHT_CLASS_SMALL
 	possible_transfer_amounts = list(1, 5)
 	inject_wait = 0 SECONDS
 	inject_self = 0 SECONDS
 	spray_wait = 0.5 SECONDS
 	spray_self = 0.5 SECONDS
-
-/obj/item/hypospray/deluxe/switch_modes(mob/user)
-	switch(mode)
-		if(HYPO_DRAW)
-			mode = HYPO_INJECT
-			to_chat(user, span_notice("[src] is now set to inject contents on application."))
-		if(HYPO_INJECT)
-			mode = HYPO_SPRAY
-			to_chat(user, span_notice("[src] is now set to spray contents on application."))
-		if(HYPO_SPRAY)
-			mode = HYPO_DRAW
-			to_chat(user, span_notice("[src] is now set to draw on application."))
 
 /obj/item/hypospray/deluxe/cmo
 	resistance_flags = INDESTRUCTIBLE | LAVA_PROOF | FIRE_PROOF | ACID_PROOF
@@ -604,9 +572,7 @@
 	desc = "A highly advanced hypospray that uses bluespace magic to instantly inject people with reagents."
 	allowed_containers = list(/obj/item/reagent_containers)
 	container = /obj/item/reagent_containers/glass/bottle/adminordrazine
-	max_container_size = WEIGHT_CLASS_TINY
-	quickload = TRUE
-	penetrates = TRUE
+	upgrade_flags = PIERCING
 	possible_transfer_amounts = list(0.1, 1, 5, 10, 15, 20, 30, 50, 100)
 	spray_wait = 0 SECONDS
 	spray_self = 0 SECONDS
@@ -616,37 +582,31 @@
 	desc = "A combat-ready deluxe hypospray that acts almost instantly."
 	icon_state = "hypo_syndie"
 	allowed_containers = list(/obj/item/reagent_containers/glass/bottle)
-	container = /obj/item/reagent_containers/glass/bottle/vial/large/combat
-	max_container_size = WEIGHT_CLASS_SMALL
+	container = /obj/item/reagent_containers/glass/bottle/vial/combat
 	inject_wait = 0 SECONDS
 	inject_self = 0 SECONDS
 	spray_wait = 0 SECONDS
 	spray_self = 0 SECONDS
-	quickload = TRUE
-	penetrates = TRUE
+	upgrade_flags = PIERCING
 
 /obj/item/hypospray/qmc
 	name = "QMC hypospray"
 	desc = "A modified, well used quick-mix capital combat hypospray designed to treat those on the field with hardsuits."
 	icon_state = "hypo_qmc"
-	quickload = TRUE
-	penetrates = TRUE
+	upgrade_flags = PIERCING
 
 /obj/item/hypospray/syringe
 	name = "autosyringe"
-	desc = "A precurser to the modern day hyposprays commonly used for its compatability with hypospray vials."
+	desc = "A precursor to the modern day hyposprays commonly used for its compatability with hypospray vials."
 	icon_state = "autosyringe"
 	inject_wait = 3 SECONDS
 	inject_self = 0 SECONDS
 
-/obj/item/hypospray/syringe/switch_modes(mob/user)
-	switch(mode)
-		if(HYPO_DRAW)
-			mode = HYPO_INJECT
-			to_chat(user, span_notice("[src] is now set to inject contents on application."))
-		if(HYPO_INJECT)
-			mode = HYPO_DRAW
-			to_chat(user, span_notice("[src] is now set to draw on application."))
+/obj/item/hypospray/syringe/afterattack_secondary(atom/target, mob/user, proximity_flag, click_parameters)
+	if(!can_use_hypo(target, user))
+		return
+	draw(target, user)
+	update_appearance(UPDATE_ICON)
 
 /obj/item/hypospray/attackby(obj/item/I, mob/living/user)
 	if(istype(I, /obj/item/hypospray_upgrade))
@@ -658,12 +618,15 @@
 	else
 		..()
 
+//------------HYPOSPRAY UPGRADES-------------------------
 /obj/item/hypospray_upgrade
 	name = "hypospray modification kit"
 	desc = "An upgrade for hyposprays."
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "modkit"
 	w_class = WEIGHT_CLASS_SMALL
+	var/upgrade_flag
+	var/mechanism_name = "non-existant"
 
 /obj/item/hypospray_upgrade/attackby(obj/item/A, mob/user)
 	if(istype(A, /obj/item/hypospray) && !issilicon(user))
@@ -674,49 +637,30 @@
 	else
 		..()
 
-/obj/item/hypospray_upgrade/proc/install(var/obj/item/hypospray/hypo, mob/user)
-	to_chat(user, span_notice("The modkit you're trying to install is not meant to exist."))
-	return FALSE
-
-/obj/item/hypospray_upgrade/quickload
-	name = "hypospray quickload upgrade"
-	desc = "An upgrade for hyposprays that installs a quickloading mechanism, allowing tactical reloads by using a container on it."
-
-/obj/item/hypospray_upgrade/quickload/install(var/obj/item/hypospray/hypo, mob/user)
-	if(hypo.quickload)
-		to_chat(user, span_notice("[hypo] already has a quickloading mechanism!"))
+/obj/item/hypospray_upgrade/proc/install(obj/item/hypospray/hypo, mob/user)
+	if(!upgrade_flag)
+		to_chat(user, span_notice("The modkit you're trying to install is not meant to exist."))
 		return FALSE
-	else
-		hypo.quickload = TRUE
-		return TRUE
+	if(hypo.upgrade_flags & upgrade_flag)
+		to_chat(user, span_notice("[hypo] already has a [mechanism_name] mechanism!"))
+		return FALSE
+	hypo.upgrade_flags |= upgrade_flag
+	return TRUE
 
 /obj/item/hypospray_upgrade/piercing
 	name = "hypospray piercing upgrade"
 	desc = "An upgrade for hyposprays that installs a diamond tipped needle, allowing it to pierce thick clothing."
-
-/obj/item/hypospray_upgrade/piercing/install(var/obj/item/hypospray/hypo, mob/user)
-	if(hypo.penetrates)
-		to_chat(user, span_notice("[hypo] already has a piercing mechanism!"))
-		return FALSE
-	else
-		hypo.penetrates = TRUE
-		return TRUE
+	upgrade_flag = PIERCING
+	mechanism_name = "piercing"
 
 /obj/item/hypospray_upgrade/speed
 	name = "hypospray speed upgrade"
 	desc = "An upgrade for hyposprays that installs a springloaded mechanism, allowing it to inject with reduced delay."
+	upgrade_flag = SPEED_UP
+	mechanism_name = "speed"
 
-/obj/item/hypospray_upgrade/speed/install(var/obj/item/hypospray/hypo, mob/user)
-	if(hypo.speedup)
-		to_chat(user, span_notice("[hypo] already has a speed mechanism!"))
-		return FALSE
-	else
+/obj/item/hypospray_upgrade/speed/install(obj/item/hypospray/hypo, mob/user)
+	if(..())
 		hypo.inject_wait = clamp(hypo.inject_wait, 0, hypo.inject_wait - 0.5 SECONDS)
 		hypo.inject_self = 0 SECONDS
-		hypo.speedup = TRUE
 		return TRUE
-
-#undef HYPO_INJECT
-#undef HYPO_SPRAY
-#undef HYPO_DRAW
-

@@ -16,7 +16,7 @@
 	speak_emote = list("screams")
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	minbodytemp = 0
-	weather_immunities = list("ash")
+	weather_immunities = WEATHER_STORM
 	stat_attack = UNCONSCIOUS
 
 /mob/living/simple_animal/hostile/abomination/super
@@ -27,22 +27,21 @@
 	icon_dead = "headcrab_dead"
 	health = 250
 	maxHealth = 250
-	var/obj/effect/proc_holder/spell/aoe_turf/abomination/screech/scream = null
+	var/datum/action/cooldown/spell/aoe/shriek/scream = null
 	var/screamCD
 
 /mob/living/simple_animal/hostile/abomination/super/New()
 	..()
-	scream = new /obj/effect/proc_holder/spell/aoe_turf/abomination/screech
-	scream.human_req = 0
-	AddSpell(scream)
+	scream = new /datum/action/cooldown/spell/aoe/shriek()
+	scream.Grant(src)
 
 /mob/living/simple_animal/hostile/abomination/super/handle_automated_action()
 	. = ..()
 	if(target)
 		if(screamCD < world.time)
 			visible_message("[src.name] grows a wicked smile before dropping their jaw and inhaling.")
-			scream.choose_targets(src)
-			screamCD = world.time + 1200
+			scream.get_things_to_cast_on(src)
+			screamCD = world.time + 2 MINUTES
 
 /mob/living/simple_animal/hostile/abomination/altform1
 	icon = 'yogstation/icons/mob/horrors.dmi'

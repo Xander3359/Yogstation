@@ -117,7 +117,7 @@
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/engineering)
 "ax" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-20";
 	pixel_y = 3
 	},
@@ -226,12 +226,6 @@
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/engineering)
 "aO" = (
-/turf/open/floor/plating,
-/area/awaymission/research/interior/maint)
-"aP" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
 /turf/open/floor/plating,
 /area/awaymission/research/interior/maint)
 "aQ" = (
@@ -548,9 +542,8 @@
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/engineering)
 "bx" = (
-/obj/machinery/door/airlock/external{
-	req_access_txt = "13"
-	},
+/obj/machinery/door/airlock/external,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/external,
 /turf/open/floor/plating,
 /area/awaymission/research/interior/maint)
 "by" = (
@@ -922,14 +915,14 @@
 /area/awaymission/research/interior)
 "cq" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper,
 /obj/effect/turf_decal/tile/yellow,
 /obj/effect/turf_decal/tile/yellow{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/engineering)
 "cr" = (
@@ -943,8 +936,7 @@
 /area/awaymission/research/interior)
 "cs" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper,
 /obj/effect/turf_decal/tile/yellow{
@@ -953,6 +945,7 @@
 /obj/effect/turf_decal/tile/yellow{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/engineering)
 "ct" = (
@@ -987,10 +980,9 @@
 /turf/closed/wall/r_wall,
 /area/awaymission/research/interior/genetics)
 "cy" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	name = "Genetics Maintenance";
-	req_access_txt = "9"
-	},
+/obj/machinery/door/airlock/maintenance_hatch,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/maintenance,
+/obj/effect/mapping_helpers/airlock/cyclelink_helper,
 /turf/open/floor/plating,
 /area/awaymission/research/interior/maint)
 "cz" = (
@@ -1189,9 +1181,9 @@
 	},
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Gateway Access";
-	req_access_txt = "205"
+	name = "Gateway Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plating,
 /area/awaymission/research/interior/gateway)
 "cS" = (
@@ -1289,19 +1281,18 @@
 /area/awaymission/research/interior/maint)
 "cZ" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/turf_decal/tile/yellow,
 /obj/effect/turf_decal/tile/yellow{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "da" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/turf_decal/tile/yellow{
 	dir = 1
@@ -1309,6 +1300,7 @@
 /obj/effect/turf_decal/tile/yellow{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "db" = (
@@ -1762,7 +1754,7 @@
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "dN" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-16"
 	},
 /obj/effect/turf_decal/tile/purple{
@@ -1878,18 +1870,18 @@
 /obj/effect/mapping_helpers/airlock/locked,
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Secure Storage C";
-	req_access_txt = "205"
+	name = "Secure Storage C"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "dX" = (
 /obj/effect/mapping_helpers/airlock/locked,
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Secure Storage D";
-	req_access_txt = "205"
+	name = "Secure Storage D"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "dY" = (
@@ -2060,16 +2052,6 @@
 "es" = (
 /turf/open/floor/plating,
 /area/awaymission/research/interior)
-"et" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
-/obj/structure/cable{
-	icon_state = "1-2"
-	},
-/obj/effect/mapping_helpers/airlock/cyclelink_helper,
-/turf/open/floor/plating,
-/area/awaymission/research/interior/maint)
 "eu" = (
 /obj/effect/turf_decal/tile/purple{
 	dir = 1
@@ -2197,12 +2179,8 @@
 /turf/open/floor/plating,
 /area/awaymission/research/interior/maint)
 "eH" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
-/obj/structure/cable{
-	icon_state = "4-8"
-	},
+/obj/machinery/door/airlock/maintenance_hatch,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/maintenance,
 /turf/open/floor/plating,
 /area/awaymission/research/interior/maint)
 "eI" = (
@@ -2280,14 +2258,16 @@
 /area/awaymission/research/interior/maint)
 "eQ" = (
 /obj/machinery/door/window/northright{
-	name = "Cell Door";
-	req_access_txt = "63"
+	name = "Cell Door"
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 1
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 4
+	},
+/obj/effect/mapping_helpers/windoor/access/all/security/basic{
+	dir = 1
 	},
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/security)
@@ -2301,8 +2281,7 @@
 "eS" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 1
@@ -2310,6 +2289,7 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/security)
 "eT" = (
@@ -2706,13 +2686,13 @@
 /area/awaymission/research/interior/cryo)
 "fK" = (
 /obj/machinery/door/airlock/research{
-	name = "Cryogenetics Research";
-	req_access_txt = "9"
+	name = "Cryogenetics Research"
 	},
 /obj/effect/turf_decal/tile/purple,
 /obj/effect/turf_decal/tile/purple{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/cryo)
 "fL" = (
@@ -2724,8 +2704,7 @@
 /area/awaymission/research/interior)
 "fM" = (
 /obj/machinery/door/airlock/research{
-	name = "Cryogenetics Research";
-	req_access_txt = "9"
+	name = "Cryogenetics Research"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
@@ -2734,6 +2713,7 @@
 /obj/effect/turf_decal/tile/purple{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "fN" = (
@@ -2796,13 +2776,13 @@
 "fS" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/turf_decal/tile/red,
 /obj/effect/turf_decal/tile/red{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "fT" = (
@@ -2910,7 +2890,7 @@
 /area/awaymission/research/interior/security)
 "gb" = (
 /obj/structure/table,
-/obj/item/storage/box/fancy/donut_box,
+/obj/item/storage/fancy/donut_box,
 /obj/effect/turf_decal/tile/red{
 	dir = 1
 	},
@@ -2966,12 +2946,12 @@
 "gg" = (
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Power Storage";
-	req_access_txt = "205"
+	name = "Power Storage"
 	},
 /obj/structure/cable{
 	icon_state = "4-8"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "gh" = (
@@ -3000,12 +2980,12 @@
 	},
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 0;
-	name = "Vault Storage";
-	req_access_txt = "205"
+	name = "Vault Storage"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "gm" = (
@@ -3017,8 +2997,7 @@
 /area/awaymission/research/interior/secure)
 "gn" = (
 /obj/machinery/door/airlock/research{
-	name = "Secure Storage";
-	req_access_txt = "9,63"
+	name = "Secure Storage"
 	},
 /obj/structure/cable{
 	icon_state = "4-8"
@@ -3026,6 +3005,8 @@
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/any/security/basic,
+/obj/effect/mapping_helpers/airlock/access/any/science/general,
 /turf/open/floor/plating,
 /area/awaymission/research/interior/secure)
 "go" = (
@@ -3046,8 +3027,7 @@
 /area/awaymission/research/interior)
 "gq" = (
 /obj/machinery/door/airlock/research{
-	name = "Cryogenetics Research";
-	req_access_txt = "9"
+	name = "Cryogenetics Research"
 	},
 /obj/structure/cable{
 	icon_state = "4-8"
@@ -3055,6 +3035,7 @@
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/general,
 /turf/open/floor/plating,
 /area/awaymission/research/interior)
 "gr" = (
@@ -3097,8 +3078,7 @@
 /area/awaymission/research/interior)
 "gt" = (
 /obj/machinery/door/airlock/research{
-	name = "Cryogenetics Research";
-	req_access_txt = "9"
+	name = "Cryogenetics Research"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
@@ -3113,6 +3093,7 @@
 /obj/effect/turf_decal/tile/purple{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/cryo)
 "gu" = (
@@ -3575,8 +3556,7 @@
 "hb" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 1
@@ -3584,6 +3564,7 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "hc" = (
@@ -3879,13 +3860,13 @@
 /area/awaymission/research/interior/maint)
 "hE" = (
 /obj/machinery/door/window/southright{
-	name = "Cell Door";
-	req_access_txt = "63"
+	name = "Cell Door"
 	},
 /obj/effect/turf_decal/tile/red,
 /obj/effect/turf_decal/tile/red{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/windoor/access/all/security/basic,
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/security)
 "hF" = (
@@ -3918,18 +3899,18 @@
 /obj/effect/mapping_helpers/airlock/locked,
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Secure Storage A";
-	req_access_txt = "205"
+	name = "Secure Storage A"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "hJ" = (
 /obj/effect/mapping_helpers/airlock/locked,
 /obj/machinery/door/airlock/highsecurity{
 	aiDisabledIdScanner = 1;
-	name = "Secure Storage B";
-	req_access_txt = "205"
+	name = "Secure Storage B"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/dark,
 /area/awaymission/research/interior/secure)
 "hK" = (
@@ -4065,7 +4046,7 @@
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/genetics)
 "hV" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-10"
 	},
 /obj/effect/turf_decal/tile/purple{
@@ -4191,7 +4172,7 @@
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/security)
 "ii" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	desc = "A potted plant, it doesn't look very healthy...";
 	name = "dead potted plant"
 	},
@@ -4345,16 +4326,6 @@
 "iu" = (
 /obj/structure/cable{
 	icon_state = "1-8"
-	},
-/obj/structure/cable{
-	icon_state = "1-2"
-	},
-/turf/open/floor/plating,
-/area/awaymission/research/interior/maint)
-"iv" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	name = "Security Maintenance";
-	req_access_txt = "63"
 	},
 /obj/structure/cable{
 	icon_state = "1-2"
@@ -4576,15 +4547,6 @@
 	},
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/maint)
-"iT" = (
-/obj/structure/cable{
-	icon_state = "4-8"
-	},
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
-/turf/open/floor/plating,
-/area/awaymission/research/interior/maint)
 "iU" = (
 /obj/structure/cable{
 	icon_state = "4-8"
@@ -4693,15 +4655,15 @@
 /turf/open/floor/wood,
 /area/awaymission/research/interior/dorm)
 "jm" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-14"
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 9
 	},
 /area/awaymission/research/interior/dorm)
 "jn" = (
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 1
 	},
 /area/awaymission/research/interior/dorm)
@@ -4709,7 +4671,7 @@
 /obj/machinery/light{
 	dir = 1
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 1
 	},
 /area/awaymission/research/interior/dorm)
@@ -4719,10 +4681,9 @@
 	icon = 'icons/obj/smooth_structures/wood_table.dmi';
 	icon_state = "wood_table";
 	max_integrity = 55;
-	name = "flipped table";
-	obj_integrity = 55
+	name = "flipped table"
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 1
 	},
 /area/awaymission/research/interior/dorm)
@@ -4885,7 +4846,7 @@
 /turf/open/floor/wood,
 /area/awaymission/research/interior/dorm)
 "jE" = (
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 8
 	},
 /area/awaymission/research/interior/dorm)
@@ -4898,8 +4859,7 @@
 	icon = 'icons/obj/smooth_structures/wood_table.dmi';
 	icon_state = "wood_table";
 	max_integrity = 55;
-	name = "flipped table";
-	obj_integrity = 55
+	name = "flipped table"
 	},
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/dorm)
@@ -5080,23 +5040,6 @@
 /obj/effect/decal/cleanable/blood,
 /turf/open/floor/plasteel,
 /area/awaymission/research/interior/dorm)
-"ka" = (
-/turf/open/floor/plasteel/yellowsiding/corner,
-/area/awaymission/research/interior/dorm)
-"kb" = (
-/obj/structure/barricade/wooden{
-	desc = "A wooden table hastily flipped over for cover.";
-	icon = 'icons/obj/smooth_structures/wood_table.dmi';
-	icon_state = "wood_table";
-	max_integrity = 55;
-	name = "flipped table";
-	obj_integrity = 55
-	},
-/turf/open/floor/plasteel/yellowsiding,
-/area/awaymission/research/interior/dorm)
-"kc" = (
-/turf/open/floor/plasteel/yellowsiding,
-/area/awaymission/research/interior/dorm)
 "kd" = (
 /obj/effect/turf_decal/tile/green,
 /obj/effect/turf_decal/tile/green{
@@ -5241,7 +5184,7 @@
 	icon_state = "0-2"
 	},
 /turf/open/floor/plating,
-/area/awaymission/research/interior/dorm)
+/area/awaymission/research/interior/maint)
 "kq" = (
 /obj/machinery/door/airlock{
 	id_tag = "Dorm1";
@@ -5269,7 +5212,7 @@
 /area/awaymission/research/interior/dorm)
 "ku" = (
 /obj/structure/closet/wardrobe/pjs,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5340,16 +5283,11 @@
 /turf/open/floor/plating,
 /area/awaymission/research/interior/medbay)
 "kC" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-22"
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 9
-	},
-/area/awaymission/research/interior/dorm)
-"kD" = (
-/turf/open/floor/plasteel/yellowsiding/corner{
-	dir = 1
 	},
 /area/awaymission/research/interior/dorm)
 "kE" = (
@@ -5358,7 +5296,7 @@
 /area/awaymission/research/interior/dorm)
 "kF" = (
 /obj/structure/closet/wardrobe/green,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5396,7 +5334,7 @@
 /area/awaymission/research/interior/medbay)
 "kQ" = (
 /obj/structure/chair/stool,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 8
 	},
 /area/awaymission/research/interior/dorm)
@@ -5424,7 +5362,7 @@
 /obj/machinery/light{
 	dir = 4
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5479,7 +5417,7 @@
 "lc" = (
 /obj/structure/window/reinforced,
 /obj/structure/closet/wardrobe/mixed,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5600,13 +5538,10 @@
 /obj/machinery/light{
 	dir = 8
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 8
 	},
 /area/awaymission/research/interior/dorm)
-"ln" = (
-/turf/open/floor/plasteel,
-/area/space/nearstation)
 "lo" = (
 /obj/structure/table/wood,
 /obj/structure/bedsheetbin,
@@ -5614,7 +5549,7 @@
 /area/awaymission/research/interior/dorm)
 "lp" = (
 /obj/machinery/washing_machine,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5704,7 +5639,7 @@
 /area/awaymission/research/interior/medbay)
 "lx" = (
 /obj/structure/table,
-/obj/item/storage/box/fancy/cigarettes/dromedaryco,
+/obj/item/storage/fancy/cigarettes/dromedaryco,
 /obj/effect/turf_decal/tile/blue{
 	dir = 1
 	},
@@ -5714,25 +5649,16 @@
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/medbay)
 "ly" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-16"
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 10
 	},
 /area/awaymission/research/interior/dorm)
 "lz" = (
 /obj/machinery/light,
-/turf/open/floor/plasteel/yellowsiding,
-/area/awaymission/research/interior/dorm)
-"lA" = (
-/obj/structure/chair/stool,
-/turf/open/floor/plasteel/yellowsiding,
-/area/awaymission/research/interior/dorm)
-"lB" = (
-/turf/open/floor/plasteel/yellowsiding/corner{
-	dir = 8
-	},
+/turf/open/floor/plasteel,
 /area/awaymission/research/interior/dorm)
 "lC" = (
 /obj/machinery/iv_drip,
@@ -5833,7 +5759,7 @@
 	dir = 8;
 	pixel_x = 24
 	},
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5882,7 +5808,7 @@
 /area/awaymission/research/interior/dorm)
 "lU" = (
 /obj/machinery/computer/arcade,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 4
 	},
 /area/awaymission/research/interior/dorm)
@@ -5908,12 +5834,12 @@
 /area/awaymission/research/interior/medbay)
 "lX" = (
 /obj/structure/closet/crate/bin,
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 10
 	},
 /area/awaymission/research/interior/dorm)
 "lY" = (
-/turf/open/floor/plasteel/yellowsiding{
+/turf/open/floor/plasteel{
 	dir = 6
 	},
 /area/awaymission/research/interior/dorm)
@@ -5930,7 +5856,7 @@
 	icon_state = "0-8"
 	},
 /turf/open/floor/plating,
-/area/awaymission/research/interior/escapepods)
+/area/awaymission/research/interior/maint)
 "ma" = (
 /turf/closed/wall/r_wall,
 /area/awaymission/research/interior/escapepods)
@@ -6198,7 +6124,7 @@
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior/escapepods)
 "mJ" = (
-/obj/item/twohanded/required/kirbyplants,
+/obj/item/kirbyplants,
 /obj/effect/turf_decal/tile/green{
 	dir = 1
 	},
@@ -6235,7 +6161,7 @@
 /turf/open/floor/grass,
 /area/awaymission/research/interior/escapepods)
 "mN" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "applebush"
 	},
 /obj/effect/turf_decal/tile/green,
@@ -6348,7 +6274,7 @@
 /area/space/nearstation)
 "nb" = (
 /obj/structure/table/wood,
-/obj/item/book/granter/spell/random,
+/obj/item/book/granter/action/spell/random,
 /turf/open/floor/mineral/plasma,
 /area/space/nearstation)
 "nc" = (
@@ -6404,8 +6330,7 @@
 /area/awaymission/research/interior)
 "va" = (
 /obj/machinery/door/airlock/research{
-	name = "Cryogenetics Research";
-	req_access_txt = "9"
+	name = "Cryogenetics Research"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
@@ -6414,6 +6339,7 @@
 /obj/effect/turf_decal/tile/purple{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/science/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "wM" = (
@@ -6439,12 +6365,8 @@
 /turf/open/floor/plating,
 /area/awaymission/research/interior/escapepods)
 "zn" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
-/obj/structure/cable{
-	icon_state = "1-2"
-	},
+/obj/machinery/door/airlock/maintenance_hatch,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/maintenance,
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 1
 	},
@@ -6452,8 +6374,7 @@
 /area/awaymission/research/interior/maint)
 "Bx" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 1
@@ -6462,12 +6383,12 @@
 /obj/effect/turf_decal/tile/yellow{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "Do" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
+/obj/machinery/door/airlock/maintenance_hatch,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/maintenance,
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
 	},
@@ -6476,8 +6397,7 @@
 "Km" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
@@ -6486,6 +6406,7 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "Qd" = (
@@ -6506,8 +6427,7 @@
 "Qz" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
@@ -6518,12 +6438,12 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "TD" = (
 /obj/machinery/door/airlock/engineering{
-	name = "Engine Room";
-	req_access_txt = "10"
+	name = "Engine Room"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 1
@@ -6534,6 +6454,7 @@
 /obj/effect/turf_decal/tile/yellow{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/engineering/general,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "TE" = (
@@ -6548,8 +6469,7 @@
 "Uu" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
@@ -6558,12 +6478,12 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "UA" = (
-/obj/machinery/door/airlock/maintenance_hatch{
-	req_access_txt = "12"
-	},
+/obj/machinery/door/airlock/maintenance_hatch,
+/obj/effect/mapping_helpers/airlock/access/all/engineering/maintenance,
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 4
 	},
@@ -6572,8 +6492,7 @@
 "WR" = (
 /obj/machinery/door/airlock/security/glass{
 	id_tag = "outerbrig";
-	name = "Brig";
-	req_access_txt = "63"
+	name = "Brig"
 	},
 /obj/effect/mapping_helpers/airlock/cyclelink_helper{
 	dir = 8
@@ -6584,6 +6503,7 @@
 /obj/effect/turf_decal/tile/red{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/awaymission/research/interior)
 "XE" = (
@@ -37298,7 +37218,7 @@ ad
 aH
 cm
 dZ
-et
+cy
 fa
 fC
 gs
@@ -39110,7 +39030,7 @@ cK
 dt
 cK
 cK
-cy
+eH
 cd
 id
 cd
@@ -39121,7 +39041,7 @@ iX
 iX
 iX
 iX
-aP
+eH
 iX
 iX
 iX
@@ -39637,7 +39557,7 @@ jn
 kR
 kR
 jF
-kc
+jF
 lK
 jk
 jD
@@ -39894,7 +39814,7 @@ jn
 kS
 kR
 kU
-kc
+jF
 iX
 lP
 jk
@@ -40151,7 +40071,7 @@ jn
 kT
 kR
 jF
-kc
+jF
 iX
 iX
 iX
@@ -40408,7 +40328,7 @@ jn
 kU
 jF
 jF
-kc
+jF
 iX
 lQ
 jC
@@ -40664,8 +40584,8 @@ kr
 jn
 jF
 jF
-ln
-kc
+jF
+jF
 lL
 jk
 jD
@@ -40922,7 +40842,7 @@ jn
 jF
 jF
 jF
-kc
+jF
 iX
 lR
 jk
@@ -41179,7 +41099,7 @@ jn
 jF
 jF
 jF
-kc
+jF
 iX
 iX
 iX
@@ -41693,7 +41613,7 @@ jn
 jF
 jF
 kU
-kc
+jF
 lM
 jk
 jD
@@ -41950,7 +41870,7 @@ jn
 kU
 kR
 jF
-kc
+jF
 iX
 lT
 jk
@@ -42197,7 +42117,7 @@ iK
 iN
 iM
 id
-iT
+eH
 iX
 iX
 iX
@@ -42207,7 +42127,7 @@ jn
 jF
 kR
 jF
-lA
+kU
 iX
 iX
 iX
@@ -42460,11 +42380,11 @@ jm
 jE
 jE
 jE
-kD
+jn
 jF
 jF
 lo
-lB
+jE
 jE
 jE
 jE
@@ -42938,7 +42858,7 @@ ar
 ar
 ar
 ar
-aP
+eH
 ar
 ar
 ar
@@ -42982,7 +42902,7 @@ jF
 jF
 kU
 kU
-kc
+jF
 iX
 hD
 mb
@@ -43229,7 +43149,7 @@ iU
 iX
 jn
 jF
-ka
+jF
 ku
 kF
 kV
@@ -43240,7 +43160,7 @@ lN
 lU
 lU
 lY
-aP
+eH
 cd
 mb
 mi
@@ -43482,11 +43402,11 @@ id
 id
 id
 id
-iT
+eH
 iX
 jp
 jG
-kb
+jG
 iX
 iX
 iX
@@ -43499,7 +43419,7 @@ iX
 iX
 iX
 cd
-aP
+eH
 mi
 mn
 mn
@@ -43743,7 +43663,7 @@ cw
 iX
 jn
 jF
-kc
+jF
 iX
 cm
 bD
@@ -44002,7 +43922,7 @@ jq
 jH
 kd
 iD
-iT
+eH
 iD
 iD
 iD
@@ -45030,7 +44950,7 @@ js
 jJ
 ke
 cp
-iT
+eH
 iD
 iD
 iD
@@ -45040,7 +44960,7 @@ iD
 iD
 iD
 iD
-aP
+eH
 iD
 mp
 mx
@@ -46294,11 +46214,11 @@ aH
 aO
 aO
 aO
-aP
+eH
 fT
 gG
 hc
-aP
+eH
 cm
 bD
 cw
@@ -49404,7 +49324,7 @@ jh
 lg
 lt
 kh
-aP
+eH
 cd
 aH
 ad
@@ -50672,7 +50592,7 @@ hH
 hR
 hR
 ik
-iv
+eH
 cw
 aH
 ad

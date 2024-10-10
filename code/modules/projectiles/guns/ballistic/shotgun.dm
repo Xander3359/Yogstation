@@ -21,6 +21,16 @@
 	cartridge_wording = "shell"
 	tac_reloads = FALSE
 
+/obj/item/gun/ballistic/shotgun/automatic
+	name = "semi-auto shotgun"
+	desc = "A shotgun that automatically chambers a new round after firing."
+	rack_sound = "sound/weapons/gun_slide_lock_5.ogg"
+	rack_sound_vary = FALSE
+	bolt_type = BOLT_TYPE_LOCKING
+	semi_auto = TRUE
+	casing_ejector = TRUE
+	bolt_wording = "charging handle"
+
 /obj/item/gun/ballistic/shotgun/blow_up(mob/user)
 	. = 0
 	if(chambered && chambered.BB)
@@ -54,13 +64,9 @@
 
 // Automatic Shotguns//
 
-/obj/item/gun/ballistic/shotgun/automatic/shoot_live_shot(mob/living/user)
-	..()
-	rack()
-
 /obj/item/gun/ballistic/shotgun/automatic/combat
 	name = "combat shotgun"
-	desc = "A semi automatic shotgun with tactical furniture and a six-shell capacity underneath."
+	desc = "A semi-automatic shotgun with tactical furniture and a six-shell capacity underneath."
 	fire_delay = 5
 	icon_state = "cshotgun"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/com
@@ -68,7 +74,7 @@
 
 /obj/item/gun/ballistic/shotgun/automatic/combat/compact
 	name = "compact combat shotgun"
-	desc = "A compact version of the semi automatic combat shotgun. For close encounters."
+	desc = "A compact version of the semi-automatic combat shotgun. For close encounters."
 	icon_state = "cshotgunc"
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/com/compact
 	w_class = WEIGHT_CLASS_BULKY
@@ -83,13 +89,12 @@
 	w_class = WEIGHT_CLASS_HUGE
 	var/toggled = FALSE
 	var/obj/item/ammo_box/magazine/internal/shot/alternate_magazine
-	semi_auto = TRUE
 
 /obj/item/gun/ballistic/shotgun/automatic/dual_tube/examine(mob/user)
 	. = ..()
 	. += span_notice("Alt-click to pump it.")
 
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/Initialize()
+/obj/item/gun/ballistic/shotgun/automatic/dual_tube/Initialize(mapload)
 	. = ..()
 	if (!alternate_magazine)
 		alternate_magazine = new mag_type(src)
@@ -115,6 +120,20 @@
 	if(!istype(user) || !user.canUseTopic(src, BE_CLOSE, ismonkey(user)))
 		return
 	rack()
+
+/obj/item/gun/ballistic/shotgun/lever
+	name = "\improper Winton Mk. VI Repeating Rifle"
+	desc = "A lever-action rifle chambered in .308 with pristine wooden furniture. Favored by Frontier sharpshooters."
+	icon_state = "wintonrifle"
+	item_state = "wintonrifle"
+	fire_sound = "sound/weapons/leverfire.ogg"
+	fire_sound_volume = 50
+	rack_sound = "sound/weapons/leverrack.ogg"
+	load_sound = "sound/weapons/leverload.ogg"
+	fire_delay = 9
+	mag_type = /obj/item/ammo_box/magazine/internal/shot/lever
+	bolt_wording = "lever"
+	cartridge_wording = "bullet"
 
 // Bulldog shotgun //
 
@@ -157,7 +176,6 @@
 	slot_flags = ITEM_SLOT_BACK
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/dual
 	sawn_desc = "Omar's coming!"
-	obj_flags = UNIQUE_RENAME
 	rack_sound_volume = 0
 	unique_reskin = list("Default" = "dshotgun",
 						"Dark Red Finish" = "dshotgun_d",
@@ -170,9 +188,12 @@
 	bolt_type = BOLT_TYPE_NO_BOLT
 	can_be_sawn_off  = TRUE
 
+/obj/item/gun/ballistic/shotgun/doublebarrel/lethal
+	mag_type = /obj/item/ammo_box/magazine/internal/shot/lethal
+
 /obj/item/gun/ballistic/shotgun/doublebarrel/AltClick(mob/user)
 	. = ..()
-	if(unique_reskin && !current_skin && user.canUseTopic(src, BE_CLOSE, NO_DEXTERY))
+	if(unique_reskin && !current_skin && user.canUseTopic(src, BE_CLOSE, NO_DEXTERITY))
 		reskin_obj(user)
 
 // IMPROVISED SHOTGUN //
@@ -188,15 +209,23 @@
 	mag_type = /obj/item/ammo_box/magazine/internal/shot/improvised
 	sawn_desc = "I'm just here for the gasoline."
 	unique_reskin = null
-	var/slung = FALSE
 	can_bayonet = TRUE //STOP WATCHING THIS FILTH MY FELLOW CARGONIAN,WE MUST DEFEND OURSELVES
+	var/slung = FALSE
+	var/usage = 0 //how many times it's been used since last maintenance
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/afterattack()
-	if(prob(40))
+	if(prob(usage * 10))//10% chance for each shot to not fire
+		if(prob(max((usage - 5), 0) * 10))//10% chance for each shot to explode, after 6 shots
+			explosion(src, 0, 0, 1, 1)
+			playsound(src, 'sound/effects/break_stone.ogg', 30, TRUE)
+			to_chat(usr, span_warning("The round explodes in the chamber!"))
+			qdel(src)
+			return
 		playsound(src, dry_fire_sound, 30, TRUE)
 		return
 	else
 		. = ..()
+		usage++
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/attackby(obj/item/A, mob/user, params)
 	..()
@@ -209,12 +238,33 @@
 			slot_flags = ITEM_SLOT_BACK
 			to_chat(user, span_notice("You tie the lengths of cable to the shotgun, making a sling."))
 			slung = TRUE
-			update_icon()
+			update_appearance(UPDATE_ICON)
 		else
 			to_chat(user, span_warning("You need at least ten lengths of cable if you want to make a sling!"))
 
-/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/update_icon()
-	..()
+/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/screwdriver_act(mob/living/user, obj/item/I)
+	. = ..()
+	if(usage == initial(usage))
+		to_chat(user, span_notice("[src] has no need for maintenance yet."))
+		return
+
+	to_chat(user, span_notice("You start to perform some maintenance on [src]."))
+	if(I.use_tool(src, user, 4 SECONDS))
+		to_chat(user, span_notice("You fix up [src] a bit."))
+		usage = max(usage - 2, initial(usage))
+
+/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/examine(mob/user)
+	. = ..()
+	switch(usage)
+		if(0 to 1)
+			. += "It looks about as good as it possibly could."
+		if(2 to 6)
+			. += "It's starting to show some wear."
+		if(7 to INFINITY)
+			. += "It's not long before this thing falls apart."
+
+/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/update_icon_state()
+	. = ..()
 	if(slung)
 		icon_state = "ishotgunsling"
 	
@@ -224,7 +274,7 @@
 	if(. && slung) //sawing off the gun removes the sling
 		new /obj/item/stack/cable_coil(get_turf(src), 10)
 		slung = 0
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/sawn
 	name = "sawn-off improvised shotgun"
@@ -235,3 +285,4 @@
 	sawn_off = TRUE
 	slot_flags = ITEM_SLOT_BELT
 	can_bayonet = FALSE
+	usage = 1 //always slightly worse

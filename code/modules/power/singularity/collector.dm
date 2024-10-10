@@ -5,10 +5,11 @@
 
 // stored_power += (pulse_strength-RAD_COLLECTOR_EFFICIENCY)*RAD_COLLECTOR_COEFFICIENT*(machine_tier+power_bonus)
 #define RAD_COLLECTOR_EFFICIENCY 80 	// radiation needs to be over this amount to get power
-#define RAD_COLLECTOR_COEFFICIENT 100
+#define RAD_COLLECTOR_COEFFICIENT 40
 #define RAD_COLLECTOR_STORED_OUT 0.1	// (this*100)% of stored power outputted per tick. Doesn't actualy change output total, lower numbers just means collectors output for longer in absence of a source
 #define RAD_COLLECTOR_MINING_CONVERSION_RATE 0.000125 //This is gonna need a lot of tweaking to get right. This is the number used to calculate the conversion of watts to research points per process()
 #define RAD_COLLECTOR_OUTPUT min(stored_power, (stored_power*RAD_COLLECTOR_STORED_OUT)+1000) //Produces at least 1000 watts if it has more than that stored
+#define RAD_COLLECTOR_PAYOUT_SCALE 300
 
 /obj/machinery/power/rad_collector
 	name = "Radiation Collector Array"
@@ -35,9 +36,9 @@
 	/// What is it producing
 	var/mode = POWER
 	/// What gasses are we using
-	var/list/using = list(/datum/gas/plasma)
+	var/list/using = list(GAS_PLASMA)
 	/// Gasses we give
-	var/list/giving = list(/datum/gas/tritium = 1)
+	var/list/giving = list(GAS_TRITIUM = 1)
 	/// Last output used to calculate per minute
 	var/last_output = 0
 	// Higher machine tier will give more power
@@ -45,7 +46,7 @@
 	// Higher power bonus will give more power
 	var/power_bonus = 0
 	// Balance amount of money given to crew
-	var/balancevalue = 0.05
+	var/creditpayout = 0
 
 	var/obj/item/radio/radio
 	var/obj/item/tank/internals/plasma/loaded_tank = null
@@ -81,7 +82,7 @@
 
 	for(var/gasID in using)
 		loaded_tank.air_contents.adjust_moles(gasID, -gasdrained)
-	
+
 	for(var/gasID in giving)
 		loaded_tank.air_contents.adjust_moles(gasID, giving[gasID]*gasdrained)
 
@@ -106,9 +107,9 @@
 				var/datum/bank_account/D = SSeconomy.get_dep_account(ACCOUNT_CAR)
 				if(D)
 					var/payout = output/8000
-					stored_power -= min(payout*200, stored_power)
-					payout = payout * balancevalue
-					D.adjust_money(payout)
+					stored_power -= min(payout*20000, stored_power)
+					creditpayout = log(1 + (payout / RAD_COLLECTOR_PAYOUT_SCALE)) * (RAD_COLLECTOR_PAYOUT_SCALE / log(2))
+					D.adjust_money(creditpayout)
 					last_output = payout
 
 /obj/machinery/power/rad_collector/interact(mob/user)
@@ -117,11 +118,7 @@
 			toggle_power()
 			user.visible_message("[user.name] turns the [src.name] [active? "on":"off"].", \
 			span_notice("You turn the [src.name] [active? "on":"off"]."))
-			//yogs start -- fixes runtime with empty rad collectors
-			var/fuel = 0
-			if(loaded_tank)
-				fuel = loaded_tank.air_contents.get_moles(/datum/gas/plasma)
-			//yogs end
+			var/fuel = loaded_tank?.air_contents?.get_moles(GAS_PLASMA)
 			investigate_log("turned [active?"<font color='green'>on</font>":"<font color='red'>off</font>"] by [key_name(user)]. [loaded_tank?"Fuel: [round(fuel/0.29)]%":"<font color='red'>It is empty</font>"].", INVESTIGATE_SINGULO)
 			investigate_log("turned [active?"<font color='green'>on</font>":"<font color='red'>off</font>"] by [key_name(user)]. [loaded_tank?"Fuel: [round(fuel/0.29)]%":"<font color='red'>It is empty</font>"].", INVESTIGATE_SUPERMATTER) // yogs - so supermatter investigate is useful
 			return
@@ -158,7 +155,7 @@
 		if(!user.transferItemToLoc(W, src))
 			return
 		loaded_tank = W
-		update_icon()
+		update_appearance(UPDATE_ICON)
 	else if(W.GetID())
 		if(togglelock(user))
 			return TRUE
@@ -233,23 +230,23 @@
 				to_chat(user, "<span class='warning'>[src] isn't connected to a powernet!</span>")
 				return
 			mode = POWER
-			using = list(/datum/gas/plasma)
-			giving = list(/datum/gas/tritium = 1)
+			using = list(GAS_PLASMA)
+			giving = list(GAS_TRITIUM = 1)
 		if(SCIENCE)
 			if(!is_station_level(z) && !SSresearch.science_tech)
 				to_chat(user, "<span class='warning'>[src] isn't linked to a research system!</span>")
 				return // Dont switch over
 			mode = SCIENCE
-			using = list(/datum/gas/tritium, /datum/gas/oxygen)
-			giving = list(/datum/gas/carbon_dioxide = 2) // Conservation of mass
+			using = list(GAS_TRITIUM, GAS_O2)
+			giving = list(GAS_CO2 = 2) // Conservation of mass
 		if(MONEY)
 			var/datum/bank_account/D = SSeconomy.get_dep_account(ACCOUNT_CAR)
 			if(!D)
 				to_chat(user, "<span class='warning'>[src] couldn't find the cargo budget!</span>")
 				return // Dont switch over
 			mode = MONEY
-			using = list(/datum/gas/plasma)
-			giving = list(/datum/gas/tritium = 0.5) // money
+			using = list(GAS_PLASMA)
+			giving = list(GAS_TRITIUM = 0.5) // money
 
 	to_chat(user, "<span class='warning'>You set the [src] mode to [mode] production.</span>")
 
@@ -263,11 +260,11 @@
 	. = ..()
 	if(active)
 		if(mode == POWER)
-			. += "<span class='notice'>[src]'s display states that it has stored <b>[DisplayPower(stored_power)]</b>, and processing <b>[DisplayPower(RAD_COLLECTOR_OUTPUT)]</b>.</span>"
+			. += "<span class='notice'>[src]'s display states that it has stored <b>[DisplayJoules(stored_power)]</b>, and processing <b>[DisplayPower(RAD_COLLECTOR_OUTPUT)]</b>.</span>"
 		else if(mode == SCIENCE)
 			. += "<span class='notice'>[src]'s display states that it has stored a total of <b>[stored_power*RAD_COLLECTOR_MINING_CONVERSION_RATE]</b>, and producing [last_output*60] research points per minute.</span>"
 		else if(mode == MONEY)
-			. += "<span class='notice'>[src]'s display states that it has stored a total of <b>[stored_power*RAD_COLLECTOR_MINING_CONVERSION_RATE] credits</b>, and producing [last_output*60] credits per minute.</span>"
+			. += "<span class='notice'>[src]'s display states that it has stored a total of <b>[stored_power*RAD_COLLECTOR_MINING_CONVERSION_RATE] credits</b>, and producing [creditpayout] credits per minute.</span>"
 	else
 		if(mode == POWER)
 			. += "<span class='notice'><b>[src]'s display displays the words:</b> \"Power production mode. Please insert <b>Plasma</b>. Use a multitool to change production modes.\"</span>"
@@ -276,7 +273,7 @@
 		else if(mode == MONEY)
 			. += "<span class='notice'><b>[src]'s display displays the words:</b> \"Money production mode. Please insert <b>Plasma</b>. Use a multitool to change production modes.\"</span>"
 
-/obj/machinery/power/rad_collector/obj_break(damage_flag)
+/obj/machinery/power/rad_collector/atom_break(damage_flag)
 	. = ..()
 	if(.)
 		eject()
@@ -288,26 +285,26 @@
 		return
 	Z.forceMove(drop_location())
 	Z.layer = initial(Z.layer)
-	Z.plane = initial(Z.plane)
+	SET_PLANE_IMPLICIT(Z, initial(Z.plane))
 	src.loaded_tank = null
 	if(active)
 		toggle_power()
 	else
-		update_icon()
+		update_appearance()
 
-/obj/machinery/power/rad_collector/rad_act(pulse_strength)
+/obj/machinery/power/rad_collector/rad_act(pulse_strength, collectable_radiation)
 	. = ..()
-	if(loaded_tank && active && pulse_strength > RAD_COLLECTOR_EFFICIENCY)
-		stored_power += (pulse_strength-RAD_COLLECTOR_EFFICIENCY)*RAD_COLLECTOR_COEFFICIENT*(machine_tier+power_bonus)
+	if(loaded_tank && active && collectable_radiation && pulse_strength > RAD_COLLECTOR_EFFICIENCY)
+		stored_power += (pulse_strength-RAD_COLLECTOR_EFFICIENCY)*RAD_COLLECTOR_COEFFICIENT*sqrt(machine_tier+power_bonus)
 
-/obj/machinery/power/rad_collector/update_icon()
-	cut_overlays()
+/obj/machinery/power/rad_collector/update_overlays()
+	. = ..()
 	if(loaded_tank)
-		add_overlay("ptank")
+		. += "ptank"
 	if(stat & (NOPOWER|BROKEN))
 		return
 	if(active)
-		add_overlay("on")
+		. += "on"
 
 //honestly this should be balanced
 /obj/machinery/power/rad_collector/RefreshParts()
@@ -326,13 +323,13 @@
 	else
 		icon_state = "ca"
 		flick("ca_deactive", src)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/machinery/power/rad_collector/bullet_act(obj/item/projectile/P)
-	if(istype(P, /obj/item/projectile/energy/nuclear_particle))
-		rad_act(P.irradiate * P.damage) // equivalent of a 2000 strength rad pulse for each particle
-		P.damage = 0
-	..()
+/obj/machinery/power/rad_collector/bullet_act(obj/projectile/P)
+	if(istype(P, /obj/projectile/energy/nuclear_particle))
+		rad_act(P.irradiate * P.damage, collectable_radiation = TRUE) // equivalent of a 2000 strength rad pulse for each particle
+		P.nodamage = TRUE
+	return ..()
 
 #undef RAD_COLLECTOR_EFFICIENCY
 #undef RAD_COLLECTOR_COEFFICIENT

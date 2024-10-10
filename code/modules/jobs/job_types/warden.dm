@@ -3,27 +3,26 @@
 	description = "Watch over the Brig and Prison Wing, release prisoners when \
 		their time is up, issue equipment to security, be a security officer when \
 		they all eventually die."
-	flag = WARDEN
 	orbit_icon = "handcuffs"
 	auto_deadmin_role_flags = DEADMIN_POSITION_SECURITY
 	department_head = list("Head of Security")
-	department_flag = ENGSEC
 	faction = "Station"
 	total_positions = 1
 	spawn_positions = 1
 	supervisors = "the head of security"
-	selection_color = "#ffeeee"
 	minimal_player_age = 7
-	exp_requirements = 300
+	exp_requirements = 600
 	exp_type = EXP_TYPE_CREW
 	exp_type_department = EXP_TYPE_SECURITY
 
 	outfit = /datum/outfit/job/warden
 
-	alt_titles = list("Brig Watchman", "Brig Superintendent", "Security Staff Sergeant", "Security Dispatcher", "Prison Supervisor")
+	alt_titles = list("Brig Watchman", "Brig Superintendent", "Security Dispatcher", "Prison Supervisor")
 
-	added_access = list(ACCESS_MAINT_TUNNELS, ACCESS_MORGUE, ACCESS_FORENSICS_LOCKERS)
-	base_access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_MECH_SECURITY, ACCESS_COURT, ACCESS_WEAPONS, ACCESS_MINERAL_STOREROOM) // See /datum/job/warden/get_access()
+	added_access = list(ACCESS_MAINT_TUNNELS, ACCESS_MORGUE, ACCESS_DETECTIVE)
+	base_access = list(ACCESS_SECURITY, ACCESS_ARMORY, ACCESS_SEC_BASIC, ACCESS_BRIG,
+					ACCESS_MECH_SECURITY, ACCESS_WEAPONS_PERMIT, ACCESS_BRIG_PHYS, ACCESS_EXTERNAL_AIRLOCKS) // See /datum/job/warden/get_access()
+
 	paycheck = PAYCHECK_HARD
 	paycheck_department = ACCOUNT_SEC
 	mind_traits = list(TRAIT_LAW_ENFORCEMENT_METABOLISM)
@@ -31,10 +30,11 @@
 	display_order = JOB_DISPLAY_ORDER_WARDEN
 	minimal_character_age = 20 //You're a sergeant, probably has some experience in the field
 
-	changed_maps = list("YogsPubby", "OmegaStation")
+	departments_list = list(
+		/datum/job_department/security,
+	)
 
 	mail_goodies = list(
-		/obj/item/storage/box/fancy/cigarettes = 15,
 		/obj/item/storage/box/handcuffs = 10,
 		/obj/item/storage/box/teargas = 10,
 		/obj/item/storage/box/flashbangs = 10,
@@ -43,28 +43,40 @@
 		/obj/item/storage/box/lethalshot = 5
 	)
 
+	lightup_areas = list(/area/security/detectives_office)
+	minimal_lightup_areas = list(/area/security/warden)
+	
 	smells_like = "gunpowdery justice"
-
-/datum/job/warden/proc/YogsPubbyChanges()
-	base_access |= ACCESS_CREMATORIUM
-
-/datum/job/warden/proc/OmegaStationChanges()
-	return TRUE
 
 /datum/job/warden/get_access()
 	var/list/L = list()
 	L = ..() | check_config_for_sec_maint()
 	return L
 
+/datum/job/warden/after_spawn(mob/living/carbon/human/H, mob/M)
+	. = ..()
+	if(M?.client?.prefs)
+		var/obj/item/badge/security/badge
+		switch(M.client.prefs.exp[title] / 60)
+			if(200 to INFINITY)
+				badge = new /obj/item/badge/security/warden3
+			if(50 to 200)
+				badge = new /obj/item/badge/security/warden2
+			else
+				badge = new /obj/item/badge/security/warden1
+		badge.owner_string = H.real_name
+		var/obj/item/clothing/suit/my_suit = H.wear_suit
+		my_suit.attach_badge(badge)
+
 /datum/outfit/job/warden
 	name = "Warden"
 	jobtype = /datum/job/warden
 
-	pda_type = /obj/item/modular_computer/tablet/pda/preset/warden
+	pda_type = /obj/item/modular_computer/tablet/pda/preset/security/warden
 
 	ears = /obj/item/radio/headset/headset_sec/alt
-	uniform = /obj/item/clothing/under/rank/warden
-	uniform_skirt = /obj/item/clothing/under/rank/warden/skirt
+	uniform = /obj/item/clothing/under/rank/security/warden
+	uniform_skirt = /obj/item/clothing/under/rank/security/warden/skirt
 	shoes = /obj/item/clothing/shoes/jackboots
 	digitigrade_shoes = /obj/item/clothing/shoes/xeno_wraps/jackboots
 	suit = /obj/item/clothing/suit/armor/vest/warden/alt
@@ -78,7 +90,7 @@
 	backpack = /obj/item/storage/backpack/security
 	satchel = /obj/item/storage/backpack/satchel/sec
 	duffelbag = /obj/item/storage/backpack/duffelbag/sec
-	box = /obj/item/storage/box/security
+	box = /obj/item/storage/box/survival/security
 
 	implants = list(/obj/item/implant/mindshield)
 

@@ -3,7 +3,7 @@
 	desc = "Used to remotely locate or lockdown exosuits."
 	icon_screen = "mecha"
 	icon_keyboard = "tech_key"
-	req_access = list(ACCESS_ROBOTICS)
+	req_access = list(ACCESS_ROBO_CONTROL)
 	circuit = /obj/item/circuitboard/computer/mecha_control
 	var/list/located = list()
 
@@ -27,7 +27,7 @@
 		var/obj/mecha/M = MT.chassis
 		var/list/mech_data = list(
 			name = M.name,
-			integrity = round((M.obj_integrity / M.max_integrity) * 100),
+			integrity = round((M.get_integrity() / M.max_integrity) * 100),
 			charge = M.cell ? round(M.cell.percent()) : null,
 			airtank = M.internal_tank ? M.return_pressure() : null,
 			pilot = M.occupant,
@@ -88,7 +88,7 @@
 
 	var/cell_charge = chassis.get_charge()
 	var/answer = {"<b>Name:</b> [chassis.name]<br>
-				<b>Integrity:</b> [round((chassis.obj_integrity/chassis.max_integrity * 100), 0.01)]%<br>
+				<b>Integrity:</b> [round((chassis.get_integrity()/chassis.max_integrity * 100), 0.01)]%<br>
 				<b>Cell Charge:</b> [isnull(cell_charge) ? "Not Found":"[chassis.cell.percent()]%"]<br>
 				<b>Airtank:</b> [chassis.internal_tank ? "[round(chassis.return_pressure(), 0.01)]" : "Not Equipped"] kPa<br>
 				<b>Pilot:</b> [chassis.occupant || "None"]<br>

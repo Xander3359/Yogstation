@@ -1,3 +1,4 @@
+// See initialization order in /code/game/world.dm
 GLOBAL_REAL(config, /datum/controller/configuration)
 
 GLOBAL_DATUM(revdata, /datum/getrev)
@@ -33,4 +34,4 @@ GLOBAL_VAR_INIT(MAX_EX_FLASH_RANGE, 14)
 GLOBAL_PROTECT(MAX_EX_FLASH_RANGE)
 GLOBAL_VAR_INIT(MAX_EX_FLAME_RANGE, 14)
 GLOBAL_PROTECT(MAX_EX_FLAME_RANGE)
-GLOBAL_VAR_INIT(DYN_EX_SCALE, 0.5)
+GLOBAL_VAR_INIT(DYN_EX_SCALE, 0.415)

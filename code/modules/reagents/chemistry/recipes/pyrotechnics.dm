@@ -33,6 +33,7 @@
 	results = list(/datum/reagent/nitroglycerin = 2)
 	required_reagents = list(/datum/reagent/glycerol = 1, /datum/reagent/toxin/acid/fluacid = 1, /datum/reagent/toxin/acid = 1)
 	strengthdiv = 2
+	mob_react = FALSE
 
 /datum/chemical_reaction/reagent_explosion/nitroglycerin/on_reaction(datum/reagents/holder, created_volume)
 	if(holder.has_reagent(/datum/reagent/stabilizing_agent))
@@ -46,6 +47,7 @@
 	required_reagents = list(/datum/reagent/nitroglycerin = 1)
 	required_temp = 474
 	strengthdiv = 2
+	mob_react = FALSE
 
 
 /datum/chemical_reaction/reagent_explosion/potassium_explosion
@@ -79,7 +81,7 @@
 			R.stun(20)
 			R.reveal(100)
 			R.adjustHealth(50)
-		addtimer(CALLBACK(src, .proc/divine_explosion, round(created_volume/48,1),get_turf(holder.my_atom)), 2 SECONDS)
+		addtimer(CALLBACK(src, PROC_REF(divine_explosion), round(created_volume/48,1),get_turf(holder.my_atom)), 2 SECONDS)
 	..()
 
 /datum/chemical_reaction/reagent_explosion/potassium_explosion/holyboom/proc/divine_explosion(size, turf/T)
@@ -88,7 +90,7 @@
 			to_chat(C, span_userdanger("The divine explosion sears you!"))
 			C.Paralyze(40)
 			C.adjust_fire_stacks(5)
-			C.IgniteMob()
+			C.ignite_mob()
 
 /datum/chemical_reaction/blackpowder
 	name = "Black Powder"
@@ -108,7 +110,7 @@
 	name = "Thermite"
 	id = /datum/reagent/thermite
 	results = list(/datum/reagent/thermite = 3)
-	required_reagents = list(/datum/reagent/aluminium = 1, /datum/reagent/iron = 1, /datum/reagent/oxygen = 1)
+	required_reagents = list(/datum/reagent/aluminium = 1, /datum/reagent/iron = 1, /datum/reagent/gas/oxygen = 1)
 
 /datum/chemical_reaction/emp_pulse
 	name = "EMP Pulse"
@@ -117,10 +119,10 @@
 
 /datum/chemical_reaction/emp_pulse/on_reaction(datum/reagents/holder, created_volume)
 	var/location = get_turf(holder.my_atom)
-	// 100 created volume = 8 heavy range & 14 light range. 4 tiles larger than traitor EMP grenades.
-	// 200 created volume = 16 heavy range & 28 light range. 12 tiles larger than traitor EMP grenades. This is the maximum
+	// 100 created volume = 8 severity & 14 range. 4 tiles larger than traitor EMP grenades.
+	// 200 created volume = 16 (capped to 10) severity & 28 range. 12 tiles larger than traitor EMP grenades. This is the maximum
 	created_volume = min(created_volume, 200)
-	empulse(location, round(created_volume / 12), round(created_volume / 7), 1)
+	empulse(location, min(round(created_volume / 12), EMP_HEAVY), round(created_volume / 7), 1)
 	holder.clear_reagents()
 
 
@@ -151,7 +153,7 @@
 	name = /datum/reagent/stabilizing_agent
 	id = /datum/reagent/stabilizing_agent
 	results = list(/datum/reagent/stabilizing_agent = 3)
-	required_reagents = list(/datum/reagent/iron = 1, /datum/reagent/oxygen = 1, /datum/reagent/hydrogen = 1)
+	required_reagents = list(/datum/reagent/iron = 1, /datum/reagent/gas/oxygen = 1, /datum/reagent/gas/hydrogen = 1)
 
 /datum/chemical_reaction/clf3
 	name = "Chlorine Trifluoride"
@@ -184,14 +186,14 @@
 
 /datum/chemical_reaction/reagent_explosion/methsplosion/methboom2
 	id = "methboom2"
-	required_reagents = list(/datum/reagent/diethylamine = 1, /datum/reagent/iodine = 1, /datum/reagent/phosphorus = 1, /datum/reagent/hydrogen = 1) //diethylamine is often left over from mixing the ephedrine.
+	required_reagents = list(/datum/reagent/diethylamine = 1, /datum/reagent/iodine = 1, /datum/reagent/phosphorus = 1, /datum/reagent/gas/hydrogen = 1) //diethylamine is often left over from mixing the ephedrine.
 	required_temp = 300 //room temperature, chilling it even a little will prevent the explosion
 
 /datum/chemical_reaction/sorium
 	name = "Sorium"
 	id = /datum/reagent/sorium
 	results = list(/datum/reagent/sorium = 4)
-	required_reagents = list(/datum/reagent/mercury = 1, /datum/reagent/oxygen = 1, /datum/reagent/nitrogen = 1, /datum/reagent/carbon = 1)
+	required_reagents = list(/datum/reagent/mercury = 1, /datum/reagent/gas/oxygen = 1, /datum/reagent/gas/nitrogen = 1, /datum/reagent/carbon = 1)
 
 /datum/chemical_reaction/sorium/on_reaction(datum/reagents/holder, created_volume)
 	if(holder.has_reagent(/datum/reagent/stabilizing_agent))
@@ -292,11 +294,11 @@
 	holder.remove_reagent(/datum/reagent/smoke_powder, created_volume*3)
 	var/smoke_radius = round(sqrt(created_volume * 1.5), 1)
 	var/location = get_turf(holder.my_atom)
-	var/datum/effect_system/smoke_spread/chem/S = new
+	var/datum/effect_system/fluid_spread/smoke/chem/S = new
 	S.attach(location)
 	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
 	if(S)
-		S.set_up(holder, smoke_radius, location, 0)
+		S.set_up(smoke_radius, location = location, carry = holder)
 		S.start()
 	if(holder && holder.my_atom)
 		holder.clear_reagents()
@@ -311,11 +313,11 @@
 /datum/chemical_reaction/smoke_powder_smoke/on_reaction(datum/reagents/holder, created_volume)
 	var/location = get_turf(holder.my_atom)
 	var/smoke_radius = round(sqrt(created_volume / 2), 1)
-	var/datum/effect_system/smoke_spread/chem/S = new
+	var/datum/effect_system/fluid_spread/smoke/chem/S = new
 	S.attach(location)
 	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
 	if(S)
-		S.set_up(holder, smoke_radius, location, 0)
+		S.set_up(smoke_radius, location = location, carry = holder)
 		S.start()
 	if(holder && holder.my_atom)
 		holder.clear_reagents()
@@ -324,7 +326,7 @@
 	name = /datum/reagent/sonic_powder
 	id = /datum/reagent/sonic_powder
 	results = list(/datum/reagent/sonic_powder = 3)
-	required_reagents = list(/datum/reagent/oxygen = 1, /datum/reagent/consumable/space_cola = 1, /datum/reagent/phosphorus = 1)
+	required_reagents = list(/datum/reagent/gas/oxygen = 1, /datum/reagent/consumable/space_cola = 1, /datum/reagent/phosphorus = 1)
 
 /datum/chemical_reaction/sonic_powder/on_reaction(datum/reagents/holder, created_volume)
 	if(holder.has_reagent(/datum/reagent/stabilizing_agent))
@@ -372,7 +374,7 @@
 	name = /datum/reagent/cryostylane
 	id = /datum/reagent/cryostylane
 	results = list(/datum/reagent/cryostylane = 3)
-	required_reagents = list(/datum/reagent/water = 1, /datum/reagent/stable_plasma = 1, /datum/reagent/nitrogen = 1)
+	required_reagents = list(/datum/reagent/water = 1, /datum/reagent/stable_plasma = 1, /datum/reagent/gas/nitrogen = 1)
 
 /datum/chemical_reaction/cryostylane/on_reaction(datum/reagents/holder, created_volume)
 	holder.chem_temp = 20 // cools the fuck down
@@ -382,7 +384,7 @@
 	name = "ephemeral cryostylane reaction"
 	id = "cryostylane_oxygen"
 	results = list(/datum/reagent/cryostylane = 1)
-	required_reagents = list(/datum/reagent/cryostylane = 1, /datum/reagent/oxygen = 1)
+	required_reagents = list(/datum/reagent/cryostylane = 1, /datum/reagent/gas/oxygen = 1)
 	mob_react = FALSE
 
 /datum/chemical_reaction/cryostylane_oxygen/on_reaction(datum/reagents/holder, created_volume)
@@ -392,7 +394,7 @@
 	name = "ephemeral pyrosium reaction"
 	id = "pyrosium_oxygen"
 	results = list(/datum/reagent/pyrosium = 1)
-	required_reagents = list(/datum/reagent/pyrosium = 1, /datum/reagent/oxygen = 1)
+	required_reagents = list(/datum/reagent/pyrosium = 1, /datum/reagent/gas/oxygen = 1)
 	mob_react = FALSE
 
 /datum/chemical_reaction/pyrosium_oxygen/on_reaction(datum/reagents/holder, created_volume)
@@ -440,14 +442,14 @@
 	var/added_delay = 0.5 SECONDS
 	var/turf/T = get_turf(holder.my_atom)
 	if(created_volume >= 75)
-		addtimer(CALLBACK(src, .proc/zappy_zappy, T, T1), added_delay)
+		addtimer(CALLBACK(src, PROC_REF(zappy_zappy), T, T1), added_delay)
 		added_delay += 1.5 SECONDS
 	if(created_volume >= 40)
-		addtimer(CALLBACK(src, .proc/zappy_zappy, T, T2), added_delay)
+		addtimer(CALLBACK(src, PROC_REF(zappy_zappy), T, T2), added_delay)
 		added_delay += 1.5 SECONDS
 	if(created_volume >= 10)			//10 units minimum for lightning, 40 units for secondary blast, 75 units for tertiary blast.
-		addtimer(CALLBACK(src, .proc/zappy_zappy, T, T3), added_delay)
-	addtimer(CALLBACK(src, .proc/explode, holder, created_volume), added_delay)
+		addtimer(CALLBACK(src, PROC_REF(zappy_zappy), T, T3), added_delay)
+	addtimer(CALLBACK(src, PROC_REF(explode), holder, created_volume), added_delay)
 
 /datum/chemical_reaction/reagent_explosion/teslium_lightning/proc/zappy_zappy(turf/T, power)
 	if(QDELETED(T))
@@ -467,3 +469,31 @@
 	required_reagents = list(/datum/reagent/stabilizing_agent = 1,/datum/reagent/fluorosurfactant = 1,/datum/reagent/carbon = 1)
 	required_temp = 200
 	is_cold_recipe = TRUE
+
+/datum/chemical_reaction/reagent_explosion/noblium_annihilation
+	name = "Hypernoblium-Antinoblium Annihilation"
+	id = "noblium_annihilation"
+	required_reagents = list(/datum/reagent/gas/hypernoblium = 1, /datum/reagent/gas/antinoblium = 1)
+	strengthdiv = 0.5
+	noblium_suppression = FALSE
+	mob_react = FALSE // no
+
+/datum/chemical_reaction/frigorific_mixture
+	name = /datum/reagent/frigorific_mixture
+	id = /datum/reagent/frigorific_mixture
+	results = list(/datum/reagent/frigorific_mixture = 2)
+	required_reagents = list(/datum/reagent/consumable/sodiumchloride = 1, /datum/reagent/consumable/ice = 1)
+
+/datum/chemical_reaction/frigorific_mixture/on_reaction(datum/reagents/holder, created_volume)
+	holder.chem_temp = 20 // cools the fuck down
+	return
+
+/datum/chemical_reaction/frigorific_mixture_water
+	name = "ephemeral salty reaction"
+	id = "frigorific_mixture_water"
+	results = list(/datum/reagent/frigorific_mixture = 1)
+	required_reagents = list(/datum/reagent/frigorific_mixture = 1, /datum/reagent/water = 1)
+	mob_react = FALSE
+
+/datum/chemical_reaction/frigorific_mixture_water/on_reaction(datum/reagents/holder, created_volume)
+	holder.chem_temp = max(holder.chem_temp - 10*created_volume,0)

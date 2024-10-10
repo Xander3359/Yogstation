@@ -4,14 +4,14 @@
 	robust_searching = 1
 	stat_attack = UNCONSCIOUS
 	status_flags = 0
-	a_intent = INTENT_HARM
+	combat_mode = TRUE
 	gender = NEUTER
 	var/list/boss_abilities = list() //list of /datum/action/boss
 	var/datum/boss_active_timed_battle/atb
 	var/point_regen_delay = 1
 
 
-/mob/living/simple_animal/hostile/boss/Initialize()
+/mob/living/simple_animal/hostile/boss/Initialize(mapload)
 	. = ..()
 
 	atb = new()

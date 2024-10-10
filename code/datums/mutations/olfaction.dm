@@ -8,7 +8,7 @@
 	instability = 30
 	synchronizer_coeff = 1
 	
-	var/datum/action/bloodsucker/olfaction/acquire_scent/lesser/smelling
+	var/datum/action/cooldown/bloodsucker/olfaction/acquire_scent/lesser/smelling
 
 /datum/mutation/human/olfaction/on_acquiring(mob/living/carbon/human/owner)
 	. = ..()
@@ -35,7 +35,7 @@
 	anchored = TRUE
 	resistance_flags = FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	randomdir = FALSE
-	duration = 20 SECONDS
+	duration = 2 SECONDS
 	///we cannot use icon_state bc we are invisible, this is the same thing but can be not visible
 	var/image_state = "scent_trail"
 	///whomst doing the sniffing, we need this because the scent lines will only be visible to them
@@ -51,7 +51,7 @@
 	. = ..()
 	if(user)
 		sniffer = user
-	RegisterSignal(src, COMSIG_MOVABLE_CROSSED, .proc/Sniffed)
+	RegisterSignal(src, COMSIG_MOVABLE_CROSSED, PROC_REF(Sniffed))
 	if(!scent_color || color)
 		scent_color = sanitize_hexcolor(color, 6, TRUE, COLOR_RED)
 	
@@ -60,8 +60,7 @@
 		trail.Flip(dir)
 		trail.Turn(180)
 		
-	img = image(trail, loc = src, layer = HUD_LAYER)
-	img.layer = HUD_LAYER
+	img = image(trail, loc = src)
 	img.plane = HUD_PLANE
 	img.appearance_flags = NO_CLIENT_COLOR
 	img.alpha = 0
@@ -80,10 +79,13 @@
 /obj/effect/temp_visual/scent_trail/Destroy()
 	UnregisterSignal(src, COMSIG_MOVABLE_CROSSED)
 	animate(img, alpha = 0, time = 1 SECONDS, easing = EASE_OUT) //fade out
+	INVOKE_ASYNC(src, PROC_REF(Fade))
+	return ..()
+
+/obj/effect/temp_visual/scent_trail/proc/Fade()
 	sleep(1 SECONDS)
 	sniffer.remove_alt_appearance("smelly")
 	img = null
-	return ..()
 
 /datum/effect_system/trail_follow/scent
 	effect_type = /obj/effect/temp_visual/scent_trail
@@ -177,7 +179,6 @@
 								//but travelling east and turning south gives you another south to east bend
 								//if(get_dir(trail_step, trail_step_next) == NORTH || get_dir(trail_step, trail_step_next) == SOUTH)
 								flip = TRUE
-						else
 			new effect_type(oldposition, trail_dir, sniffer, flip, trail_color)
 			
 	oldposition = get_turf(holder)

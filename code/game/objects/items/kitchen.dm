@@ -13,7 +13,7 @@
  */
 
 /obj/item/kitchen
-	icon = 'yogstation/icons/obj/kitchen.dmi'
+	icon = 'icons/obj/kitchen.dmi'
 	lefthand_file = 'icons/mob/inhands/equipment/kitchen_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/kitchen_righthand.dmi'
 
@@ -52,7 +52,7 @@
 			M.reagents.add_reagent(forkload.type, 1)
 		else
 			M.visible_message(span_notice("[user] is trying to feed [M] a delicious forkful of [loaded_food]!")) //yogs start
-			if(!do_mob(user, M))
+			if(!do_after(user, 3 SECONDS, M))
 				return
 			log_combat(user, M, "fed [loaded_food]", forkload.type) //yogs end
 			M.visible_message(span_notice("[user] feeds [M] a delicious forkful of [loaded_food]!"))
@@ -82,9 +82,10 @@
 
 /obj/item/kitchen/knife
 	name = "kitchen knife"
+	desc = "A general purpose Chef's Knife made by SpaceCook Incorporated. Guaranteed to stay sharp for years to come."
+	icon = 'icons/obj/weapons/shortsword.dmi'
 	icon_state = "knife"
 	item_state = "knife"
-	desc = "A general purpose Chef's Knife made by SpaceCook Incorporated. Guaranteed to stay sharp for years to come."
 	flags_1 = CONDUCT_1
 	force = 10
 	w_class = WEIGHT_CLASS_SMALL
@@ -92,6 +93,7 @@
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	throw_speed = 3
 	throw_range = 6
+	demolition_mod = 0.8
 	materials = list(/datum/material/iron=12000)
 	attack_verb = list("slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
 	sharpness = SHARP_EDGED
@@ -101,13 +103,14 @@
 	wound_bonus = 5
 	bare_wound_bonus = 15
 
-/obj/item/kitchen/knife/Initialize()
+/obj/item/kitchen/knife/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/butchering, 80 - force, 100, force - 10) //bonus chance increases depending on force
 
-/obj/item/kitchen/knife/attack(mob/living/carbon/M, mob/living/carbon/user)
-	if(!(user.a_intent == INTENT_HARM) && attempt_initiate_surgery(src, M, user))
-		return
+/obj/item/kitchen/knife/attack(mob/living/carbon/M, mob/living/carbon/user, params)
+	var/list/modifiers = params2list(params)
+	if(!user.combat_mode && attempt_initiate_surgery(src, M, user, modifiers))
+		return TRUE
 	else if(user.zone_selected == BODY_ZONE_PRECISE_EYES)
 		if(HAS_TRAIT(user, TRAIT_CLUMSY) && prob(50))
 			M = user
@@ -124,27 +127,27 @@
 /obj/item/kitchen/knife/ritual
 	name = "ritual knife"
 	desc = "The unearthly energies that once powered this blade are now dormant."
-	icon = 'icons/obj/wizard.dmi'
+	icon = 'icons/obj/weapons/khopesh.dmi'
 	icon_state = "render"
 	lefthand_file = 'icons/mob/inhands/equipment/kitchen_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/kitchen_righthand.dmi'
 	w_class = WEIGHT_CLASS_NORMAL
 
 /obj/item/kitchen/knife/ritual/holy
-	name = "ruinous knife" 
+	name = "ruinous knife"
 	desc = "The runes inscribed on the knife radiate a strange power. It looks like it could have more runes inscribed upon it..."
 
 /obj/item/kitchen/knife/ritual/holy/strong
-	name = "great ruinous knife" 
+	name = "great ruinous knife"
 	desc = "A heavy knife inscribed with dozens of runes."
 	force = 15
 
 /obj/item/kitchen/knife/ritual/holy/strong/blood
-	name = "blood-soaked ruinous knife" 
+	name = "blood-soaked ruinous knife"
 	desc = "Runes stretch across the surface of the knife, seemingly endless."
 	wound_bonus = 20 //a bit better than a butcher cleaver, you've earned it for finding blood cult metal and doing the previous steps
 
-/obj/item/kitchen/knife/ritual/holy/Initialize()
+/obj/item/kitchen/knife/ritual/holy/Initialize(mapload)
 	. = ..()
 	AddComponent(/datum/component/butchering, 70, 110) //the old gods demandeth more flesh output
 
@@ -214,8 +217,7 @@
 
 /obj/item/kitchen/knife/combat/cyborg
 	name = "cyborg knife"
-	icon = 'icons/obj/items_cyborg.dmi'
-	icon_state = "knife"
+	icon_state = "cyborg_knife"
 	desc = "A cyborg-mounted plasteel knife. Extremely sharp and durable."
 
 /obj/item/kitchen/knife/carrotshiv
@@ -242,7 +244,6 @@
 /obj/item/kitchen/knife/shank
 	name = "shank"
 	desc = "A crude knife fashioned by securing a glass shard and a rod together with cables, and welding them together."
-	icon = 'icons/obj/weapons/swords.dmi'
 	icon_state = "shank"
 	item_state = "shank"
 	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_EARS
@@ -273,12 +274,11 @@
 /obj/item/kitchen/rollingpin/suicide_act(mob/living/carbon/user)
 	user.visible_message(span_suicide("[user] begins flattening [user.p_their()] head with \the [src]! It looks like [user.p_theyre()] trying to commit suicide!"))
 	return BRUTELOSS
-	
+
 /obj/item/kitchen/knife/makeshift
 	name = "makeshift knife"
-	icon_state = "knife_makeshift"
-	icon = 'icons/obj/improvised.dmi'
 	desc = "A flimsy, poorly made replica of a classic cooking utensil."
+	icon_state = "knife_makeshift"
 	force = 8
 	throwforce = 8
 
@@ -288,5 +288,15 @@
 		to_chat(user, span_danger("[src] crumbles apart in your hands!"))
 		qdel(src)
 		return
+
+/obj/item/kitchen/knife/plug_bayonet
+	name = "plug bayonet"
+	desc = "A knife blade that has been pounded into some wood."
+	icon_state = "plug_bayonet"
+	bayonet = FALSE
+
+/obj/item/kitchen/knife/plug_bayonet/examine(mob/user)
+	. = ..()
+	. += span_info("It can be used on a <b>maintenance musket</b> to plug its barrel.")
 
 /* Trays  moved to /obj/item/storage/bag */

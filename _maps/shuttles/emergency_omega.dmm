@@ -114,8 +114,7 @@
 /area/shuttle/escape)
 "am" = (
 /obj/machinery/door/airlock/command{
-	name = "Emergency Recovery Airlock";
-	req_access_txt = "19"
+	name = "Emergency Recovery Airlock"
 	},
 /obj/effect/turf_decal/stripes/line{
 	dir = 8
@@ -127,6 +126,7 @@
 	dir = 1
 	},
 /obj/machinery/door/firedoor/border_only,
+/obj/effect/mapping_helpers/airlock/access/all/command/general,
 /turf/open/floor/plasteel,
 /area/shuttle/escape)
 "an" = (
@@ -161,7 +161,7 @@
 /area/shuttle/escape)
 "ap" = (
 /obj/structure/table/reinforced,
-/obj/item/storage/box/fancy/donut_box,
+/obj/item/storage/fancy/donut_box,
 /obj/machinery/light{
 	dir = 4
 	},
@@ -179,8 +179,7 @@
 /area/shuttle/escape)
 "aq" = (
 /obj/machinery/door/airlock/shuttle{
-	name = "Emergency Shuttle Airlock";
-	req_access_txt = "2"
+	name = "Emergency Shuttle Airlock"
 	},
 /obj/effect/turf_decal/stripes/line{
 	dir = 8
@@ -194,6 +193,7 @@
 /obj/machinery/door/firedoor/border_only{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/plasteel/white,
 /area/shuttle/escape)
 "ar" = (
@@ -202,7 +202,7 @@
 /turf/open/floor/mineral/plastitanium/red/brig,
 /area/shuttle/escape)
 "as" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-21";
 	pixel_x = -3;
 	pixel_y = 3
@@ -257,13 +257,13 @@
 /area/shuttle/escape)
 "av" = (
 /obj/machinery/door/airlock/security/glass{
-	name = "Holding Area";
-	req_access_txt = "2"
+	name = "Holding Area"
 	},
 /obj/machinery/door/firedoor/border_only{
 	dir = 1
 	},
 /obj/machinery/door/firedoor/border_only,
+/obj/effect/mapping_helpers/airlock/access/all/security/basic,
 /turf/open/floor/mineral/plastitanium/red/brig,
 /area/shuttle/escape)
 "aw" = (
@@ -272,8 +272,7 @@
 /area/shuttle/escape)
 "ax" = (
 /obj/machinery/door/airlock/command/glass{
-	name = "Cockpit";
-	req_access_txt = "19"
+	name = "Cockpit"
 	},
 /obj/effect/turf_decal/stripes/line{
 	dir = 2
@@ -285,6 +284,7 @@
 	dir = 1
 	},
 /obj/machinery/door/firedoor/border_only,
+/obj/effect/mapping_helpers/airlock/access/all/command/general,
 /turf/open/floor/plasteel,
 /area/shuttle/escape)
 "ay" = (
@@ -338,7 +338,7 @@
 /turf/open/floor/plasteel,
 /area/shuttle/escape)
 "aC" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-21";
 	pixel_x = -3;
 	pixel_y = 3
@@ -918,7 +918,7 @@
 /turf/open/floor/plating,
 /area/shuttle/escape)
 "by" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	icon_state = "plant-21";
 	pixel_x = -3;
 	pixel_y = 3

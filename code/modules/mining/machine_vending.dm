@@ -19,14 +19,19 @@
 	var/icon_deny = "mining-deny"
 	var/list/prize_list = list( //if you add something to this, please, for the love of god, sort it by price/type. use tabs and not spaces.
 		new /datum/data/mining_equipment("Kinetic Accelerator",			/obj/item/gun/energy/kinetic_accelerator,							750, VENDING_WEAPON),
-		new /datum/data/mining_equipment("Kinetic Crusher",				/obj/item/twohanded/required/kinetic_crusher,						750, VENDING_WEAPON),
+		new /datum/data/mining_equipment("Kinetic Crusher",				/obj/item/kinetic_crusher,											750, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Resonator",					/obj/item/resonator,												800, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Super Resonator",				/obj/item/resonator/upgraded,										2500, VENDING_WEAPON),
+		new /datum/data/mining_equipment("Kinetic Javelin",				/obj/item/kinetic_javelin/blue,										1000, VENDING_WEAPON), //YOGS EDIT
 		new /datum/data/mining_equipment("Silver Pickaxe",				/obj/item/pickaxe/silver,											1000, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Diamond Pickaxe",				/obj/item/pickaxe/diamond,											2000, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Mini Plasma Cutter",			/obj/item/gun/energy/plasmacutter/mini,								2500, VENDING_WEAPON),
-		new /datum/data/mining_equipment("Plasma Cutter Shotgun",		/obj/item/gun/energy/plasmacutter/scatter,							6000, VENDING_WEAPON),
-		new /datum/data/mining_equipment("Plasma Shotgun Upgrade",		/obj/item/upgrade/plasmacutter/defuser,								1000, VENDING_WEAPON),
+		new /datum/data/mining_equipment("Plasma Cutter Shotgun",		/obj/item/gun/energy/plasmacutter/scatter,							5000, VENDING_WEAPON),
+		new /datum/data/mining_equipment("PC Defuser Upgrade",			/obj/item/borg/upgrade/plasmacutter/defuser,								1000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Capacity Upgrade",			/obj/item/borg/upgrade/plasmacutter/capacity,							4500, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Cooldown Upgrade",			/obj/item/borg/upgrade/plasmacutter/cooldown,							5000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Range Upgrade",			/obj/item/borg/upgrade/plasmacutter/range,								5000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Ore Upgrade",				/obj/item/borg/upgrade/plasmacutter/ore,									10000, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA Minebot Passthrough",		/obj/item/borg/upgrade/modkit/minebot_passthrough,					100, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA White Tracer Rounds",		/obj/item/borg/upgrade/modkit/tracer,								100, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA Adjustable Tracer Rounds",	/obj/item/borg/upgrade/modkit/tracer/adjustable,					150, VENDING_UPGRADE),
@@ -37,6 +42,11 @@
 		new /datum/data/mining_equipment("KA Cooldown Decrease",		/obj/item/borg/upgrade/modkit/cooldown,								1000, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA Hardness Increase",		/obj/item/borg/upgrade/modkit/hardness,								1200, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA AoE Damage",				/obj/item/borg/upgrade/modkit/aoe/mobs,								2000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("Energized Kinetic Javelin Core",	/obj/item/kinetic_javelin_core/blue,							1000, VENDING_UPGRADE), //YOGS EDIT
+		new /datum/data/mining_equipment("Merciful Kinetic Javelin Core",	/obj/item/kinetic_javelin_core/green,							1000, VENDING_UPGRADE), //YOGS EDIT
+		new /datum/data/mining_equipment("Enraged Kinetic Javelin Core",	/obj/item/kinetic_javelin_core/red,								1500, VENDING_UPGRADE), //YOGS EDIT
+		new /datum/data/mining_equipment("Radiant Kinetic Javelin Core",/obj/item/kinetic_javelin_core/yellow,								2500, VENDING_UPGRADE), //YOGS EDIT
+		new /datum/data/mining_equipment("Loyal Kinetic Javelin Core",	/obj/item/kinetic_javelin_core/purple,								3000, VENDING_UPGRADE), //YOGS EDIT
 		new /datum/data/mining_equipment("Shelter Capsule",				/obj/item/survivalcapsule,											400, VENDING_TOOL),
 		new /datum/data/mining_equipment("Luxury Shelter Capsule",		/obj/item/survivalcapsule/luxury,									3000, VENDING_TOOL),
 		new /datum/data/mining_equipment("Luxury Elite Bar Capsule",	/obj/item/survivalcapsule/luxuryelite,								20000, VENDING_TOOL),
@@ -62,7 +72,7 @@
 		new /datum/data/mining_equipment("GAR Meson Scanners",			/obj/item/clothing/glasses/meson/gar,								500, VENDING_EQUIPMENT),
 		new /datum/data/mining_equipment("Meson Health Scanner HUD",	/obj/item/clothing/glasses/hud/health/meson,						1000, VENDING_EQUIPMENT),
 		new /datum/data/mining_equipment("Jump Boots",					/obj/item/clothing/shoes/bhop,										2500, VENDING_EQUIPMENT),
-		new /datum/data/mining_equipment("Jump Boots Implants",			/obj/item/multisurgeon/jumpboots,									10000, VENDING_EQUIPMENT),
+		new /datum/data/mining_equipment("Jump Boots Implants",			/obj/item/storage/box/jumpbootimplant,								5000, VENDING_EQUIPMENT),
 		new /datum/data/mining_equipment("Mining Hardsuit",				/obj/item/clothing/suit/space/hardsuit/mining,						2000, VENDING_EQUIPMENT),
 		new /datum/data/mining_equipment("Jetpack Upgrade",				/obj/item/tank/jetpack/suit,										2000, VENDING_EQUIPMENT),
 		new /datum/data/mining_equipment("Environment Proof Bodybag", 	/obj/item/bodybag/environmental, 									1000, VENDING_EQUIPMENT),
@@ -96,7 +106,7 @@
 	cost = pcost
 	category = cat
 
-/obj/machinery/mineral/equipment_vendor/Initialize()
+/obj/machinery/mineral/equipment_vendor/Initialize(mapload)
 	. = ..()
 	build_inventory()
 
@@ -105,7 +115,8 @@
 		var/datum/data/mining_equipment/M = p
 		GLOB.vending_products[M.equipment_path] = 1
 
-/obj/machinery/mineral/equipment_vendor/update_icon()
+/obj/machinery/mineral/equipment_vendor/update_icon_state()
+	. = ..()
 	if(powered())
 		icon_state = initial(icon_state)
 	else
@@ -196,13 +207,14 @@
 		"Resonator Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "resonator"),
 		"Minebot Kit" = image(icon = 'icons/mob/aibots.dmi', icon_state = "mining_drone"),
 		"Extraction and Rescue Kit" = image(icon = 'icons/obj/fulton.dmi', icon_state = "extraction_pack"),
-		"Crusher Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "mining_hammer1"),
+		"Crusher Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "mining_hammer0"),
 		"Mining Conscription Kit" = image(icon = 'icons/obj/storage.dmi', icon_state = "duffel"),
-		"Mini Plasma Cutter Kit" = image(icon = 'icons/obj/guns/energy.dmi', icon_state="plasmacutter_mini")
+		"Mini Plasma Cutter Kit" = image(icon = 'icons/obj/guns/energy.dmi', icon_state="plasmacutter_mini"),
+		"Kinetic Javelin Kit" = image(icon = 'yogstation/icons/obj/kinetic_javelin.dmi', icon_state = "blue") //YOGS EDIT
 	)
 
 	items = sortList(items)
-	var/selection = show_radial_menu(redeemer, src, items, custom_check = CALLBACK(src, .proc/check_menu, voucher, redeemer), radius = 38, require_near = TRUE, tooltips = TRUE)
+	var/selection = show_radial_menu(redeemer, src, items, custom_check = CALLBACK(src, PROC_REF(check_menu), voucher, redeemer), radius = 38, require_near = TRUE, tooltips = TRUE)
 	if(!selection)
 		return
 
@@ -224,11 +236,14 @@
 			new /obj/item/stack/marker_beacon/thirty(drop_location)
 		if("Crusher Kit")
 			new /obj/item/extinguisher/mini(drop_location)
-			new /obj/item/twohanded/required/kinetic_crusher(drop_location)
+			new /obj/item/kinetic_crusher(drop_location)
 		if("Mining Conscription Kit")
 			new /obj/item/storage/backpack/duffelbag/mining_conscript(drop_location)
 		if("Mini Plasma Cutter Kit")
 			new /obj/item/gun/energy/plasmacutter/mini(drop_location)
+		if("Kinetic Javelin Kit")
+			new /obj/item/extinguisher/mini(drop_location)
+			new /obj/item/kinetic_javelin/blue(drop_location)
 
 	SSblackbox.record_feedback("tally", "mining_voucher_redeemed", 1, selection)
 	qdel(voucher)
@@ -260,7 +275,7 @@
 	name = "golem ship equipment vendor"
 	circuit = /obj/item/circuitboard/machine/mining_equipment_vendor/golem
 
-/obj/machinery/mineral/equipment_vendor/golem/Initialize()
+/obj/machinery/mineral/equipment_vendor/golem/Initialize(mapload)
 	desc += "\nIt seems a few selections have been added."
 	prize_list += list(
 		new /datum/data/mining_equipment("Brute Pill Bottle",			/obj/item/storage/pill_bottle/libi,									600, VENDING_MEDS),
@@ -283,7 +298,7 @@
 
 /obj/machinery/mineral/equipment_vendor/free_miner
 	name = "free miner ship equipment vendor"
-	desc = "A vendor sold by NanoTrasen to profit off small mining contractors."
+	desc = "A vendor sold by Nanotrasen to profit off small mining contractors."
 	prize_list = list(
 		new /datum/data/mining_equipment("Kinetic Accelerator", 		/obj/item/gun/energy/kinetic_accelerator,						750, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Resonator",          			/obj/item/resonator,											800, VENDING_WEAPON),
@@ -292,8 +307,12 @@
 		new /datum/data/mining_equipment("Diamond Pickaxe",				/obj/item/pickaxe/diamond,										1500, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Mini Plasma Cutter",			/obj/item/gun/energy/plasmacutter/mini,							500, VENDING_WEAPON),
 		new /datum/data/mining_equipment("Plasma Cutter" ,				/obj/item/gun/energy/plasmacutter,								2500, VENDING_WEAPON),
-		new /datum/data/mining_equipment("Plasma Cutter Shotgun",		/obj/item/gun/energy/plasmacutter/scatter,						6000, VENDING_WEAPON),
-		new /datum/data/mining_equipment("Plasma Shotgun Upgrade",		/obj/item/upgrade/plasmacutter/defuser,							1000, VENDING_WEAPON),
+		new /datum/data/mining_equipment("Plasma Cutter Shotgun",		/obj/item/gun/energy/plasmacutter/scatter,						5000, VENDING_WEAPON),
+		new /datum/data/mining_equipment("PC Defuser Upgrade",			/obj/item/borg/upgrade/plasmacutter/defuser,							1000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Capacity Upgrade",			/obj/item/borg/upgrade/plasmacutter/capacity,						4500, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Cooldown Upgrade",			/obj/item/borg/upgrade/plasmacutter/cooldown,						5000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Range Upgrade",			/obj/item/borg/upgrade/plasmacutter/range,							5000, VENDING_UPGRADE),
+		new /datum/data/mining_equipment("PC Ore Upgrade",				/obj/item/borg/upgrade/plasmacutter/ore,									10000, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA Minebot Passthrough",		/obj/item/borg/upgrade/modkit/minebot_passthrough,				100, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA White Tracer Rounds",		/obj/item/borg/upgrade/modkit/tracer,							100, VENDING_UPGRADE),
 		new /datum/data/mining_equipment("KA Adjustable Tracer Rounds",	/obj/item/borg/upgrade/modkit/tracer/adjustable,				150, VENDING_UPGRADE),
@@ -345,12 +364,12 @@
 		"Kinetic Accelerator" = image(icon = 'icons/obj/guns/energy.dmi', icon_state = "kineticgun"),
 		"Resonator Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "resonator"),
 		"Minebot Kit" = image(icon = 'icons/mob/aibots.dmi', icon_state = "mining_drone"),
-		"Crusher Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "mining_hammer1"),
+		"Crusher Kit" = image(icon = 'icons/obj/mining.dmi', icon_state = "mining_hammer0"),
 		"Advanced Scanner" = image(icon = 'icons/obj/device.dmi', icon_state = "adv_mining0")
 		)
 
 	items = sortList(items)
-	var/selection = show_radial_menu(redeemer, src, items, custom_check = CALLBACK(src, .proc/check_menu, voucher, redeemer), radius = 38, require_near = TRUE, tooltips = TRUE)
+	var/selection = show_radial_menu(redeemer, src, items, custom_check = CALLBACK(src, PROC_REF(check_menu), voucher, redeemer), radius = 38, require_near = TRUE, tooltips = TRUE)
 	if(!selection)
 		return
 
@@ -368,7 +387,7 @@
 			new /obj/item/borg/upgrade/modkit/minebot_passthrough(drop_location)
 		if("Crusher Kit")
 			new /obj/item/extinguisher/mini(drop_location)
-			new /obj/item/twohanded/required/kinetic_crusher(drop_location)
+			new /obj/item/kinetic_crusher(drop_location)
 		if("Advanced Scanner")
 			new /obj/item/t_scanner/adv_mining_scanner(drop_location)
 
@@ -420,8 +439,8 @@
 	..()
 
 /obj/item/card/mining_point_card/examine(mob/user)
-	..()
-	to_chat(user, "There's [points] point\s on the card.")
+	. = ..()
+	. += "There's [points] point\s on the card."
 
 ///Conscript kit
 /obj/item/card/mining_access_card
@@ -436,9 +455,8 @@
 		I.access |=	ACCESS_MINING
 		I.access |= ACCESS_MINING_STATION
 		I.access |= ACCESS_MECH_MINING
-		I.access |= ACCESS_MINERAL_STOREROOM
 		I.access |= ACCESS_CARGO
-		I.access |= ACCESS_MAILSORTING
+		I.access |= ACCESS_CARGO
 		to_chat(user, "You upgrade [I] with mining access.")
 		qdel(src)
 
@@ -458,6 +476,16 @@
 	new /obj/item/clothing/mask/gas/explorer(src)
 	new /obj/item/card/mining_access_card(src)
 	new /obj/item/clothing/neck/bodycam/miner(src)
+
+//jumpboot implant box
+/obj/item/storage/box/jumpbootimplant
+	name = "box of jumpboot implants"
+	desc = "A box holding a set of jumpboot implants. They will require surgical implantation to function."
+	illustration = "implant"
+
+/obj/item/storage/box/jumpbootimplant/PopulateContents()
+	new /obj/item/organ/cyberimp/leg/jumpboots(src)
+	new /obj/item/organ/cyberimp/leg/jumpboots/l(src)
 
 #undef VENDING_WEAPON
 #undef VENDING_UPGRADE

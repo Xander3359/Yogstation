@@ -55,6 +55,37 @@
 		"ntosradarpointerS.png" = 'icons/UI_Icons/tgui/ntosradar_pointer_S.png'
 	)
 
+/datum/asset/simple/inspector_booth
+	assets = list(
+		"desk_bg.png" = 'icons/UI_Icons/tgui/inspector_booth/desk_bg.png',
+		"window.png" = 'icons/UI_Icons/tgui/inspector_booth/window.png',
+		"speaker.png" = 'icons/UI_Icons/tgui/inspector_booth/speaker.png',
+		"desk_top.png" = 'icons/UI_Icons/tgui/inspector_booth/desk_top.png',
+		"desk_bottom.png" = 'icons/UI_Icons/tgui/inspector_booth/desk_bottom.png',
+		"tray_end.png" = 'icons/UI_Icons/tgui/inspector_booth/tray_end.png',
+		"tray_segment.png" = 'icons/UI_Icons/tgui/inspector_booth/tray_segment.png',
+		"tray_cover.png" = 'icons/UI_Icons/tgui/inspector_booth/tray_cover.png',
+		"idcard.png" = 'icons/UI_Icons/tgui/inspector_booth/idcard.png',
+		"idcard_silver.png" = 'icons/UI_Icons/tgui/inspector_booth/idcard_silver.png',
+		"idcard_gold.png" = 'icons/UI_Icons/tgui/inspector_booth/idcard_gold.png',
+		"stamp_approve.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_approve.png',
+		"stamp_deny.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_deny.png',
+		"stamp_cap.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_cap.png',
+		"stamp_hop.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_hop.png',
+		"stamp_cmo.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_cmo.png',
+		"stamp_hos.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_hos.png',
+		"stamp_qm.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_qm.png',
+		"stamp_law.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_law.png',
+		"stamp_rd.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_rd.png',
+		"stamp_ce.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_ce.png',
+		"stamp_clown.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_clown.png',
+		"stamp_syndi.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_syndi.png',
+		"stamp_cent.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_cent.png',
+		"stamp_syndiround.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_syndiround.png',
+		"stamp_unknown.png" = 'icons/UI_Icons/tgui/inspector_booth/stamp_unknown.png',
+		"paper.png" = 'icons/UI_Icons/tgui/inspector_booth/paper.png',
+	)
+
 /datum/asset/spritesheet/simple/pda
 	name = "pda"
 	assets = list(
@@ -139,6 +170,7 @@
 		"coding.png" = 'html/coding.png',
 		"ban.png" = 'html/ban.png',
 		"chrome-wrench.png" = 'html/chrome-wrench.png',
+		"mapping.png" = 'html/mapping.png',
 		"changelog.css" = 'html/changelog.css'
 	)
 	parents = list("changelog.html" = 'html/changelog.html')
@@ -161,7 +193,7 @@
 		"fa-regular-400.ttf" = 'html/font-awesome/webfonts/fa-regular-400.ttf',
 		"fa-solid-900.ttf" = 'html/font-awesome/webfonts/fa-solid-900.ttf',
 		"fa-v4compatibility.ttf" = 'html/font-awesome/webfonts/fa-v4compatibility.ttf',
-		"v4shim.css"          = 'html/font-awesome/css/v4-shims.min.css'
+		"v4shim.css" = 'html/font-awesome/css/v4-shims.min.css',
 	)
 	parents = list("font-awesome.css" = 'html/font-awesome/css/all.min.css')
 
@@ -177,7 +209,7 @@
 /datum/asset/spritesheet/chat
 	name = "chat"
 
-/datum/asset/spritesheet/chat/register()
+/datum/asset/spritesheet/chat/create_spritesheets()
 	InsertAll("emoji", 'icons/emoji.dmi')
 	// pre-loading all lanugage icons also helps to avoid meta
 	InsertAll("language", 'icons/misc/language.dmi')
@@ -188,7 +220,6 @@
 		if (icon != 'icons/misc/language.dmi')
 			var/icon_state = initial(L.icon_state)
 			Insert("language-[icon_state]", icon, icon_state=icon_state)
-	..()
 
 /datum/asset/simple/lobby
 	assets = list(
@@ -288,10 +319,9 @@
 /datum/asset/spritesheet/pipes
 	name = "pipes"
 
-/datum/asset/spritesheet/pipes/register()
+/datum/asset/spritesheet/pipes/create_spritesheets()
 	for (var/each in list('icons/obj/atmospherics/pipes/pipe_item.dmi', 'icons/obj/atmospherics/pipes/disposal.dmi', 'icons/obj/atmospherics/pipes/transit_tube.dmi', 'icons/obj/plumbing/fluid_ducts.dmi'))
 		InsertAll("", each, GLOB.alldirs)
-	..()
 
 /datum/asset/simple/security_armaments
 	assets = list(
@@ -303,7 +333,7 @@
 /datum/asset/spritesheet/research_designs
 	name = "design"
 
-/datum/asset/spritesheet/research_designs/register()
+/datum/asset/spritesheet/research_designs/create_spritesheets()
 	for (var/path in subtypesof(/datum/design))
 		var/datum/design/D = path
 
@@ -314,9 +344,11 @@
 		if(initial(D.research_icon) && initial(D.research_icon_state)) //If the design has an icon replacement skip the rest
 			icon_file = initial(D.research_icon)
 			icon_state = initial(D.research_icon_state)
+			#ifdef UNIT_TESTS
 			if(!(icon_state in icon_states(icon_file)))
-				warning("design [D] with icon '[icon_file]' missing state '[icon_state]'")
+				stack_trace("design [D] with icon '[icon_file]' missing state '[icon_state]'")
 				continue
+			#endif
 			I = icon(icon_file, icon_state, SOUTH)
 
 		else
@@ -336,12 +368,21 @@
 				if (machine)
 					item = machine
 
+			// Check for GAGS support where necessary
+			var/greyscale_config = initial(item.greyscale_config)
+			var/greyscale_colors = initial(item.greyscale_colors)
+			if (greyscale_config && greyscale_colors)
+				icon_file = SSgreyscale.GetColoredIconByType(greyscale_config, greyscale_colors)
+			else
+				icon_file = initial(item.icon)
+
 			icon_file = initial(item.icon)
 			icon_state = initial(item.icon_state)
-
+			#ifdef UNIT_TESTS
 			if(!(icon_state in icon_states(icon_file)))
-				warning("design [D] with icon '[icon_file]' missing state '[icon_state]'")
+				stack_trace("design [D] with icon '[icon_file]' missing state '[icon_state]'")
 				continue
+			#endif
 			I = icon(icon_file, icon_state, SOUTH)
 
 			// computers (and snowflakes) get their screen and keyboard sprites
@@ -356,50 +397,55 @@
 					I.Blend(icon(icon_file, keyboard, SOUTH), ICON_OVERLAY)
 
 		Insert(initial(D.id), I)
-	return ..()
 
 /datum/asset/spritesheet/vending
 	name = "vending"
 
-/datum/asset/spritesheet/vending/register()
+/datum/asset/spritesheet/vending/create_spritesheets()
 	for (var/k in GLOB.vending_products)
 		var/atom/item = k
 		if (!ispath(item, /atom))
 			continue
 
-		var/icon_file = initial(item.icon)
+		var/icon_file
+		if (initial(item.greyscale_colors) && initial(item.greyscale_config))
+			icon_file = SSgreyscale.GetColoredIconByType(initial(item.greyscale_config), initial(item.greyscale_colors))
+		else
+			icon_file = initial(item.icon)
 		var/icon_state = initial(item.icon_state)
 		if(ispath(item, /obj/item/ammo_box))
 			var/obj/item/ammo_box/ammoitem = item
 			if(initial(ammoitem.multiple_sprites))
 				icon_state = "[icon_state]-[initial(ammoitem.max_ammo)]"
-		var/icon/I
 
+		#ifdef UNIT_TESTS
 		var/icon_states_list = icon_states(icon_file)
-		if(icon_state in icon_states_list)
-			I = icon(icon_file, icon_state, SOUTH)
-			var/c = initial(item.color)
-			if (!isnull(c) && c != "#FFFFFF")
-				I.Blend(c, ICON_MULTIPLY)
-		else
+		if (!(icon_state in icon_states_list))
 			var/icon_states_string
 			for (var/an_icon_state in icon_states_list)
 				if (!icon_states_string)
 					icon_states_string = "[json_encode(an_icon_state)](\ref[an_icon_state])"
 				else
 					icon_states_string += ", [json_encode(an_icon_state)](\ref[an_icon_state])"
+
 			stack_trace("[item] does not have a valid icon state, icon=[icon_file], icon_state=[json_encode(icon_state)](\ref[icon_state]), icon_states=[icon_states_string]")
-			I = icon('icons/turf/floors.dmi', "", SOUTH)
+			continue
+		#endif
+
+		var/icon/I = icon(icon_file, icon_state, SOUTH)
+		var/c = initial(item.color)
+		if (!isnull(c) && c != "#FFFFFF")
+			I.Blend(c, ICON_MULTIPLY)
 
 		var/imgid = replacetext(replacetext("[item]", "/obj/item/", ""), "/", "-")
 
 		Insert(imgid, I)
-	return ..()
 
 /datum/asset/spritesheet/uplink
 	name = "uplink"
+	load_immediately = TRUE // needed to prevent duplicates
 
-/datum/asset/spritesheet/uplink/register()
+/datum/asset/spritesheet/uplink/create_spritesheets()
 	for(var/path in GLOB.uplink_items)
 		var/datum/uplink_item/U = path
 		if (!ispath(U, /datum/uplink_item))
@@ -415,15 +461,10 @@
 			var/obj/item/ammo_box/ammoitem = item
 			if(initial(ammoitem.multiple_sprites))
 				icon_state = "[icon_state]-[initial(ammoitem.max_ammo)]"
-		var/icon/I
 
+		#ifdef UNIT_TESTS
 		var/icon_states_list = icon_states(icon_file)
-		if(icon_state in icon_states_list)
-			I = icon(icon_file, icon_state, SOUTH)
-			var/c = initial(item.color)
-			if (!isnull(c) && c != "#FFFFFF")
-				I.Blend(c, ICON_MULTIPLY)
-		else
+		if (!(icon_state in icon_states_list))
 			var/icon_states_string
 			for (var/an_icon_state in icon_states_list)
 				if (!icon_states_string)
@@ -431,19 +472,128 @@
 				else
 					icon_states_string += ", [json_encode(an_icon_state)](\ref[an_icon_state])"
 			stack_trace("[item] does not have a valid icon state, icon=[icon_file], icon_state=[json_encode(icon_state)](\ref[icon_state]), icon_states=[icon_states_string]")
-			I = icon('icons/turf/floors.dmi', "", SOUTH)
+			continue
+		#endif
+
+		var/icon/I = icon(icon_file, icon_state, SOUTH)
+		var/c = initial(item.color)
+		if (!isnull(c) && c != "#FFFFFF")
+			I.Blend(c, ICON_MULTIPLY)
 
 		var/imgid = replacetext(replacetext("[item]", "/obj/item/", ""), "/", "-")
 
 		if(!sprites[imgid])
 			Insert(imgid, I)
-	return ..()
+
+/datum/asset/spritesheet/decals
+	name = "floor_decals"
+	cross_round_cachable = TRUE
+
+	/// The floor icon used for blend_preview_floor()
+	var/preview_floor_icon = 'icons/turf/floors.dmi'
+	/// The floor icon state used for blend_preview_floor()
+	var/preview_floor_state = "floor"
+	/// The associated decal painter type to grab decals, colors, etc from.
+	var/painter_type = /obj/item/airlock_painter/decal
+
+/**
+ * Underlay an example floor for preview purposes, and return the new icon.
+ *
+ * Arguments:
+ * * decal - the decal to place over the example floor tile
+ */
+/datum/asset/spritesheet/decals/proc/blend_preview_floor(icon/decal)
+	var/icon/final = icon(preview_floor_icon, preview_floor_state)
+	final.Blend(decal, ICON_OVERLAY)
+	return final
+
+/**
+ * Insert a specific state into the spritesheet.
+ *
+ * Arguments:
+ * * decal - the given decal base state.
+ * * dir - the given direction.
+ * * color - the given color.
+ */
+/datum/asset/spritesheet/decals/proc/insert_state(decal, dir, color)
+	// Special case due to icon_state names
+	var/icon_state_color = color == "yellow" ? "" : color
+
+	var/icon/final = blend_preview_floor(icon('icons/turf/decals.dmi', "[decal][icon_state_color ? "_" : ""][icon_state_color]", dir))
+	Insert("[decal]_[dir]_[color]", final)
+
+/datum/asset/spritesheet/decals/create_spritesheets()
+	// Must actually create because initial(type) doesn't work for /lists for some reason.
+	var/obj/item/airlock_painter/decal/painter = new painter_type()
+
+	for(var/list/decal in painter.decal_list)
+		for(var/list/dir in painter.dir_list)
+			for(var/list/color in painter.color_list)
+				insert_state(decal[2], dir[2], color[2])
+			if(painter.supports_custom_color)
+				insert_state(decal[2], dir[2], "custom")
+
+	qdel(painter)
+
+/datum/asset/spritesheet/decals/tiles
+	name = "floor_tile_decals"
+	painter_type = /obj/item/airlock_painter/decal/tile
+
+/datum/asset/spritesheet/decals/tiles/insert_state(decal, dir, color)
+	// Account for 8-sided decals.
+	var/source_decal = decal
+	var/source_dir = dir
+	if(copytext(decal, -3) == "__8")
+		source_decal = splicetext(decal, -3, 0, "")
+		source_dir = turn(dir, 45)
+
+	// Handle the RGBA case.
+	var/obj/item/airlock_painter/decal/tile/tile_type = painter_type
+	var/render_color = color
+	var/render_alpha = initial(tile_type.default_alpha)
+	if(tile_type.rgba_regex.Find(color))
+		render_color = tile_type.rgba_regex.group[1]
+		render_alpha = text2num(tile_type.rgba_regex.group[2], 16)
+
+	var/icon/colored_icon = icon('icons/turf/decals.dmi', source_decal, dir=source_dir)
+	colored_icon.ChangeOpacity(render_alpha * 0.008)
+	if(color == "custom")
+		colored_icon.Blend(icon('icons/effects/random_spawners.dmi', "rainbow"), ICON_MULTIPLY)
+	else
+		colored_icon.Blend(render_color, ICON_MULTIPLY)
+
+	colored_icon = blend_preview_floor(colored_icon)
+	Insert("[decal]_[dir]_[replacetext(color, "#", "")]", colored_icon)
 
 /datum/asset/simple/genetics
 	assets = list(
 		"dna_discovered.gif" = 'html/dna_discovered.gif',
 		"dna_undiscovered.gif" = 'html/dna_undiscovered.gif',
 		"dna_extra.gif" = 'html/dna_extra.gif'
+	)
+
+/datum/asset/spritesheet/virology_symptoms
+	name = "virology_symptoms"
+
+/datum/asset/spritesheet/virology_symptoms/create_spritesheets()
+	InsertAll("", 'icons/UI_Icons/symptoms/symptoms.dmi')
+
+/datum/asset/simple/virology_symptoms_animated
+	assets = list(
+		"symptom.invalid.png" = 'icons/UI_Icons/symptoms/invalid.png',
+		"symptom.alkali_perspiration.gif" = 'icons/UI_Icons/symptoms/alkali_perspiration.gif',
+		"symptom.autophago_necrosis.gif" = 'icons/UI_Icons/symptoms/autophago_necrosis.gif',
+        "symptom.ionizing_cellular_emission.gif" = 'icons/UI_Icons/symptoms/ionizing_cellular_emission.gif',
+        "symptom.narcolepsy.gif" = 'icons/UI_Icons/symptoms/narcolepsy.gif',
+        "symptom.necrotizing_fasciitis.gif" = 'icons/UI_Icons/symptoms/necrotizing_fasciitis.gif',
+        "symptom.nocturnal_regeneration.gif" = 'icons/UI_Icons/symptoms/nocturnal_regeneration.gif',
+        "symptom.plasma_fixation.gif" = 'icons/UI_Icons/symptoms/plasma_fixation.gif',
+        "symptom.regen_coma.gif" = 'icons/UI_Icons/symptoms/regen_coma.gif',
+        "symptom.self_respiration.gif" = 'icons/UI_Icons/symptoms/self_respiration.gif',
+        "symptom.silicolysis.gif" = 'icons/UI_Icons/symptoms/silicolysis.gif',
+        "symptom.starlight_condensation.gif" = 'icons/UI_Icons/symptoms/starlight_condensation.gif',
+        "symptom.tissue_hydration.gif" = 'icons/UI_Icons/symptoms/tissue_hydration.gif',
+        "symptom.voice_change.gif" = 'icons/UI_Icons/symptoms/voice_change.gif'
 	)
 
 /datum/asset/simple/orbit
@@ -459,14 +609,10 @@
 /datum/asset/spritesheet/sheetmaterials
 	name = "sheetmaterials"
 
-/datum/asset/spritesheet/sheetmaterials/register()
+/datum/asset/spritesheet/sheetmaterials/create_spritesheets()
 	InsertAll("", 'icons/obj/stack_objects.dmi')
 
-	// Special case to handle Bluespace Crystals
-	Insert("polycrystal", 'icons/obj/telescience.dmi', "polycrystal")
-
 	Insert("dilithium_polycrystal", 'yogstation/icons/obj/telescience.dmi', "dilithium_polycrystal") //yogs: same as above but for dilithium
-	..()
 
 
 /datum/asset/simple/portraits
@@ -474,10 +620,10 @@
 	assets = list()
 
 /datum/asset/simple/portraits/New()
-	if(!SSpersistence.paintings || !SSpersistence.paintings[tab] || !length(SSpersistence.paintings[tab]))
+	if(!length(SSpersistent_paintings.paintings[tab]))
 		return
-	for(var/p in SSpersistence.paintings[tab])
-		var/list/portrait = p
+
+	for(var/list/portrait as anything in SSpersistent_paintings.paintings[tab])
 		var/png = "data/paintings/[tab]/[portrait["md5"]].png"
 		if(fexists(png))
 			var/asset_name = "[tab]_[portrait["md5"]]"
@@ -490,7 +636,7 @@
 /datum/asset/spritesheet/supplypods
 	name = "supplypods"
 
-/datum/asset/spritesheet/supplypods/register()
+/datum/asset/spritesheet/supplypods/create_spritesheets()
 	for (var/style in 1 to length(GLOB.podstyles))
 		var/icon_file = 'icons/obj/supplypods.dmi'
 		if (style == STYLE_SEETHROUGH)
@@ -515,4 +661,80 @@
 				glow = "pod_glow_[glow]"
 				podIcon.Blend(icon(icon_file, glow), ICON_OVERLAY)
 		Insert("pod_asset[style]", podIcon)
-	return ..()
+
+/datum/asset/spritesheet/rcd
+	name = "rcd-tgui"
+
+/datum/asset/spritesheet/rcd/create_spritesheets()
+	//We load airlock icons seperatly from other icons cause they need overlays
+
+	//load all category essential icon_states. format is icon_file = list of icon states we need from that file
+	var/list/essentials = list(
+		'icons/mob/radial.dmi' = list("wallfloor", "delete", "dirwindow", "fullwindow", "dirwindow_r", "fullwindow_r", "cnorth", "csouth", "ceast", "cwest", "chair", "stool", "windoor", "secure_windoor"),
+		'icons/obj/recycling.dmi' = list("conveyor_construct", "switch-off"),
+		'icons/obj/structures.dmi' = list("window0", "rwindow0", "table", "glass_table"),
+		'icons/obj/stock_parts.dmi' = list("box_1"),
+	)
+
+	var/icon/icon
+	for(var/icon_file as anything in essentials)
+		for(var/icon_state as anything in essentials[icon_file])
+			icon = icon(icon = icon_file, icon_state = icon_state)
+			Insert(sanitize_css_class_name(icon_state), icon)
+
+	//for each airlock type we create its overlayed version with the suffix Glass in the sprite name
+	var/list/airlocks = list(
+		"Standard" = 'icons/obj/doors/airlocks/station/public.dmi',
+		"Public" = 'icons/obj/doors/airlocks/station2/glass.dmi',
+		"Engineering" = 'icons/obj/doors/airlocks/station/engineering.dmi',
+		"Atmospherics" = 'icons/obj/doors/airlocks/station/atmos.dmi',
+		"Security" = 'icons/obj/doors/airlocks/station/security.dmi',
+		"Command" = 'icons/obj/doors/airlocks/station/command.dmi',
+		"Medical" = 'icons/obj/doors/airlocks/station/medical.dmi',
+		"Research" = 'icons/obj/doors/airlocks/station/research.dmi',
+		"Freezer" = 'icons/obj/doors/airlocks/station/freezer.dmi',
+		"Virology" = 'icons/obj/doors/airlocks/station/virology.dmi',
+		"Mining" = 'icons/obj/doors/airlocks/station/mining.dmi',
+		"Maintenance" = 'icons/obj/doors/airlocks/station/maintenance.dmi',
+		"External" = 'icons/obj/doors/airlocks/external/external.dmi',
+		"External Maintenance" = 'icons/obj/doors/airlocks/station/maintenanceexternal.dmi',
+		"Airtight Hatch" = 'icons/obj/doors/airlocks/hatch/centcom.dmi',
+		"Maintenance Hatch" = 'icons/obj/doors/airlocks/hatch/maintenance.dmi'
+	)
+	//these 3 types dont have glass doors
+	var/list/exclusion = list("Freezer", "Airtight Hatch", "Maintenance Hatch")
+
+	for(var/airlock_name in airlocks)
+		//solid door with overlay
+		icon = icon(icon = airlocks[airlock_name] , icon_state = "closed" , dir = SOUTH)
+		icon.Blend(icon(icon = airlocks[airlock_name], icon_state = "fill_closed", dir = SOUTH), ICON_OVERLAY)
+		Insert(sanitize_css_class_name(airlock_name), icon)
+
+		//exclude these glass types
+		if(airlock_name in exclusion)
+			continue
+
+		//glass door no overlay
+		icon = icon(airlocks[airlock_name] , "closed" , SOUTH)
+		Insert(sanitize_css_class_name("[airlock_name]Glass"), icon)
+
+/datum/asset/simple/inventory
+	assets = list(
+		"inventory-glasses.png" = 'icons/UI_Icons/inventory_midnight/glasses.png',
+		"inventory-head.png" = 'icons/UI_Icons/inventory_midnight/head.png',
+		"inventory-neck.png" = 'icons/UI_Icons/inventory_midnight/neck.png',
+		"inventory-mask.png" = 'icons/UI_Icons/inventory_midnight/mask.png',
+		"inventory-ears.png" = 'icons/UI_Icons/inventory_midnight/ears.png',
+		"inventory-uniform.png" = 'icons/UI_Icons/inventory_midnight/uniform.png',
+		"inventory-suit.png" = 'icons/UI_Icons/inventory_midnight/suit.png',
+		"inventory-gloves.png" = 'icons/UI_Icons/inventory_midnight/gloves.png',
+		"inventory-hand_l.png" = 'icons/UI_Icons/inventory_midnight/hand_l.png',
+		"inventory-hand_r.png" = 'icons/UI_Icons/inventory_midnight/hand_r.png',
+		"inventory-shoes.png" = 'icons/UI_Icons/inventory_midnight/shoes.png',
+		"inventory-suit_storage.png" = 'icons/UI_Icons/inventory_midnight/suit_storage.png',
+		"inventory-id.png" = 'icons/UI_Icons/inventory_midnight/id.png',
+		"inventory-belt.png" = 'icons/UI_Icons/inventory_midnight/belt.png',
+		"inventory-back.png" = 'icons/UI_Icons/inventory_midnight/back.png',
+		"inventory-pocket.png" = 'icons/UI_Icons/inventory_midnight/pocket.png',
+		"inventory-collar.png" = 'icons/UI_Icons/inventory_midnight/collar.png',
+	)

@@ -2,19 +2,22 @@
 /obj/machinery/armaments_dispenser
 	name = "armaments dispenser"
 	desc = "A standard issue security armaments dispenser."
-	icon = 'icons/obj/vending.dmi'
+	icon = 'yogstation/icons/obj/vending.dmi'
 	icon_state = "armament" // BAIOMU REPLACE THIS WITH YOUR SPRITE
 	layer = 2.9
 	density = TRUE
 	var/list/inventory = list()
+	var/list/allowed_types = list(/obj/item/ammo_box/magazine/recharge/ntusp)
 	
 	contents = newlist(/obj/item/gun/energy/disabler, 
 					   /obj/item/gun/ballistic/automatic/pistol/ntusp)
 
 
-/obj/machinery/armaments_dispenser/Initialize()
+/obj/machinery/armaments_dispenser/Initialize(mapload)
 	. = ..()
 	inventory = contents.Copy()
+	for(var/obj/item/wep in inventory)
+		allowed_types += wep.type
 	
 /obj/machinery/armaments_dispenser/ui_assets(mob/user)
 	return list(
@@ -29,7 +32,7 @@
 	var/can_claim = FALSE
 	var/obj/item/card/id/C = usr?.get_idcard()
 	// Security officers and wardens
-	if(istype(C) && (ACCESS_SECURITY in C.access) && (ACCESS_WEAPONS in C.access) && !(ACCESS_HOS in C.access))
+	if(istype(C) && (ACCESS_SECURITY in C.access) && (ACCESS_WEAPONS_PERMIT in C.access) && !(ACCESS_HOS in C.access))
 		allowed = TRUE
 	// Hasn't claimed a weapon yet
 	if(C?.registered_account && !C.registered_account.sec_weapon_claimed)
@@ -45,12 +48,24 @@
 		if("dispense_weapon")
 			if(params["weapon"] && ispath(text2path(params["weapon"])))
 				var/wep = text2path(params["weapon"])
+				if(!(wep in allowed_types))
+					message_admins("[ADMIN_LOOKUPFLW(usr)] just attempted to purchase a [wep] from the armaments dispenser.")
+					log_admin("[ADMIN_LOOKUP(usr)] attempted to purchase a [wep] from the armaments dispenser.")
+					return FALSE
 				new wep(loc)
 				if(params["magazine"] && ispath(text2path(params["magazine"])))
 					var/mag = text2path(params["magazine"])
+					if(!(mag in allowed_types))
+						message_admins("[ADMIN_LOOKUPFLW(usr)] just attempted to purchase a [mag] from the armaments dispenser.")
+						log_admin("[ADMIN_LOOKUP(usr)] attempted to purchase a [mag] from the armaments dispenser.")
+						return FALSE
 					new mag(loc)
 			else
 				return FALSE
+			if(prob(0.1)) //Easteregg of the exploit that allowed you to buy an actual real ratvar mob
+				playsound(src, 'sound/magic/clockwork/ark_activation.ogg', 50, 0)
+				visible_message(message = "<span class='big_brass'>Ratvar has risen! ...from the vendor?</span>")
+				new /obj/item/toy/plush/plushvar(loc)
 			C.registered_account.sec_weapon_claimed = TRUE
 			return TRUE
 	return FALSE
@@ -71,7 +86,7 @@
 	var/list/items = list()
 	for(var/obj/item/wep in inventory)
 		var/obj/item/gun/weapon = wep
-		weapon.update_icon(TRUE)
+		weapon.update_appearance(UPDATE_ICON)
 		var/icon/gun_icon = getFlatIcon(wep)
 		
 		var/list/details = list()
@@ -108,7 +123,7 @@
 	var/can_claim = FALSE
 	var/obj/item/card/id/C = user?.get_idcard()
 	// Security officers and wardens
-	if(istype(C) && (ACCESS_SECURITY in C.access) && (ACCESS_WEAPONS in C.access) && !(ACCESS_HOS in C.access))
+	if(istype(C) && (ACCESS_SECURITY in C.access) && (ACCESS_WEAPONS_PERMIT in C.access) && !(ACCESS_HOS in C.access))
 		allowed = TRUE
 	// Hasn't claimed a weapon yet
 	if(C?.registered_account && !C.registered_account.sec_weapon_claimed)

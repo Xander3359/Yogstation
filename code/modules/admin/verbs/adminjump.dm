@@ -10,12 +10,12 @@
 		return
 
 	var/list/turfs = list()
-	for(var/turf/T in A)
-		if(T.density)
-			continue
-		turfs.Add(T)
+	for (var/list/zlevel_turfs as anything in A.get_zlevel_turf_lists())
+		for (var/turf/area_turf as anything in zlevel_turfs)
+			if(!area_turf.density)
+				turfs.Add(area_turf)
 
-	var/turf/T = safepick(turfs)
+	var/turf/T = pick(turfs)
 	if(!T)
 		to_chat(src, "Nowhere to jump to!", confidential=TRUE)
 		return
@@ -37,7 +37,7 @@
 	SSblackbox.record_feedback("tally", "admin_verb", 1, "Jump To Turf") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	return
 
-/client/proc/jumptomob(mob/M in GLOB.mob_list)
+/client/proc/jump_to_mob(mob/M in GLOB.mob_list)
 	set category = "Admin"
 	set name = "Jump to Mob"
 

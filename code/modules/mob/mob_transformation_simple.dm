@@ -2,7 +2,7 @@
 //This proc is the most basic of the procs. All it does is make a new mob on the same tile and transfer over a few variables.
 //Returns the new mob
 //Note that this proc does NOT do MMI related stuff!
-/mob/proc/change_mob_type(new_type = null, turf/location = null, new_name = null as text, delete_old_mob = FALSE)
+/mob/proc/change_mob_type(new_type = null, turf/location = null, new_name = null as text|null, delete_old_mob = FALSE)
 
 	if(isnewplayer(src))
 		to_chat(usr, span_danger("Cannot convert players who have not entered yet."))
@@ -47,7 +47,7 @@
 		D.updateappearance(mutcolor_update=1, mutations_overlay_update=1)
 	else if(ishuman(M))
 		var/mob/living/carbon/human/H = M
-		client.prefs.copy_to(H)
+		client.prefs.apply_prefs_to(H, TRUE)
 		H.dna.update_dna_identity()
 
 	if(mind && isliving(M))

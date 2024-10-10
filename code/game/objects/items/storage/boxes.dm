@@ -36,7 +36,7 @@
 
 /obj/item/storage/box/Initialize(mapload)
 	. = ..()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/item/storage/box/suicide_act(mob/living/carbon/user)
 	var/obj/item/bodypart/head/myhead = user.get_bodypart(BODY_ZONE_HEAD)
@@ -49,15 +49,15 @@
 	user.visible_message(span_suicide("[user] attempts to put [user.p_their()] head into \the [src], but realizes [user.p_their()] has no head!"))
 	return SHAME
 
-/obj/item/storage/box/update_icon()
+/obj/item/storage/box/update_overlays()
 	. = ..()
 	if(illustration)
-		cut_overlays()
-		add_overlay(illustration)
+		. += illustration
 
-/obj/item/storage/box/attack_self(mob/user)
+/obj/item/storage/box/attack_self(mob/user, modifiers)
 	..()
-
+	if(modifiers?[RIGHT_CLICK]) // right click opens the storage
+		return
 	if(!foldable)
 		return
 	if(contents.len)
@@ -91,8 +91,8 @@
 	if(user.mind.miming)
 		alpha = 255
 
-/obj/item/storage/box/mime/Moved(oldLoc, dir)
-	if (iscarbon(oldLoc))
+/obj/item/storage/box/mime/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change = TRUE)
+	if (iscarbon(old_loc))
 		alpha = 0
 	..()
 
@@ -124,11 +124,19 @@
 		new /obj/item/disk/nanite_program(src)
 
 // Ordinary survival box
+/obj/item/storage/box/survival
+	var/mask_type = /obj/item/clothing/mask/breath
+	var/internal_type = /obj/item/tank/internals/emergency_oxygen
+	var/medipen_type = /obj/item/reagent_containers/autoinjector/medipen
+
 /obj/item/storage/box/survival/PopulateContents()
-	new /obj/item/clothing/mask/breath(src)
-	new /obj/item/tank/internals/emergency_oxygen(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
-	
+	if(!isnull(mask_type))
+		new mask_type(src)
+	if(!isnull(internal_type))
+		new internal_type(src)
+	if(!isnull(medipen_type))
+		new medipen_type(src)
+
 	if(HAS_TRAIT(SSstation, STATION_TRAIT_PREMIUM_INTERNALS))
 		new /obj/item/flashlight/flare(src)
 		new /obj/item/radio/off(src)
@@ -138,70 +146,73 @@
 	new /obj/item/radio/off(src)
 
 /obj/item/storage/box/survival/proc/wardrobe_removal()
-	if(!isplasmaman(loc)) //We need to specially fill the box with plasmaman gear, since it's intended for one
+	if(!ishuman(loc))
 		return
-	var/obj/item/mask = locate(/obj/item/clothing/mask/breath) in src
-	var/obj/item/internals = locate(/obj/item/tank/internals/emergency_oxygen) in src
-	new /obj/item/tank/internals/plasmaman/belt(src)
-	qdel(mask) // Get rid of the items that shouldn't be
-	qdel(internals)
+	var/mob/living/carbon/human/box_owner = loc
+	if(!length(box_owner.dna?.species?.survival_box_replacements))
+		return
+	var/list/survival_box_replacements_delete = box_owner.dna.species.survival_box_replacements["items_to_delete"]
+	var/list/survival_box_replacements_add = box_owner.dna.species.survival_box_replacements["new_items"]
+	var/list/items_to_delete = survival_box_replacements_delete?.Copy() || list()
+	var/list/new_items = survival_box_replacements_add?.Copy() || list()
+	box_owner.dna.species.survival_box_replacement(box_owner, src, items_to_delete, new_items)
 
-/obj/item/storage/box/survival_mining/PopulateContents()
-	new /obj/item/clothing/mask/gas/explorer(src)
-	new /obj/item/tank/internals/emergency_oxygen(src)
+/obj/item/storage/box/survival/mining
+	mask_type = /obj/item/clothing/mask/gas/explorer
+
+/obj/item/storage/box/survival/mining/PopulateContents()
+	..()
 	new /obj/item/crowbar/red(src)
 	new /obj/item/gps/mining(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
 
 // Engineer survival box
-/obj/item/storage/box/engineer/PopulateContents()
-	new /obj/item/clothing/mask/breath(src)
-	new /obj/item/tank/internals/emergency_oxygen/engi(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+/obj/item/storage/box/survival/engineer
+	internal_type = /obj/item/tank/internals/emergency_oxygen/engi
 
-/obj/item/storage/box/engineer/radio/PopulateContents()
+/obj/item/storage/box/survival/engineer/radio/PopulateContents()
 	..() // we want the regular items too.
 	new /obj/item/radio/off(src)
 
 // Syndie survival box
-/obj/item/storage/box/syndie/PopulateContents()
-	new /obj/item/clothing/mask/gas/syndicate(src)
-	new /obj/item/tank/internals/emergency_oxygen/engi(src)
+/obj/item/storage/box/survival/syndie
+	mask_type = /obj/item/clothing/mask/gas/syndicate
+	internal_type = /obj/item/tank/internals/emergency_oxygen/engi
+
+/obj/item/storage/box/survival/syndie/PopulateContents()
+	..()
 	new /obj/item/extinguisher/mini(src)
 
 // Security survival box
-/obj/item/storage/box/security/PopulateContents()
-	new /obj/item/clothing/mask/gas/sechailer(src)
-	new /obj/item/tank/internals/emergency_oxygen(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+/obj/item/storage/box/survival/security
+	mask_type = /obj/item/clothing/mask/gas/sechailer
 
-/obj/item/storage/box/security/radio/PopulateContents()
+/obj/item/storage/box/survival/security/radio/PopulateContents()
 	..() // we want the regular stuff too
 	new /obj/item/radio/off(src)
 
-// Plasmaman survival box
-/obj/item/storage/box/plasmaman/PopulateContents()
-	new /obj/item/clothing/mask/breath(src)
-	new /obj/item/tank/internals/plasmaman/belt/full(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+//Clown survival box
+/obj/item/storage/box/survival/hug
+	name = "box of hugs"
+	desc = "A special box for sensitive people."
+	icon_state = "hugbox"
+	illustration = "heart"
+	mask_type = null
+	foldable = null
 
-/obj/item/storage/box/plasmaman/miner/PopulateContents() //mining box for plasmemes
-	new /obj/item/clothing/mask/gas/explorer(src)
-	new /obj/item/tank/internals/plasmaman/belt/full(src)
-	new /obj/item/crowbar/red(src)
-	new /obj/item/gps/mining(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+/obj/item/storage/box/survival/hug/suicide_act(mob/user)
+	user.visible_message(span_suicide("[user] clamps the box of hugs on [user.p_their()] jugular! Guess it wasn't such a hugbox after all.."))
+	return (BRUTELOSS)
 
-// IPC survival box
-/obj/item/storage/box/ipc/PopulateContents()
-	new /obj/item/tank/internals/ipc_coolant(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+/obj/item/storage/box/survival/hug/attack_self(mob/user)
+	..()
+	user.changeNext_move(CLICK_CD_MELEE)
+	playsound(loc, "rustle", 50, vary = TRUE, extrarange = -5)
+	user.visible_message(span_notice("[user] hugs [src]."), span_notice("You hug [src]."))
 
-/obj/item/storage/box/ipc/miner/PopulateContents() //IPC mining box
-	new /obj/item/tank/internals/ipc_coolant(src)
-	new /obj/item/crowbar/red(src)
-	new /obj/item/gps/mining(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
+//Mime survival box
+/obj/item/storage/box/survival/hug/black
+	icon_state = "hugbox_black"
+	illustration = "heart_black"
 
 /obj/item/storage/box/gloves
 	name = "box of latex gloves"
@@ -292,13 +303,6 @@
 /obj/item/storage/box/vials/PopulateContents()
 	for(var/i in 1 to 7)
 		new /obj/item/reagent_containers/glass/bottle/vial(src)
-
-/obj/item/storage/box/vials/large
-	name = "box of large vials"
-
-/obj/item/storage/box/vials/large/PopulateContents()
-	for(var/i in 1 to 7)
-		new /obj/item/reagent_containers/glass/bottle/vial/large(src)
 
 /obj/item/storage/box/vials/bluespace
 	name = "box of bluespace vials"
@@ -485,12 +489,12 @@
 
 /obj/item/storage/box/donkpockets
 	name = "box of donk-pockets"
-	desc = "<B>Instructions:</B> <I>Heat in microwave. Product will cool if not eaten within seven minutes.</I>"
+	desc = "<B>Instructions:</B> <I>Heat in microwave.</I>"
 	icon_state = "donkpocketbox"
 	illustration=null
 	var/donktype = /obj/item/reagent_containers/food/snacks/donkpocket
 
-/obj/item/storage/box/donkpockets/ComponentInitialize()
+/obj/item/storage/box/donkpockets/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.set_holdable(list(/obj/item/reagent_containers/food/snacks/donkpocket))
@@ -536,7 +540,7 @@
 	illustration = null
 	var/cube_type = /obj/item/reagent_containers/food/snacks/monkeycube
 
-/obj/item/storage/box/monkeycubes/ComponentInitialize()
+/obj/item/storage/box/monkeycubes/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 7
@@ -555,7 +559,7 @@
 	desc = "Waffle Co. brand mouse cubes. Just add water and a dash of subterfuge!"
 	cube_type = /obj/item/reagent_containers/food/snacks/monkeycube/mouse/syndicate
 
-/obj/item/storage/box/monkeycubes/syndicate/mice/ComponentInitialize()
+/obj/item/storage/box/monkeycubes/syndicate/mice/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 24
@@ -571,7 +575,7 @@
 	icon_state = "monkeycubebox"
 	illustration = null
 
-/obj/item/storage/box/gorillacubes/ComponentInitialize()
+/obj/item/storage/box/gorillacubes/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 3
@@ -587,7 +591,7 @@
 	icon_state = "monkeycubebox"
 	illustration = null
 
-/obj/item/storage/box/mixedcubes/ComponentInitialize()
+/obj/item/storage/box/mixedcubes/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 6
@@ -597,8 +601,9 @@
 	for(var/i in 1 to 3)
 		new /obj/item/reagent_containers/food/snacks/monkeycube/goat(src)
 		new /obj/item/reagent_containers/food/snacks/monkeycube/sheep(src)
-		new /obj/item/reagent_containers/food/snacks/monkeycube/cow(src)
 		new /obj/item/reagent_containers/food/snacks/monkeycube/chicken(src)
+	for(var/i in 1 to 4)
+		new /obj/item/reagent_containers/food/snacks/monkeycube/cow(src)
 
 /obj/item/storage/box/ids
 	name = "box of spare IDs"
@@ -616,17 +621,8 @@
 	illustration = "pda"
 
 /obj/item/storage/box/PDAs/PopulateContents()
-	for(var/i in 1 to 4)
-		new /obj/item/pda(src)
-	new /obj/item/cartridge/head(src)
-
-	var/newcart = pick(	/obj/item/cartridge/engineering,
-						/obj/item/cartridge/security,
-						/obj/item/cartridge/medical,
-						/obj/item/cartridge/signal/toxins,
-						/obj/item/cartridge/quartermaster)
-	new newcart(src)
-
+	for(var/i in 1 to 7)
+		new /obj/item/modular_computer/tablet/pda/preset(src)
 /obj/item/storage/box/silver_ids
 	name = "box of spare silver IDs"
 	desc = "Shiny IDs for important people."
@@ -651,16 +647,6 @@
 	new /obj/item/card/id/prisoner/six(src)
 	new /obj/item/card/id/prisoner/seven(src)
 
-/obj/item/storage/box/seccarts
-	name = "box of PDA security cartridges"
-	desc = "A box full of PDA cartridges used by Security."
-	illustration = "pda"
-
-/obj/item/storage/box/seccarts/PopulateContents()
-	new /obj/item/cartridge/detective(src)
-	for(var/i in 1 to 6)
-		new /obj/item/cartridge/security(src)
-
 /obj/item/storage/box/firingpins
 	name = "box of standard firing pins"
 	desc = "A box full of standard firing pins, to allow newly-developed firearms to operate."
@@ -669,6 +655,24 @@
 /obj/item/storage/box/firingpins/PopulateContents()
 	for(var/i in 1 to 5)
 		new /obj/item/firing_pin(src)
+
+/obj/item/storage/box/firingpins/syndicate
+	name = "box of syndicate firing pins"
+	desc = "A box full of Syndicate-issue secure firing pins, to allow newly-developed firearms to operate."
+	illustration = "id"
+
+/obj/item/storage/box/firingpins/syndicate/PopulateContents()
+	for(var/i in 1 to 5)
+		new /obj/item/firing_pin/implant/pindicate(src) //why did you fucks name it pindicate just name it syndicate its not funny at all
+
+/obj/item/storage/box/secfiringpins
+	name = "box of mindshield firing pins"
+	desc = "A box full of mindshield firing pins, to allow newly-developed firearms to operate."
+	illustration = "id"
+
+/obj/item/storage/box/secfiringpins/PopulateContents()
+	for(var/i in 1 to 5)
+		new /obj/item/firing_pin/implant/mindshield(src)
 
 /obj/item/storage/box/lasertagpins
 	name = "box of laser tag firing pins"
@@ -743,7 +747,7 @@
 	icon = 'icons/obj/toy.dmi'
 	icon_state = "spbox"
 
-/obj/item/storage/box/snappops/ComponentInitialize()
+/obj/item/storage/box/snappops/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.set_holdable(list(/obj/item/toy/snappop))
@@ -763,7 +767,7 @@
 	drop_sound = 'sound/items/handling/matchbox_drop.ogg'
 	pickup_sound =  'sound/items/handling/matchbox_pickup.ogg'
 
-/obj/item/storage/box/matches/ComponentInitialize()
+/obj/item/storage/box/matches/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 10
@@ -786,7 +790,7 @@
 	righthand_file = 'icons/mob/inhands/equipment/medical_righthand.dmi'
 	foldable = /obj/item/stack/sheet/cardboard //BubbleWrap
 
-/obj/item/storage/box/lights/ComponentInitialize()
+/obj/item/storage/box/lights/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 21
@@ -819,7 +823,7 @@
 
 /obj/item/storage/box/deputy
 	name = "box of deputy armbands"
-	desc = "To be issued to those authorized to act as deputy of security."
+	desc = "A box of old Nanotrasen deputy armbands, they stopped serving a purpose ever since the deputization of crew was outlawed."
 
 /obj/item/storage/box/deputy/PopulateContents()
 	for(var/i in 1 to 7)
@@ -860,6 +864,10 @@
 	playsound(loc, "rustle", 50, 1, -5)
 	user.visible_message(span_notice("[user] hugs \the [src]."),span_notice("You hug \the [src]."))
 
+/obj/item/storage/box/hug/black
+	icon_state = "hugbox_black"
+	illustration = "heart_black"
+
 /////clown box & honkbot assembly
 /obj/item/storage/box/clown
 	name = "clown box"
@@ -887,22 +895,13 @@
 	new /obj/item/stack/medical/ointment(src)
 	new /obj/item/reagent_containers/autoinjector/medipen(src)
 
-/obj/item/storage/box/hug/survival/PopulateContents()
-	new /obj/item/clothing/mask/breath(src)
-	new /obj/item/tank/internals/emergency_oxygen(src)
-	new /obj/item/reagent_containers/autoinjector/medipen(src)
-	
-	if(HAS_TRAIT(SSstation, STATION_TRAIT_PREMIUM_INTERNALS))
-		new /obj/item/flashlight/flare(src)
-		new /obj/item/radio/off(src)
-
 /obj/item/storage/box/rubbershot
 	name = "box of rubber shots"
 	desc = "A box full of rubber shots designed for shotguns. The box itself is designed for holding any kind of shotgun shell."
 	icon_state = "rubbershot_box"
 	illustration = null
 
-/obj/item/storage/box/rubbershot/ComponentInitialize()
+/obj/item/storage/box/rubbershot/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 7
@@ -918,7 +917,7 @@
 	icon_state = "lethalshot_box"
 	illustration = null
 
-/obj/item/storage/box/lethalshot/ComponentInitialize()
+/obj/item/storage/box/lethalshot/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 7
@@ -934,7 +933,7 @@
 	icon_state = "breachershot_box"
 	illustration = null
 
-/obj/item/storage/box/breacherslug/ComponentInitialize()
+/obj/item/storage/box/breacherslug/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 7
@@ -950,7 +949,7 @@
 	icon_state = "rubbershot_box"
 	illustration = null
 
-/obj/item/storage/box/beanbag/ComponentInitialize()
+/obj/item/storage/box/beanbag/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_items = 7
@@ -985,10 +984,12 @@
 	foldable = null
 	var/design = NODESIGN
 
-/obj/item/storage/box/papersack/update_icon()
+/obj/item/storage/box/papersack/update_icon_state()
+	. = ..()
 	if(contents.len == 0)
 		icon_state = "[item_state]"
-	else icon_state = "[item_state]_closed"
+	else
+		icon_state = "[item_state]_closed"
 
 /obj/item/storage/box/papersack/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/pen))
@@ -1040,12 +1041,12 @@
 #undef HEART
 #undef SMILEY
 
-/obj/item/storage/box/ingredients //This box is for the randomely chosen version the chef spawns with, it shouldn't actually exist.
+/obj/item/storage/box/ingredients //This box is for the randomly chosen version the chef spawns with, it shouldn't actually exist.
 	name = "ingredients box"
 	illustration = "fruit"
 	var/theme_name
 
-/obj/item/storage/box/ingredients/Initialize()
+/obj/item/storage/box/ingredients/Initialize(mapload)
 	. = ..()
 	if(theme_name)
 		name = "[name] ([theme_name])"
@@ -1070,7 +1071,8 @@
 							  /obj/item/reagent_containers/food/snacks/grown/soybeans,
 							  /obj/item/reagent_containers/food/snacks/grown/corn,
 							  /obj/item/reagent_containers/food/snacks/grown/mushroom/plumphelmet,
-							  /obj/item/reagent_containers/food/snacks/grown/mushroom/chanterelle)
+							  /obj/item/reagent_containers/food/snacks/grown/mushroom/chanterelle,
+							  /obj/item/reagent_containers/food/snacks/grown/cucumber)
 		new randomFood(src)
 
 /obj/item/storage/box/ingredients/fiesta
@@ -1089,7 +1091,7 @@
 /obj/item/storage/box/ingredients/italian/PopulateContents()
 	for(var/i in 1 to 3)
 		new /obj/item/reagent_containers/food/snacks/grown/tomato(src)
-		new /obj/item/reagent_containers/food/snacks/meatball(src) //YOGS - bigotry rule
+		new /obj/item/reagent_containers/food/snacks/raw_meatball(src) //YOGS - bigotry rule
 	new /obj/item/reagent_containers/food/drinks/bottle/wine(src)
 
 /obj/item/storage/box/ingredients/vegetarian
@@ -1112,7 +1114,7 @@
 		new /obj/item/reagent_containers/food/snacks/grown/potato(src)
 		new /obj/item/reagent_containers/food/snacks/grown/tomato(src)
 		new /obj/item/reagent_containers/food/snacks/grown/corn(src)
-	new /obj/item/reagent_containers/food/snacks/meatball(src) //YOGS - bigotry rule
+	new /obj/item/reagent_containers/food/snacks/raw_meatball(src) //YOGS - bigotry rule
 
 /obj/item/storage/box/ingredients/fruity
 	theme_name = "fruity"
@@ -1168,7 +1170,7 @@
 	new /obj/item/reagent_containers/food/snacks/carpmeat(src)
 	new /obj/item/reagent_containers/food/snacks/meat/slab/xeno(src)
 	new /obj/item/reagent_containers/food/snacks/meat/slab/corgi(src)
-	new /obj/item/reagent_containers/food/snacks/meatball(src) //YOGS - bigotry rule
+	new /obj/item/reagent_containers/food/snacks/raw_meatball(src) //YOGS - bigotry rule
 
 /obj/item/storage/box/ingredients/exotic
 	theme_name = "exotic"
@@ -1179,6 +1181,18 @@
 		new /obj/item/reagent_containers/food/snacks/grown/soybeans(src)
 		new /obj/item/reagent_containers/food/snacks/grown/cabbage(src)
 	new /obj/item/reagent_containers/food/snacks/grown/chili(src)
+
+/obj/item/storage/box/ingredients/seafood
+	theme_name = "seafood"
+
+/obj/item/storage/box/ingredients/seafood/PopulateContents()
+	new /obj/item/reagent_containers/food/snacks/grown/citrus/lemon(src)
+	for(var/i in 1 to 6)
+		var/randomFood = pick(/obj/item/reagent_containers/food/snacks/carpmeat,
+							  /obj/item/reagent_containers/food/snacks/dolphinmeat,
+							  /obj/item/reagent_containers/food/snacks/fish/tuna,
+							  /obj/item/reagent_containers/food/snacks/fish/shrimp)
+		new randomFood(src)
 
 /obj/item/storage/box/cheese
 	name = "box of advanced cheese bacteria"
@@ -1303,16 +1317,229 @@
 		/obj/item/stack/sheet/mineral/wood/fifty = 1,
 		/obj/item/stack/sheet/mineral/titanium/fifty = 1,
 		/obj/item/stack/sheet/mineral/uranium/fifty = 1,
-		/obj/item/stack/sheet/mineral/diamond = 1,
+		/obj/item/stack/sheet/mineral/diamond/fifty = 1,
 		/obj/item/stack/sheet/mineral/plasma/fifty = 1,
 		/obj/item/stack/sheet/mineral/gold/fifty = 1,
 		/obj/item/stack/sheet/mineral/silver/fifty = 1,
 		/obj/item/stack/sheet/mineral/bananium/fifty = 1)
 	generate_items_inside(items_inside,src)
 
-/obj/item/storage/box/materials/ComponentInitialize()
+/obj/item/storage/box/materials/Initialize(mapload)
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.max_combined_w_class = 200
 	STR.max_items = 30
 	STR.max_w_class = WEIGHT_CLASS_GIGANTIC
+
+/obj/item/storage/box/coffeepack
+	icon_state = "arabica_beans"
+	name = "arabica beans"
+	desc = "A bag containing fresh, dry coffee arabica beans. Ethically sourced and packaged by Waffle Corp."
+	illustration = null
+	icon = 'icons/obj/food/containers.dmi'
+	var/beantype = /obj/item/reagent_containers/food/snacks/grown/coffee
+
+/obj/item/storage/box/coffeepack/Initialize(mapload)
+	. = ..()
+	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
+	STR.max_items = 5
+	STR.set_holdable(list(/obj/item/reagent_containers/food/snacks/grown/coffee))
+
+/obj/item/storage/box/coffeepack/PopulateContents()
+	var/static/items_inside = list(
+		beantype = 5
+		)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/box/coffeepack/robusta
+	icon_state = "robusta_beans"
+	name = "robusta beans"
+	desc = "A bag containing fresh, dry coffee robusta beans. Ethically sourced and packaged by Waffle Corp."
+	beantype = /obj/item/reagent_containers/food/snacks/grown/coffee/robusta
+
+/obj/item/storage/box/rollingpapers
+	name = "rolling paper pack"
+	desc = "A pack of Nanotrasen brand rolling papers."
+	w_class = WEIGHT_CLASS_TINY
+	icon = 'icons/obj/cigarettes.dmi'
+	icon_state = "cig_paper_pack"
+	foldable = null
+
+/obj/item/storage/box/rollingpapers/Initialize(mapload)
+	. = ..()
+	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
+	STR.max_items = 10
+	STR.set_holdable(list(/obj/item/rollingpaper))
+
+/obj/item/storage/box/rollingpapers/PopulateContents()
+	for(var/i in 1 to 10)
+		new /obj/item/rollingpaper(src)
+
+/obj/item/storage/box/rollingpapers/update_overlays()
+	. = ..()
+	if(!contents.len)
+		. += "[icon_state]_empty"
+
+#define CARTON_PLAIN "plain ice cream"
+#define CARTON_VANILLA "vanilla ice cream"
+#define CARTON_CHOCOLATE "chocolate ice cream"
+#define CARTON_STRAWBERRY "strawberry ice cream"
+#define CARTON_BLUE "blue ice cream"
+#define CARTON_LEMON_SORBET "lemon sorbet"
+#define CARTON_CARAMEL "caramel ice cream"
+#define CARTON_BANANA "banana ice cream"
+#define CARTON_ORANGE_CREAMSICLE "orange creamsicle"
+#define CARTON_PEACH "peach ice cream"
+#define CARTON_CHERRY_CHOCOLATE "cherry chocolate ice cream"
+#define CARTON_MEAT "meat lover's ice cream"
+#define BOX_CAKE "cake cone"
+#define BOX_CHOCOLATE "chocolate cone"
+
+/obj/item/storage/box/ice_cream_carton
+	icon_state = "ice_cream"
+	icon = 'icons/obj/food/containers.dmi'
+	name = "Big Top plain ice cream carton"
+	desc = "A classic ice cream brand; this carton contains plain ice cream."
+
+	//What flavor will be inside the carton
+	var/item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop
+	//String for extra examine
+	var/container_type = "carton"
+	//String for ice cream vat
+	var/contents_type = "ice cream"
+	
+
+/obj/item/storage/box/ice_cream_carton/Initialize(mapload)
+	. = ..()
+	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
+	STR.max_items = 7
+	//Check if it is a scoop carton or cone box
+	if(!istype(src, /obj/item/storage/box/ice_cream_carton/cone))
+		STR.set_holdable(list(/obj/item/reagent_containers/food/snacks/ice_cream_scoop))
+	else
+		STR.set_holdable(list(/obj/item/reagent_containers/food/snacks/ice_cream_cone))
+
+/obj/item/storage/box/ice_cream_carton/PopulateContents()
+	for(var/i in 1 to 7)
+		new item_flavor(src)
+
+/obj/item/storage/box/ice_cream_carton/attackby(obj/item/A, mob/user, params)
+	//Allow for name and desc to be changed with pen
+	if(istype(A, /obj/item/pen))
+		//Check if it is a scoop carton or cone box
+		if(!istype(src, /obj/item/storage/box/ice_cream_carton/cone))
+			var/choice = input(usr, "Choose which flavor to change to", "Changing Container Flavor") as null|anything in list(CARTON_PLAIN, CARTON_VANILLA, CARTON_CHOCOLATE, CARTON_STRAWBERRY, CARTON_BLUE, CARTON_LEMON_SORBET, CARTON_CARAMEL, CARTON_BANANA, CARTON_ORANGE_CREAMSICLE, CARTON_PEACH, CARTON_CHERRY_CHOCOLATE, CARTON_MEAT)
+			if(choice != null)
+				name = "Big Top [choice] carton"
+				desc = "A classic ice cream brand; this carton contains [choice]."
+		else
+			var/choice = input(usr, "Choose which flavor to change to", "Changing Container Flavor") as null|anything in list(BOX_CAKE, BOX_CHOCOLATE)
+			if(choice != null)
+				name = "Big Top [choice] box"
+				desc = "A classic ice cream brand; this box contains [choice]s."
+		return
+	..()
+
+/obj/item/storage/box/ice_cream_carton/examine(mob/user)
+	. = ..()
+	. += span_notice("You can change the [container_type]'s flavor with a <b>Pen<b>.")
+	if(length(contents) == 0)
+		. += span_warning("This [container_type] is <b>EMPTY<b>!!") //PANIC!!
+
+/obj/item/storage/box/ice_cream_carton/update_overlays()
+	. = ..()
+	//How much ice cream is in the carton
+	var/inventory_count = length(contents)
+	//What icon to use for the overlay
+	var/carton_overlay = null
+
+	if(inventory_count == 0)
+		return .
+	else
+		carton_overlay = "_lid"
+
+	var/mutable_appearance/ice_cream_overlay = mutable_appearance(icon, "[icon_state][carton_overlay]")
+	. += ice_cream_overlay
+
+/obj/item/storage/box/ice_cream_carton/vanilla
+	name = "Big Top vanilla ice cream carton"
+	desc = "A classic ice cream brand; this carton contains vanilla ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/vanilla
+
+/obj/item/storage/box/ice_cream_carton/chocolate
+	name = "Big Top chocolate ice cream carton"
+	desc = "A classic ice cream brand; this carton contains chocolate ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/chocolate
+
+/obj/item/storage/box/ice_cream_carton/strawberry
+	name = "Big Top strawberry ice cream carton"
+	desc = "A classic ice cream brand; this carton contains strawberry ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/strawberry
+
+/obj/item/storage/box/ice_cream_carton/blue
+	name = "Big Top blue ice cream carton"
+	desc = "A classic ice cream brand; this carton contains blue ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/blue
+
+/obj/item/storage/box/ice_cream_carton/lemon_sorbet
+	name = "Big Top lemon sorbet carton"
+	desc = "A classic ice cream brand; this carton contains lemon sorbet."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/lemon_sorbet
+
+/obj/item/storage/box/ice_cream_carton/caramel
+	name = "Big Top caramel ice cream carton"
+	desc = "A classic ice cream brand; this carton contains caramel ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/caramel
+
+/obj/item/storage/box/ice_cream_carton/banana
+	name = "Big Top banana ice cream carton"
+	desc = "A classic ice cream brand; this carton contains banana ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/banana
+
+/obj/item/storage/box/ice_cream_carton/orange_creamsicle
+	name = "Big Top orange creamsicle carton"
+	desc = "A classic ice cream brand; this carton contains orange creamsicle."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/orange_creamsicle
+
+/obj/item/storage/box/ice_cream_carton/peach
+	name = "Big Top peach ice cream carton"
+	desc = "A classic ice cream brand; this carton contains peach ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/peach
+
+/obj/item/storage/box/ice_cream_carton/cherry_chocolate
+	name = "Big Top cherry chocolate ice cream carton"
+	desc = "A classic ice cream brand; this carton contains cherry chocolate ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/cherry_chocolate
+
+/obj/item/storage/box/ice_cream_carton/meat
+	name = "Big Top meat lover's ice cream carton"
+	desc = "A classic ice cream brand; this carton contains meat lover's ice cream."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_scoop/meat
+
+/obj/item/storage/box/ice_cream_carton/cone
+	icon_state = "cone_box"
+	name = "Big Top cake cone box"
+	desc = "A classic ice cream brand; this box contains cake cones."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_cone/cake
+	container_type = "box"
+	contents_type = "cones"
+
+/obj/item/storage/box/ice_cream_carton/cone/chocolate
+	name = "Big Top chocolate cone box"
+	desc = "A classic ice cream brand; this box contains chocolate cones."
+	item_flavor = /obj/item/reagent_containers/food/snacks/ice_cream_cone/chocolate
+
+#undef CARTON_PLAIN
+#undef CARTON_VANILLA
+#undef CARTON_CHOCOLATE
+#undef CARTON_STRAWBERRY
+#undef CARTON_BLUE
+#undef CARTON_LEMON_SORBET
+#undef CARTON_CARAMEL
+#undef CARTON_BANANA
+#undef CARTON_ORANGE_CREAMSICLE
+#undef CARTON_PEACH
+#undef CARTON_CHERRY_CHOCOLATE
+#undef CARTON_MEAT
+#undef BOX_CAKE
+#undef BOX_CHOCOLATE

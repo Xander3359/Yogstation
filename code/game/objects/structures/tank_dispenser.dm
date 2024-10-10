@@ -17,32 +17,32 @@
 /obj/structure/tank_dispenser/plasma
 	oxygentanks = 0
 
-/obj/structure/tank_dispenser/Initialize()
+/obj/structure/tank_dispenser/Initialize(mapload)
 	. = ..()
 	for(var/i in 1 to oxygentanks)
 		new /obj/item/tank/internals/oxygen(src)
 	for(var/i in 1 to plasmatanks)
 		new /obj/item/tank/internals/plasma(src)
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
-/obj/structure/tank_dispenser/update_icon()
-	cut_overlays()
+/obj/structure/tank_dispenser/update_overlays()
+	. = ..()
 	switch(oxygentanks)
 		if(1 to 3)
-			add_overlay("oxygen-[oxygentanks]")
+			. += "oxygen-[oxygentanks]"
 		if(4 to TANK_DISPENSER_CAPACITY)
-			add_overlay("oxygen-4")
+			. += "oxygen-4"
 	switch(plasmatanks)
 		if(1 to 4)
-			add_overlay("plasma-[plasmatanks]")
+			. += "plasma-[plasmatanks]"
 		if(5 to TANK_DISPENSER_CAPACITY)
-			add_overlay("plasma-5")
+			. += "plasma-5"
 
 /obj/structure/tank_dispenser/attack_ai(mob/user)
 	. = ..()
 	return ui_interact(user)
 
-/obj/structure/tank_dispenser/attackby(obj/item/I, mob/user, params)
+/obj/structure/tank_dispenser/attackby(obj/item/I, mob/living/user, params)
 	var/full
 	if(istype(I, /obj/item/tank/internals/plasma))
 		if(plasmatanks < TANK_DISPENSER_CAPACITY)
@@ -57,7 +57,7 @@
 	else if(I.tool_behaviour == TOOL_WRENCH)
 		default_unfasten_wrench(user, I, time = 20)
 		return
-	else if(user.a_intent != INTENT_HARM)
+	else if(!user.combat_mode)
 		to_chat(user, span_notice("[I] does not fit into [src]."))
 		return
 	else
@@ -69,7 +69,7 @@
 	if(!user.transferItemToLoc(I, src))
 		return
 	to_chat(user, span_notice("You put [I] in [src]."))
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/structure/tank_dispenser/ui_state(mob/user)
 	return GLOB.physical_state
@@ -109,7 +109,7 @@
 					usr.put_in_hands(tank)
 				oxygentanks--
 			. = TRUE
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 
 /obj/structure/tank_dispenser/deconstruct(disassembled = TRUE)

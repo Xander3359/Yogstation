@@ -3,6 +3,7 @@
 	typepath = /datum/round_event/ghost_role/operative
 	weight = 0 //Admin only
 	max_occurrences = 1
+	min_players = 25
 	dynamic_should_hijack = TRUE
 
 /datum/round_event/ghost_role/operative
@@ -24,8 +25,7 @@
 		return MAP_ERROR
 
 	var/mob/living/carbon/human/operative = new(pick(spawn_locs))
-	var/datum/preferences/A = new
-	A.copy_to(operative)
+	operative.randomize_human_appearance(~(RANDOMIZE_SPECIES))
 	operative.dna.update_dna_identity()
 	var/datum/mind/Mind = new /datum/mind(selected.key)
 	Mind.assigned_role = "Lone Operative"

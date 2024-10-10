@@ -13,10 +13,10 @@
 	desc = "It's good to be a god."
 	item_state = "admiral"
 
-/obj/item/clothing/head/centhat/admiral/grand
-	name = "\improper CentCom grand admiral hat"
+/obj/item/clothing/head/centhat/admiral/executive
+	name = "\improper CentCom executive admiral hat"
 	icon_state = "grand_admiral"
-	desc = "It's good to be a Q."
+	desc = "It's good to be free."
 	item_state = "grand_admiral"
 
 /obj/item/clothing/head/powdered_wig
@@ -53,7 +53,7 @@
 	name = "plague doctor's hat"
 	desc = "These were once used by plague doctors. They're pretty much useless."
 	icon_state = "plaguedoctor"
-	permeability_coefficient = 0.01
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 60, RAD = 0, FIRE = 0, ACID = 0)
 
 /obj/item/clothing/head/hasturhood
 	name = "hastur's hood"
@@ -147,7 +147,7 @@
 	. = ..()
 	if(!ishuman(user))
 		return
-	if(slot == SLOT_HEAD)
+	if(slot == ITEM_SLOT_HEAD)
 		user.grant_language(/datum/language/piratespeak/, TRUE, TRUE, LANGUAGE_HAT)
 		to_chat(user, "You suddenly know how to speak like a pirate!")
 
@@ -156,7 +156,7 @@
 	if(!ishuman(user))
 		return
 	var/mob/living/carbon/human/H = user
-	if(H.get_item_by_slot(SLOT_HEAD) == src)
+	if(H.get_item_by_slot(ITEM_SLOT_HEAD) == src)
 		user.remove_language(/datum/language/piratespeak/, TRUE, TRUE, LANGUAGE_HAT)
 		to_chat(user, "You can no longer speak like a pirate.")
 
@@ -231,8 +231,13 @@
 	H.facial_hair_style = "Neckbeard"
 	return(BRUTELOSS)
 
+/obj/item/clothing/head/fedora/brown
+	icon_state = "detective"
+	desc = "A brown fedora, typically worn by investigators. This one has no protective fibers."
+
 /obj/item/clothing/head/sombrero
 	name = "sombrero"
+	icon = 'icons/obj/clothing/sombrero.dmi'
 	icon_state = "sombrero"
 	item_state = "sombrero"
 	desc = "You can practically taste the fiesta."
@@ -240,22 +245,28 @@
 
 	dog_fashion = /datum/dog_fashion/head/sombrero
 
+	greyscale_config = /datum/greyscale_config/sombrero
+	greyscale_config_worn = /datum/greyscale_config/sombrero/worn
+	greyscale_config_inhand_left = /datum/greyscale_config/sombrero/lefthand
+	greyscale_config_inhand_right = /datum/greyscale_config/sombrero/righthand
+
 /obj/item/clothing/head/sombrero/green
 	name = "green sombrero"
-	icon_state = "greensombrero"
-	item_state = "greensombrero"
 	desc = "As elegant as a dancing cactus."
 	flags_inv = HIDEHAIR|HIDEFACE|HIDEEARS
 	dog_fashion = null
+	greyscale_colors = "#13d968#ffffff"
+	flags_1 = IS_PLAYER_COLORABLE_1
 
 /obj/item/clothing/head/sombrero/shamebrero
 	name = "shamebrero"
 	icon_state = "shamebrero"
-	item_state = "shamebrero"
 	desc = "Once it's on, it never comes off."
 	dog_fashion = null
+	greyscale_colors = "#d565d3#f8db18"
+	flags_1 = IS_PLAYER_COLORABLE_1
 
-/obj/item/clothing/head/sombrero/shamebrero/Initialize()
+/obj/item/clothing/head/sombrero/shamebrero/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, SHAMEBRERO_TRAIT)
 
@@ -375,8 +386,8 @@
 
 /obj/item/clothing/head/frenchberet/equipped(mob/M, slot)
 	. = ..()
-	if (slot == SLOT_HEAD)
-		RegisterSignal(M, COMSIG_MOB_SAY, .proc/handle_speech)
+	if (slot == ITEM_SLOT_HEAD)
+		RegisterSignal(M, COMSIG_MOB_SAY, PROC_REF(handle_speech))
 	else
 		UnregisterSignal(M, COMSIG_MOB_SAY)
 
@@ -429,6 +440,10 @@
 	desc = "An extra-mustahabb way of showing your devotion to Allah."
 	icon_state = "taqiyahred"
 	pocket_storage_component_path = /datum/component/storage/concrete/pockets/small
+
+/datum/action/item_action/hatsky_voiceline
+	name = "Press Voice Button"
+	desc = "Engage the voice box on your Hatsky to hear a classic line from the real Officer Beepsky!"
 
 /obj/item/clothing/head/hatsky
 	name = "officer hatsky"

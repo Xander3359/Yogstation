@@ -18,10 +18,6 @@
 	///current thing being targetted for combos, switches if the user hits a different opponent
 	var/current_target
 	var/datum/martial_art/base // The permanent style. This will be null unless the martial art is temporary
-	///chance to deflect bullets
-	var/deflection_chance = 0
-	///check for if deflected bullets should be destroyed (false) or redirected (true)
-	var/reroute_deflection = FALSE
 	///chance for the martial art to block a melee attack when throw is on
 	var/block_chance = 0
 	///used for CQC's restrain combo
@@ -34,6 +30,14 @@
 	var/nonlethal = FALSE
 	///if the martial art can be overridden by temporary arts
 	var/allow_temp_override = TRUE
+	///the message for when you try to use a gun you can't use
+	var/no_gun_message = "Use of ranged weaponry would bring dishonor to the clan."
+	///used to allow certain guns as exceptions
+	var/list/gun_exceptions = list()
+	///list of traits given to the martial art user
+	var/list/martial_traits = list()
+	///the mob that uses this martial art
+	var/mob/living/martial_owner
 
 /**
   * martial art specific disarm attacks
@@ -100,20 +104,12 @@
 
 	var/damage = rand(A.get_punchdamagelow(), A.get_punchdamagehigh())
 
-	var/atk_verb = A.dna.species.attack_verb
+	var/atk_verb = pick(A.dna.species.attack_verbs)
+	var/atk_effect = A.dna.species.attack_effect
 	if(!(D.mobility_flags & MOBILITY_STAND))
 		atk_verb = "kick"
-
-	switch(atk_verb)
-		if("kick")
-			A.do_attack_animation(D, ATTACK_EFFECT_KICK)
-		if("slash")
-			A.do_attack_animation(D, ATTACK_EFFECT_CLAW)
-		if("smash")
-			A.do_attack_animation(D, ATTACK_EFFECT_SMASH)
-		else
-			A.do_attack_animation(D, ATTACK_EFFECT_PUNCH)
-
+		atk_effect = ATTACK_EFFECT_KICK
+	A.do_attack_animation(D, atk_effect)
 	if(!damage)
 		playsound(D.loc, A.dna.species.miss_sound, 25, 1, -1)
 		D.visible_message(span_warning("[A] has attempted to [atk_verb] [D]!"), \
@@ -149,7 +145,7 @@
   *returns TRUE if the default throw impact shouldn't do anything, FALSE if you still slam into something at mach 20 and eat a stun
   */
 
-/datum/martial_art/proc/handle_throw(atom/hit_atom, mob/living/carbon/human/A)
+/datum/martial_art/proc/handle_throw(atom/hit_atom, mob/living/carbon/human/A, datum/thrownthing/throwingdatum)
 	return FALSE
 
 /**
@@ -158,7 +154,7 @@
   * gives the user the martial art, if it's a temporary one  it will only temporarily override an older martial art rather than replacing it
   * unless the current art won't allow a temporary override
   */
-/datum/martial_art/proc/teach(mob/living/carbon/human/H,make_temporary=0)
+/datum/martial_art/proc/teach(mob/living/carbon/human/H, make_temporary=0)
 	if(!istype(H) || !H.mind)
 		return FALSE
 	if(H.mind.martial_art)
@@ -172,7 +168,15 @@
 		base = H.mind.default_martial_art
 	if(help_verb)
 		add_verb(H, help_verb)
+	if(LAZYLEN(martial_traits))
+		H.add_traits(martial_traits, id)
 	H.mind.martial_art = src
+	martial_owner = H
+	if(no_guns)
+		for(var/mob/living/simple_animal/hostile/guardian/guardian in H.hasparasites())
+			guardian.stats.ranged = FALSE
+			guardian.ranged = FALSE
+			to_chat(H, span_holoparasite("<font color=\"[guardian.namedatum.color]\"><b>[guardian.real_name]</b></font> loses their ranged attacks in accordance with your martial art!"))
 	return TRUE
 
 /**
@@ -196,6 +200,8 @@
 	if(!istype(H) || !H.mind || H.mind.martial_art != src)
 		return
 	on_remove(H)
+	martial_owner = null
+	H.mind.martial_art = null
 	if(base)
 		base.teach(H)
 	else
@@ -209,4 +215,6 @@
 /datum/martial_art/proc/on_remove(mob/living/carbon/human/H)
 	if(help_verb)
 		remove_verb(H, help_verb)
+	if(LAZYLEN(martial_traits))
+		H.remove_traits(martial_traits, id)
 	return

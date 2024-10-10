@@ -46,6 +46,14 @@
 	if(!mt)
 		mt = new(src)
 	mt.log += "<b>[src.key]:</b> [msg]"
+	
+	var/datum/DBQuery/add_mhelp_query = SSdbcore.NewQuery(
+		"INSERT INTO `[format_table_name("mentor_interactions")]` (round_id, ckey, ckey_mentor, target_mentor, message) VALUES (:round, :send, :smentor, :rmentor, :msg);",
+		list("round" = GLOB.round_id, "send" = ckey, "smentor" = is_mentor(), "rmentor" = 1, "msg" = msg)
+	)
+	if(!add_mhelp_query.Execute())
+		message_admins("Failed insert mhelp into mhelp DB. Check the SQL error logs for more details.")
+	qdel(add_mhelp_query)
 
 /proc/get_mentor_counts()
 	. = list("total" = 0, "afk" = 0, "present" = 0)
@@ -57,7 +65,7 @@
 		else
 			.["present"]++
 
-/proc/key_name_mentor(var/whom, var/include_link = null, var/include_name = 0, var/include_follow = 0, var/char_name_only = 0)
+/proc/key_name_mentor(whom, include_link = null, include_name = 0, include_follow = 0, char_name_only = 0)
 	var/mob/M
 	var/client/C
 	var/key
@@ -119,5 +127,5 @@
 
 	return .
 
-/proc/discord_mentor_link(var/display_name, var/id)
+/proc/discord_mentor_link(display_name, id)
 	return "<a href='?_src_=mentor;mentor_msg=[list2params(list(display_name))];mentor_discord_id=[id];[MentorHrefToken(TRUE)]'>[display_name]</a>"

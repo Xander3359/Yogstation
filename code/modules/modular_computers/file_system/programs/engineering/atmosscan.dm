@@ -1,7 +1,7 @@
 /datum/computer_file/program/atmosscan
 	filename = "atmosscan"
 	filedesc = "Atmospheric Scanner"
-	category = PROGRAM_CATEGORY_ENGI
+	category = PROGRAM_CATEGORY_ENGINEERING
 	program_icon_state = "air"
 	extended_desc = "A small built-in sensor reads out the atmospheric conditions around the device."
 	network_destination = "atmos scan"
@@ -34,7 +34,7 @@
 				var/moles = environment.get_moles(id)
 				var/gas_level = moles/total_moles
 				if(gas_level > 0)
-					airlist += list(list("name" = "[GLOB.meta_gas_info[id][META_GAS_NAME]]", "percentage" = round(gas_level*100, 0.01)))
+					airlist += list(list("name" = GLOB.gas_data.labels[id], "ui_color" = GLOB.gas_data.ui_colors[id], "percentage" = round(gas_level*100, 0.01)))
 		data["AirData"] = airlist
 	else
 		data["AirPressure"] = 0

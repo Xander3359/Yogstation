@@ -479,7 +479,7 @@
 /area/ruin/powered)
 "bb" = (
 /obj/structure/table/wood,
-/obj/item/twohanded/dualsaber/toy,
+/obj/item/melee/dualsaber/toy,
 /obj/item/toy/katana{
 	pixel_x = 6
 	},
@@ -589,7 +589,6 @@
 "bm" = (
 /obj/machinery/vending/wallmed{
 	name = "Emergency NanoMed";
-	req_access_txt = "0";
 	use_power = 0
 	},
 /turf/closed/wall/mineral/wood,

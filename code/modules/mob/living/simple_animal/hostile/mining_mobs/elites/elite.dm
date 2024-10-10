@@ -20,19 +20,23 @@
 	layer = LARGE_MOB_LAYER
 	sentience_type = SENTIENCE_BOSS
 	hud_type = /datum/hud/lavaland_elite
+	/// Name for the GPS signal of the megafauna
+	var/gps_name = null
+	/// If this is a megafauna that is real (has achievements, gps signal)
+	var/true_spawn = TRUE
+	/// The chosen attack by the megafauna
 	var/chosen_attack = 1
+	/// Attack actions, sets chosen_attack to the number in the action
 	var/list/attack_action_types = list()
+
 	var/can_talk = FALSE
 	var/obj/loot_drop = null
-	var/obj/item/gps/internal
-	var/internal_type
-	var/true_spawn = TRUE // If this elite fauna should have a signal, same gps system used in megafauna.
 
 //Gives player-controlled variants the ability to swap attacks
 /mob/living/simple_animal/hostile/asteroid/elite/Initialize(mapload)
 	. = ..()
-	if(internal_type && true_spawn)
-		internal = new internal_type(src)
+	if(gps_name && true_spawn)
+		AddComponent(/datum/component/gps, gps_name)
 	for(var/action_type in attack_action_types)
 		var/datum/action/innate/elite_attack/attack_action = new action_type()
 		attack_action.Grant(src)
@@ -60,7 +64,7 @@
 		M.attempt_drill()
 
 //Elites can't talk (normally)!
-/mob/living/simple_animal/hostile/asteroid/elite/say(message, bubble_type, var/list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
+/mob/living/simple_animal/hostile/asteroid/elite/say(message, bubble_type, list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
 	if(can_talk)
 		. = ..()
 		return TRUE
@@ -71,22 +75,54 @@ While using this makes the system rely on OnFire, it still gives options for tim
 
 /datum/action/innate/elite_attack
 	name = "Elite Attack"
-	icon_icon = 'icons/mob/actions/actions_elites.dmi'
+	button_icon = 'icons/mob/actions/actions_elites.dmi'
 	button_icon_state = ""
 	background_icon_state = "bg_default"
-	var/mob/living/simple_animal/hostile/asteroid/elite/M
+	overlay_icon_state = "bg_default_border"
+	///The displayed message into chat when this attack is selected
 	var/chosen_message
+	///The internal attack ID for the elite's OpenFire() proc to use
 	var/chosen_attack_num = 0
+
+/datum/action/innate/elite_attack/create_button()
+	var/atom/movable/screen/movable/action_button/button = ..()
+	button.maptext = ""
+	button.maptext_x = 6
+	button.maptext_y = 2
+	button.maptext_width = 24
+	button.maptext_height = 12
+	return button
+
+/datum/action/innate/elite_attack/process()
+	if(isnull(owner))
+		STOP_PROCESSING(SSfastprocess, src)
+		qdel(src)
+		return
+
+	build_all_button_icons(UPDATE_BUTTON_STATUS)
+
+/datum/action/innate/elite_attack/update_button_status(atom/movable/screen/movable/action_button/button, force = FALSE)
+	var/mob/living/simple_animal/hostile/asteroid/elite/elite_owner = owner
+	if(!istype(owner))
+		button.maptext = ""
+		return
+
+	var/timeleft = max(elite_owner.ranged_cooldown - world.time, 0)
+	if(timeleft == 0)
+		button.maptext = ""
+	else
+		button.maptext = MAPTEXT("<b>[round(timeleft/10, 0.1)]</b>")
 
 /datum/action/innate/elite_attack/Grant(mob/living/L)
 	if(istype(L, /mob/living/simple_animal/hostile/asteroid/elite))
-		M = L
+		START_PROCESSING(SSfastprocess, src)
 		return ..()
 	return FALSE
 
 /datum/action/innate/elite_attack/Activate()
-	M.chosen_attack = chosen_attack_num
-	to_chat(M, chosen_message)
+	var/mob/living/simple_animal/hostile/asteroid/elite/elite_owner = owner
+	elite_owner.chosen_attack = chosen_attack_num
+	to_chat(elite_owner, chosen_message)
 
 /mob/living/simple_animal/hostile/asteroid/elite/updatehealth()
 	. = ..()
@@ -123,7 +159,7 @@ While using this makes the system rely on OnFire, it still gives options for tim
 
 /obj/structure/elite_tumor
 	name = "pulsing tumor"
-	desc = "An odd, pulsing tumor sticking out of the ground.  You feel compelled to reach out and touch it..."
+	desc = "An odd, pulsing tumor sticking out of the ground. You feel compelled to reach out and touch it..."
 	armor = list(MELEE = 100, BULLET = 100, LASER = 100, ENERGY = 100, BOMB = 100, BIO = 100, RAD = 100, FIRE = 100, ACID = 100)
 	resistance_flags = INDESTRUCTIBLE
 	var/activity = TUMOR_INACTIVE
@@ -141,7 +177,6 @@ While using this makes the system rely on OnFire, it still gives options for tim
 	light_range = 3
 	anchored = TRUE
 	density = FALSE
-	var/obj/item/gps/internal
 
 /obj/structure/elite_tumor/attack_hand(mob/user)
 	. = ..()
@@ -149,15 +184,15 @@ While using this makes the system rely on OnFire, it still gives options for tim
 		switch(activity)
 			if(TUMOR_PASSIVE)
 				activity = TUMOR_ACTIVE
-				visible_message(span_boldwarning("[src] convulses as your arm enters its radius.  Your instincts tell you to step back."))
+				visible_message(span_boldwarning("[src] convulses as your arm enters its radius. Your instincts tell you to step back."))
 				activator = user
-				addtimer(CALLBACK(src, .proc/return_elite), 30)
-				INVOKE_ASYNC(src, .proc/arena_checks)
+				addtimer(CALLBACK(src, PROC_REF(return_elite)), 30)
+				INVOKE_ASYNC(src, PROC_REF(arena_checks))
 			if(TUMOR_INACTIVE)
 				activity = TUMOR_ACTIVE
-				visible_message(span_boldwarning("[src] begins to convulse.  Your instincts tell you to step back."))
+				visible_message(span_boldwarning("[src] begins to convulse. Your instincts tell you to step back."))
 				activator = user
-				addtimer(CALLBACK(src, .proc/spawn_elite), 3 SECONDS)
+				addtimer(CALLBACK(src, PROC_REF(spawn_elite)), 3 SECONDS)
 
 obj/structure/elite_tumor/proc/spawn_elite()
 	var/selectedspawn = pick(potentialspawns)
@@ -165,7 +200,7 @@ obj/structure/elite_tumor/proc/spawn_elite()
 	visible_message(span_boldwarning("[mychild] emerges from [src]!"))
 	playsound(loc,'sound/effects/phasein.ogg', 200, 0, 50, TRUE, TRUE)
 	icon_state = "tumor_popped"
-	INVOKE_ASYNC(src, .proc/arena_checks)
+	INVOKE_ASYNC(src, PROC_REF(arena_checks))
 
 obj/structure/elite_tumor/proc/return_elite()
 	mychild.forceMove(loc)
@@ -175,8 +210,7 @@ obj/structure/elite_tumor/proc/return_elite()
 
 /obj/structure/elite_tumor/Initialize(mapload)
 	. = ..()
-	//AddComponent(/datum/component/gps, "Menacing Signal")
-	internal = new /obj/item/gps/internal/elite(src)
+	AddComponent(/datum/component/gps, "Menacing Signal")
 	START_PROCESSING(SSobj, src)
 
 /obj/item/gps/internal/elite
@@ -202,10 +236,10 @@ obj/structure/elite_tumor/proc/return_elite()
 /obj/structure/elite_tumor/proc/arena_checks()
 	if(activity != TUMOR_ACTIVE || QDELETED(src))
 		return
-	INVOKE_ASYNC(src, .proc/fighters_check)  //Checks to see if our fighters died.
-	INVOKE_ASYNC(src, .proc/arena_trap)  //Gets another arena trap queued up for when this one runs out.
-	INVOKE_ASYNC(src, .proc/border_check)  //Checks to see if our fighters got out of the arena somehow.
-	addtimer(CALLBACK(src, .proc/arena_checks), 50)
+	INVOKE_ASYNC(src, PROC_REF(fighters_check))  //Checks to see if our fighters died.
+	INVOKE_ASYNC(src, PROC_REF(arena_trap))  //Gets another arena trap queued up for when this one runs out.
+	INVOKE_ASYNC(src, PROC_REF(border_check))  //Checks to see if our fighters got out of the arena somehow.
+	addtimer(CALLBACK(src, PROC_REF(arena_checks)), 50)
 
 /obj/structure/elite_tumor/proc/fighters_check()
 	if(activator != null && activator.stat == DEAD || activity == TUMOR_ACTIVE && QDELETED(activator))
@@ -252,7 +286,7 @@ obj/structure/elite_tumor/proc/onEliteWon()
 
 /obj/item/tumor_shard
 	name = "tumor shard"
-	desc = "A strange, sharp, crystal shard from an odd tumor on Lavaland.  Stabbing the corpse of a lavaland elite with this will revive them, assuming their soul still lingers.  Revived lavaland elites only have half their max health, but are completely loyal to their reviver."
+	desc = "A strange, sharp, crystal shard from an odd tumor on Lavaland. Stabbing the corpse of a lavaland elite with this will revive them, assuming their soul still lingers. Revived lavaland elites only have half their max health, but are completely loyal to their reviver."
 	icon = 'icons/obj/lavaland/artefacts.dmi'
 	icon_state = "crevice_shard"
 	lefthand_file = 'icons/mob/inhands/equipment/tools_lefthand.dmi'
@@ -268,17 +302,17 @@ obj/structure/elite_tumor/proc/onEliteWon()
 	if(istype(target, /mob/living/simple_animal/hostile/asteroid/elite) && proximity_flag)
 		var/mob/living/simple_animal/hostile/asteroid/elite/E = target
 		if(E.stat != DEAD || E.sentience_type != SENTIENCE_BOSS || !E.key)
-			user.visible_message(span_notice("It appears [E] is unable to be revived right now.  Perhaps try again later."))
+			user.visible_message(span_notice("It appears [E] is unable to be revived right now. Perhaps try again later."))
 			return
 		E.faction = list("neutral")
 		E.revive(full_heal = TRUE, admin_revive = TRUE)
 		user.visible_message(span_notice("[user] stabs [E] with [src], reviving it."))
 		E.playsound_local(get_turf(E), 'sound/effects/magic.ogg', 40, 0)
-		to_chat(E, "<span class='userdanger'>You have been revived by [user].  While you can't speak to them, you owe [user] a great debt.  Assist [user.p_them()] in achieving [user.p_their()] goals, regardless of risk.</span")
-		to_chat(E, "<span class='big bold'>Note that you now share the loyalties of [user].  You are expected not to intentionally sabotage their faction unless commanded to!</span>")
+		to_chat(E, "<span class='userdanger'>You have been revived by [user]. While you can't speak to them, you owe [user] a great debt. Assist [user.p_them()] in achieving [user.p_their()] goals, regardless of risk.</span")
+		to_chat(E, "<span class='big bold'>Note that you now share the loyalties of [user]. You are expected not to intentionally sabotage their faction unless commanded to!</span>")
 		E.maxHealth = E.maxHealth * 0.25
 		E.health = E.maxHealth
-		E.desc = "[E.desc]  However, this one appears appears less wild in nature, and calmer around people."
+		E.desc = "[E.desc] However, this one appears appears less wild in nature, and calmer around people."
 		E.sentience_type = SENTIENCE_ORGANIC
 		qdel(src)
 	else
@@ -289,21 +323,26 @@ obj/structure/elite_tumor/proc/onEliteWon()
 	icon = 'icons/turf/walls/hierophant_wall_temp.dmi'
 	icon_state = "wall"
 	duration = 50
-	smooth = SMOOTH_TRUE
+	smoothing_flags = SMOOTH_BITMASK
+	smoothing_groups = SMOOTH_GROUP_HIERO_WALL
+	canSmoothWith = SMOOTH_GROUP_HIERO_WALL
 	layer = BELOW_MOB_LAYER
-	var/mob/living/carbon/human/activator = null
-	var/mob/living/simple_animal/hostile/asteroid/elite/ourelite = null
 	color = rgb(255,0,0)
 	light_range = MINIMUM_USEFUL_LIGHT_RANGE
 	light_color = LIGHT_COLOR_RED
 
+	var/mob/living/carbon/human/activator = null
+	var/mob/living/simple_animal/hostile/asteroid/elite/ourelite = null
+
 /obj/effect/temp_visual/elite_tumor_wall/Initialize(mapload, new_caster)
 	. = ..()
-	queue_smooth_neighbors(src)
-	queue_smooth(src)
+	if(smoothing_flags & (SMOOTH_CORNERS|SMOOTH_BITMASK))
+		QUEUE_SMOOTH_NEIGHBORS(src)
+		QUEUE_SMOOTH(src)
 
 /obj/effect/temp_visual/elite_tumor_wall/Destroy()
-	queue_smooth_neighbors(src)
+	if(smoothing_flags & (SMOOTH_CORNERS|SMOOTH_BITMASK))
+		QUEUE_SMOOTH_NEIGHBORS(src)
 	activator = null
 	ourelite = null
 	return ..()

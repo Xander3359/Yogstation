@@ -8,6 +8,7 @@
 	size = 6
 	tgui_id = "NtosArcade"
 	program_icon = "gamepad"
+	category = PROGRAM_CATEGORY_GAMES
 
 	var/game_active = TRUE //Checks to see if a game is in progress.
 	var/pause_state = FALSE //This disables buttons in order to prevent multiple actions before the opponent's actions.
@@ -24,21 +25,21 @@
 	sleep(0.5 SECONDS)
 	if(boss_hp <= 0)
 		heads_up = "You have crushed [boss_name]! Rejoice!"
-		playsound(computer.loc, 'sound/arcade/win.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+		playsound(computer.loc, 'sound/arcade/win.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 		game_active = FALSE
 		program_icon_state = "arcade_off"
 		if(istype(computer))
-			computer.update_icon()
+			computer.update_appearance(UPDATE_ICON)
 		ticket_count += 1
 		sleep(1 SECONDS)
 		return
 	else if(player_hp <= 0 || player_mp <= 0)
 		heads_up = "You have been defeated... how will the station survive?"
-		playsound(computer.loc, 'sound/arcade/lose.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+		playsound(computer.loc, 'sound/arcade/lose.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 		game_active = FALSE
 		program_icon_state = "arcade_off"
 		if(istype(computer))
-			computer.update_icon()
+			computer.update_appearance(UPDATE_ICON)
 		sleep(1 SECONDS)
 		return
 	return
@@ -55,17 +56,17 @@
 		return
 	if (boss_mp <= 5)
 		heads_up = "[boss_mpamt] magic power has been stolen from you!"
-		playsound(computer.loc, 'sound/arcade/steal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+		playsound(computer.loc, 'sound/arcade/steal.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 		player_mp -= boss_mpamt
 		boss_mp += boss_mpamt
 	else if(boss_mp > 5 && boss_hp <12)
 		heads_up = "[boss_name] heals for [bossheal] health!"
-		playsound(computer.loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+		playsound(computer.loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 		boss_hp += bossheal
 		boss_mp -= boss_mpamt
 	else
 		heads_up = "[boss_name] attacks you for [boss_attackamt] damage!"
-		playsound(computer.loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+		playsound(computer.loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 		player_hp -= boss_attackamt
 
 	pause_state = FALSE
@@ -104,7 +105,7 @@
 			pause_state = TRUE
 			heads_up = "You attack for [attackamt] damage."
 			computer.play_interact_sound()
-			playsound(computer.loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+			playsound(computer.loc, 'sound/arcade/hit.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 			boss_hp -= attackamt
 			sleep(1 SECONDS)
 			game_check()
@@ -119,7 +120,7 @@
 			pause_state = TRUE
 			heads_up = "You heal for [healamt] damage."
 			computer.play_interact_sound()
-			playsound(computer.loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+			playsound(computer.loc, 'sound/arcade/heal.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 			player_hp += healamt
 			player_mp -= healcost
 			sleep(1 SECONDS)
@@ -133,7 +134,7 @@
 			pause_state = TRUE
 			heads_up = "You regain [rechargeamt] magic power."
 			computer.play_interact_sound()
-			playsound(computer.loc, 'sound/arcade/mana.ogg', 50, TRUE, extrarange = -3, falloff = 10)
+			playsound(computer.loc, 'sound/arcade/mana.ogg', 50, TRUE, extrarange = -3, falloff_exponent = 10)
 			player_mp += rechargeamt
 			sleep(1 SECONDS)
 			game_check()
@@ -168,4 +169,4 @@
 			boss_id = rand(1,6)
 			pause_state = FALSE
 			if(istype(computer))
-				computer.update_icon()
+				computer.update_appearance(UPDATE_ICON)

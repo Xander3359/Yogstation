@@ -4,14 +4,14 @@
 	icon = 'icons/obj/clothing/skillcapes.dmi'
 	icon_state = "ghost-skillcape"
 	item_state = "ghost-skillcape"
-	mob_overlay_icon = 'icons/mob/clothing/neck/skillcapes.dmi'
+	worn_icon = 'icons/mob/clothing/neck/skillcapes.dmi'
 	w_class = WEIGHT_CLASS_SMALL
 	body_parts_covered = CHEST|GROIN|LEGS|ARMS
 	flags_inv = HIDESUITSTORAGE
 
 /obj/item/clothing/neck/skillcape/trimmed
 	name = "trimmed cape of skill"
-	desc = "a golden trimmed cape, marks proof of excellence."
+	desc = "A golden-trimmed cape, marks proof of excellence."
 
 /obj/item/clothing/neck/skillcape/admin
 	name = "cape of mighty judgement"
@@ -189,11 +189,13 @@
 	name = "cape of the atmospheric technician"
 	icon_state = "atmos-skillcape"
 	item_state = "atmos-skillcape"
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/neck/skillcape/trimmed/atmos
 	name = "cape of the grand atmospheric technician"
 	icon_state = "atmos-trimmed"
 	item_state = "atmos-trimmed"
+	resistance_flags = FIRE_PROOF
 
 /obj/item/clothing/neck/skillcape/engineer
 	name = "cape of the station engineer"

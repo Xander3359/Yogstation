@@ -15,13 +15,13 @@
 			E.Grant(src)
 			revive(full_heal = 1)
 			regenerate_icons()
-			update_name()
+			update_appearance(UPDATE_NAME)
 			return
 
 	if(buckled)
 		Feedstop(silent = TRUE) //releases ourselves from the mob we fed on.
 
-	stat = DEAD
+	set_stat(DEAD)
 	cut_overlays()
 
 	if(SSticker.mode)
@@ -29,6 +29,6 @@
 
 	return ..(gibbed)
 
-/mob/living/simple_animal/slime/gib()
+/mob/living/simple_animal/slime/gib(no_brain, no_organs, no_bodyparts, no_items)
 	death(TRUE)
 	qdel(src)

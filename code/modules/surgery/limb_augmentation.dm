@@ -20,6 +20,7 @@
 	implements = list(/obj/item/bodypart = 100, /obj/item/organ_storage = 100)
 	time = 32
 	var/obj/item/bodypart/L = null // L because "limb"
+	var/blacklisted_self_zones = list(BODY_ZONE_HEAD, BODY_ZONE_CHEST) // list of body zones you can't self-augment
 
 
 /datum/surgery_step/replace_limb/preop(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)//change this so digitigrade species can only use digitigrade limbs
@@ -31,6 +32,9 @@
 		return -1
 	if(aug.body_zone != target_zone)
 		to_chat(user, span_warning("[tool] isn't the right type for [parse_zone(target_zone)]."))
+		return -1
+	if(target == user && (aug.body_zone in blacklisted_self_zones)) // can't exactly replace your entire chest or head all by yourself
+		to_chat(user, span_warning("You can't augment your own [parse_zone(aug.body_zone)]!"))
 		return -1
 	L = surgery.operated_bodypart
 	if(L)
@@ -59,13 +63,12 @@
 	requires_real_bodypart = TRUE
 
 /datum/surgery/augmentation/can_start(mob/user, mob/living/carbon/target)
-	if(isgolem(target) || isipc(target) || ispreternis(target))
-		to_chat(user, span_warning("You can only augment organics!"))
+	if(isgolem(target)) // no armor stacking
 		return FALSE
-	else
-		return TRUE
+	if(isshadowperson(target)) // no augmenting the species made of shadows
+		return FALSE
+	return TRUE
 
-/*
 /datum/surgery/augmentation/mechanic
 	steps = list(/datum/surgery_step/mechanic_open,
 				/datum/surgery_step/open_hatch,
@@ -73,11 +76,12 @@
 				/datum/surgery_step/prepare_electronics,
 				/datum/surgery_step/replace_limb)
 	requires_bodypart_type = BODYPART_ROBOTIC
-*/ //no you cannot augment already mechanical beings.
+	self_operable = TRUE // you can swap out your own arms and legs yourself, but chest and head have to be done by someone else
+// "no you cannot augment already mechanical beings" it's called replacement, silly
 
 //SURGERY STEP SUCCESSES
 
-/datum/surgery_step/replace_limb/success(mob/user, mob/living/carbon/target, target_zone, obj/item/bodypart/tool, datum/surgery/surgery)
+/datum/surgery_step/replace_limb/success(mob/living/user, mob/living/carbon/target, target_zone, obj/item/bodypart/tool, datum/surgery/surgery)
 	if(L)
 		if(istype(tool, /obj/item/organ_storage))
 			tool.icon_state = initial(tool.icon_state)
@@ -89,7 +93,7 @@
 		display_results(user, target, span_notice("You successfully augment [target]'s [parse_zone(target_zone)]."),
 			"[user] successfully augments [target]'s [parse_zone(target_zone)] with [tool]!",
 			"[user] successfully augments [target]'s [parse_zone(target_zone)]!")
-		log_combat(user, target, "augmented", addition="by giving him new [parse_zone(target_zone)] INTENT: [uppertext(user.a_intent)]")
+		log_combat(user, target, "augmented", addition="by giving him new [parse_zone(target_zone)] COMBAT MODE: [user.combat_mode ? "ON" : "OFF"]")
 		var/points = 150 * (target.client ? 1 : 0.1)
 		SSresearch.science_tech.add_point_list(list(TECHWEB_POINT_TYPE_GENERIC = points))
 		to_chat(user, "<span class = 'notice'>The augment uploads diagnostic data to the research cloud, giving a bonus of research points!</span>")

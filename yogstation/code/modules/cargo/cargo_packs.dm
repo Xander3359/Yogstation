@@ -45,7 +45,7 @@
 
 /datum/supply_pack/misc/sphere
 	name = "Advanced Crates"
-	desc = "Contains a Advanced Crate that defies all known cargo standards!"
+	desc = "Contains an advanced crate that defies all known cargo standards!"
 	cost = 10000
 	contains = list(/obj/structure/closet/crate/sphere)
 	crate_name = "Advanced Crate Container"
@@ -106,6 +106,7 @@
 					/obj/item/toy/plush/inorixplushie,
 					/obj/item/toy/plush/beeplushie,
 					/obj/item/toy/plush/slimeplushie,
+					/obj/item/toy/plush/voxplushie,
 					/obj/item/toy/plush/cdragon)
 	crate_name = "plush crate"
 	crate_type = /obj/structure/closet/crate/wooden
@@ -150,30 +151,6 @@
 					/obj/item/skub,
 					/obj/item/skub)
 	crate_name = "skub crate"
-
-/datum/supply_pack/emergency/syndicate
-	name = "NULL_ENTRY"
-	desc = "(#@&^$THIS PACKAGE CONTAINS 30TC WORTH OF SOME RANDOM SYNDICATE GEAR WE HAD LYING AROUND THE WAREHOUSE. GIVE EM HELL, OPERATIVE@&!*() "
-	hidden = TRUE
-	cost = 20000
-	contains = list()
-	crate_name = "emergency crate"
-	crate_type = /obj/structure/closet/crate/internals
-	dangerous = TRUE
-
-/datum/supply_pack/emergency/syndicate/fill(obj/structure/closet/crate/C)
-	var/crate_value = 30
-	var/list/uplink_items = get_uplink_items(SSticker.mode)
-	while(crate_value)
-		var/category = pick(uplink_items)
-		var/item = pick(uplink_items[category])
-		var/datum/uplink_item/I = uplink_items[category][item]
-		if(!I.surplus_nullcrates || prob(100 - I.surplus_nullcrates))
-			continue
-		if(crate_value < I.cost)
-			continue
-		crate_value -= I.cost
-		new I.item(C)
 
 /datum/supply_pack/misc/milliondollarhat
 	name = "Half Off Million Dollar Hat"

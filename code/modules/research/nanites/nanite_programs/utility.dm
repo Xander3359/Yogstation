@@ -81,12 +81,12 @@
 
 /datum/nanite_program/monitoring/enable_passive_effect()
 	. = ..()
-	SSnanites.nanite_monitored_mobs |= host_mob
+	ADD_TRAIT(host_mob, TRAIT_SUITLESS_SENSORS, NANITE_TRAIT)
 	host_mob.hud_set_nanite_indicator()
 
 /datum/nanite_program/monitoring/disable_passive_effect()
 	. = ..()
-	SSnanites.nanite_monitored_mobs -= host_mob
+	REMOVE_TRAIT(host_mob, TRAIT_SUITLESS_SENSORS, NANITE_TRAIT)
 	host_mob.hud_set_nanite_indicator()
 
 /datum/nanite_program/triggered/self_scan
@@ -212,7 +212,7 @@
 /datum/nanite_program/research
 	name = "Distributed Computing"
 	desc = "The nanites aid the research servers by performing a portion of its calculations, increasing research point generation."
-	use_rate = 0.2
+	use_rate = 0.1
 	rogue_types = list(/datum/nanite_program/toxic)
 
 /datum/nanite_program/research/active_effect()
@@ -226,7 +226,7 @@
 /datum/nanite_program/researchplus
 	name = "Neural Network"
 	desc = "The nanites link the host's brains together forming a neural research network, that becomes more efficient with the amount of total hosts."
-	use_rate = 0.3
+	use_rate = 0.2
 	rogue_types = list(/datum/nanite_program/brain_decay)
 	var/points
 
@@ -293,13 +293,18 @@
 	if(prob(10))
 		var/list/mob/living/target_hosts = list()
 		for(var/mob/living/L in oview(5, host_mob))
-			if(!(MOB_ORGANIC in L.mob_biotypes) && !(MOB_UNDEAD in L.mob_biotypes) && !isipc(L))
-				continue
+			if(iscarbon(L))
+				var/mob/living/carbon/carbon_occupant = L
+				if(NONANITES in carbon_occupant.dna.species.species_traits)
+					continue
+			else
+				if(issilicon(L))
+					continue
 			target_hosts += L
 		if(!target_hosts.len)
 			return
 		var/mob/living/infectee = pick(target_hosts)
-		if(prob(100 - (infectee.get_permeability_protection() * 100)))
+		if(prob(infectee.get_permeability() * 100))
 			//this will potentially take over existing nanites!
 			infectee.AddComponent(/datum/component/nanites, 10)
 			SEND_SIGNAL(infectee, COMSIG_NANITE_SYNC, nanites)
@@ -397,8 +402,8 @@
 
 /datum/action/innate/nanite_button
 	name = "Button"
-	icon_icon = 'icons/mob/actions/actions_items.dmi'
-	check_flags = AB_CHECK_RESTRAINED|AB_CHECK_STUN|AB_CHECK_CONSCIOUS
+	button_icon = 'icons/mob/actions/actions_items.dmi'
+	check_flags = AB_CHECK_HANDS_BLOCKED| AB_CHECK_IMMOBILE|AB_CHECK_CONSCIOUS
 	button_icon_state = "power_green"
 	var/datum/nanite_program/dermal_button/program
 

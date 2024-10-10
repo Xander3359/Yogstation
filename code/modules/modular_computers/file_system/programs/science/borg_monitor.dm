@@ -1,13 +1,13 @@
 /datum/computer_file/program/borg_monitor
 	filename = "cyborgmonitor"
 	filedesc = "Cyborg Remote Monitoring"
-	category = PROGRAM_CATEGORY_SCI
+	category = PROGRAM_CATEGORY_SCIENCE
 	ui_header = "borg_mon.gif"
 	program_icon_state = "generic"
 	extended_desc = "This program allows for remote monitoring of station cyborgs."
 	requires_ntnet = TRUE
-	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TABLET | PROGRAM_PHONE | PROGRAM_TELESCREEN | PROGRAM_PDA
-	transfer_access = ACCESS_ROBOTICS
+	usage_flags = PROGRAM_ALL
+	transfer_access = ACCESS_ROBO_CONTROL
 	network_destination = "cyborg remote monitoring"
 	size = 5
 	tgui_id = "NtosCyborgRemoteMonitor"
@@ -97,10 +97,12 @@
 		if(R.shell && !R.ckey)
 			shell = TRUE
 
+		var/area/A = get_area(R)
 		var/list/cyborg_data = list(
 			name = R.name,
 			integ = round((R.health + 100) / 2), //mob heath is -100 to 100, we want to scale that to 0 - 100
 			locked_down = R.lockcharge,
+			locstring = "[A.name]",
 			status = R.stat,
 			shell_discon = shell,
 			charge = R.cell ? round(R.cell.percent()) : null,
@@ -164,7 +166,7 @@
 /datum/computer_file/program/borg_monitor/syndicate
 	filename = "scyborgmonitor"
 	filedesc = "Mission-Specific Cyborg Remote Monitoring"
-	category = PROGRAM_CATEGORY_SCI
+	category = PROGRAM_CATEGORY_SCIENCE
 	ui_header = "borg_mon.gif"
 	program_icon_state = "generic"
 	extended_desc = "This program allows for remote monitoring of mission-assigned cyborgs."

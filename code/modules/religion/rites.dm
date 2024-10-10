@@ -28,24 +28,24 @@
 	if(!ritual_invocations)
 		if(do_after(user, ritual_length, user))
 			if(invoke_msg)
-				user.say(invoke_msg, forced = "ritual")
+				user.say(invoke_msg, ignore_spam = TRUE, forced = "ritual")
 			return TRUE
 		return FALSE
 	var/first_invoke = TRUE
 	for(var/i in ritual_invocations)
 		if(first_invoke) //instant invoke
-			user.say(i)
+			user.say(i, ignore_spam = TRUE, forced = "ritual")
 			first_invoke = FALSE
 			continue
 		if(!ritual_invocations.len) //we divide so we gotta protect
 			return FALSE
 		if(!do_after(user, ritual_length/ritual_invocations.len, user))
 			return FALSE
-		user.say(i, forced = "ritual")
+		user.say(i, ignore_spam = TRUE, forced = "ritual")
 	if(!do_after(user, ritual_length/ritual_invocations.len, user)) //because we start at 0 and not the first fraction in invocations, we still have another fraction of ritual_length to complete
 		return FALSE
 	if(invoke_msg)
-		user.say(invoke_msg, forced = "ritual")
+		user.say(invoke_msg, ignore_spam = TRUE, forced = "ritual")
 	return TRUE
 
 
@@ -98,7 +98,7 @@
 			break
 	if(!human2borg)
 		return FALSE
-	human2borg.set_species(/datum/species/android)
+	human2borg.set_species(/datum/species/ipc/self/insurgent)
 	human2borg.visible_message(span_notice("[human2borg] has been converted by the rite of [name]!"))
 	return TRUE
 
@@ -466,7 +466,7 @@
 		qdel(chosen_meat)
 		chosen_meat = null //our lord and savior no longer cares about this meat
 		var/mb_message = pick("old ones, I bless this meat for you!", "old ones, I bless this flesh in your name", "old ones, I empower this flesh in your name.")
-		user.say(mb_message, forced = "ritual") //chooses one of three invoke messages to say in order to avoid auto mute and add variety.
+		user.say(mb_message, ignore_spam = TRUE, forced = "ritual") //chooses one of three invoke messages to say in order to avoid auto mute and add variety.
 		return TRUE
 	chosen_meat = null
 	to_chat(user, span_warning("The meat that was chosen for the rite is no longer on the altar!"))
@@ -572,4 +572,127 @@
 	var/altar_turf = get_turf(religious_tool)
 	new /obj/item/stack/sheet/mineral/bananium (altar_turf)
 	playsound(altar_turf, 'sound/items/bikehorn.ogg', 50, TRUE)
+	return TRUE
+
+/*********Holy Light**********/
+/datum/religion_rites/holysight
+	name = "Holy Sight"
+	desc = "Creates a medhud implant."
+	ritual_length = 15 SECONDS
+	ritual_invocations = list(
+	"To aid in our journey to heal...",
+	"...Grant us the ability to see within...",
+	)
+	invoke_msg = "So that we may seek the injured!"
+	favor_cost = 150
+
+/datum/religion_rites/holysight/invoke_effect(mob/living/user, atom/movable/religious_tool)
+	var/altar_turf = get_turf(religious_tool)
+	var/atom/newitem = new /obj/item/autosurgeon/cmo (altar_turf)
+	newitem.name = "autosurgeon of truesight"
+	playsound(altar_turf, 'sound/magic/staff_healing.ogg', 50, TRUE)
+	return TRUE
+
+/datum/religion_rites/medibot
+	name = "Angelic Assistance"
+	desc = "Creates a medibot."
+	ritual_length = 15 SECONDS
+	ritual_invocations = list(
+	"To prolong healing far past even my expiration...",
+	"...Automated, soulless, but efficient...",
+	"...Grant us this sustaining robot...",
+	)
+	invoke_msg = "So that we may live forever!"
+	favor_cost = 250
+
+/datum/religion_rites/medibot/invoke_effect(mob/living/user, atom/movable/religious_tool)
+	var/altar_turf = get_turf(religious_tool)
+	var/mob/living/simple_animal/bot/medbot/newitem = new (altar_turf)
+	newitem.name = "\improper Holy Medibot"
+	newitem.add_atom_colour(GLOB.freon_color_matrix, TEMPORARY_COLOUR_PRIORITY)
+	newitem.holy = TRUE
+	newitem.AddComponent(/datum/component/anti_magic, MAGIC_RESISTANCE|MAGIC_RESISTANCE_HOLY)
+	playsound(altar_turf, 'sound/magic/staff_healing.ogg', 50, TRUE)
+	return TRUE
+
+/datum/religion_rites/healrod
+	name = "The White"
+	desc = "Creates an area-of-effect healing rod."
+	ritual_length = 20 SECONDS
+	ritual_invocations = list(
+	"To ensure all remain healthy...",
+	"...Grant us a tool capable of passively healing the injured...",
+	"...One that binds us to an unbreakable contract of pacifism..."
+	)
+	invoke_msg = "So that we may heal all indiscriminately!"
+	favor_cost = 400
+
+/obj/item/rod_of_asclepius/white
+	name = "\improper Rod of The White"
+	desc = "A sleek white rod with a snake spiraling along it."
+	efficiency = 0.5
+	resistance_flags = FREEZE_PROOF
+
+/obj/item/rod_of_asclepius/white/Initialize(mapload)
+	. = ..()
+	add_atom_colour(GLOB.freon_color_matrix, TEMPORARY_COLOUR_PRIORITY)
+
+/datum/religion_rites/healrod/invoke_effect(mob/living/user, atom/movable/religious_tool)
+	var/altar_turf = get_turf(religious_tool)
+	new /obj/item/rod_of_asclepius/white (altar_turf)
+	playsound(altar_turf, 'sound/magic/staff_healing.ogg', 75, TRUE)
+	return TRUE
+
+/datum/religion_rites/holyrevival
+	name = "Rebirth"
+	desc = "Regenerates a being to its once pure state."
+	ritual_length = 60 SECONDS
+	ritual_invocations = list(
+	"This being is in dire need of your assistance...",
+	"...As they have been inflicted with great ailment...",
+	"...Please, grant us the unbridled power of the Holy Light...",
+	"...We will channel our power in your name...",
+	)
+	invoke_msg = "So that this being may be reborn in your image!"
+	favor_cost = 650
+
+/datum/religion_rites/holyrevival/perform_rite(mob/living/user, atom/religious_tool)
+	if(!ismovable(religious_tool))
+		to_chat(user, span_warning("This rite requires a religious device that individuals can be buckled to."))
+		return FALSE
+	var/atom/movable/movable_reltool = religious_tool
+	if(!movable_reltool)
+		return FALSE
+	if(!LAZYLEN(movable_reltool.buckled_mobs))
+		. = FALSE
+		if(!movable_reltool.can_buckle)
+			to_chat(user, span_warning("This rite requires a religious device that individuals can be buckled to."))
+			return
+		to_chat(user, span_warning("This rite requires an individual to be buckled to [movable_reltool]."))
+		return
+	return ..()
+
+/datum/religion_rites/holyrevival/invoke_effect(mob/living/user, atom/movable/religious_tool)
+	if(!ismovable(religious_tool))
+		CRASH("[name]'s perform_rite had a movable atom that has somehow turned into a non-movable!")
+	var/atom/movable/movable_reltool = religious_tool
+	if(!movable_reltool?.buckled_mobs?.len)
+		return FALSE
+	var/mob/living/carbon/human/man_to_revive
+	for(var/i in movable_reltool.buckled_mobs)
+		if(istype(i,/mob/living/carbon/human))
+			man_to_revive = i
+			break
+	if(!man_to_revive)
+		return FALSE
+	var/was_dead = man_to_revive.stat == DEAD
+	man_to_revive.revive(TRUE)
+	if(was_dead) // aheal needs downside
+		man_to_revive.adjustCloneLoss(75) // can be slowly healed with the rod of asclepius anyways
+	man_to_revive.apply_status_effect(STATUS_EFFECT_HOLYLIGHT_ANTIMAGIC)	
+	to_chat(man_to_revive, span_userdanger("As you rise anew, you forget all that had previously harmed you!"))
+	man_to_revive.emote("smile")
+	man_to_revive.visible_message(span_notice("[man_to_revive] rises, reborn in the Holy Light!"))
+	var/altar_turf = get_turf(religious_tool)
+	playsound(altar_turf, 'sound/magic/staff_healing.ogg', 100, TRUE)
 	return TRUE

@@ -1,7 +1,7 @@
 /obj/item/latexballon
 	name = "latex glove"
 	desc = "Sterile and airtight."
-	icon = 'icons/obj/toy.dmi'
+	icon = 'icons/obj/weapons/hand.dmi'
 	icon_state = "latexballon"
 	item_state = "lgloves"
 	force = 0
@@ -41,7 +41,7 @@
 			if (prob(50))
 				qdel(src)
 
-/obj/item/latexballon/bullet_act(obj/item/projectile/P)
+/obj/item/latexballon/bullet_act(obj/projectile/P)
 	if(!P.nodamage)
 		burst()
 	return ..()

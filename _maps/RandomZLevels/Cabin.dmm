@@ -54,7 +54,7 @@
 /area/awaymission/snowforest/lumbermill)
 "am" = (
 /obj/structure/table/wood,
-/obj/item/twohanded/required/chainsaw,
+/obj/item/melee/chainsaw,
 /turf/open/floor/wood/cold,
 /area/awaymission/snowforest/lumbermill)
 "an" = (
@@ -356,7 +356,7 @@
 /area/awaymission/cabin)
 "bl" = (
 /obj/machinery/vending/autodrobe{
-	req_access_txt = "0"
+	req_access = null
 	},
 /turf/open/floor/wood,
 /area/awaymission/cabin)
@@ -495,9 +495,7 @@
 /turf/open/floor/wood,
 /area/awaymission/cabin)
 "bN" = (
-/obj/machinery/vending/boozeomat{
-	req_access_txt = "0"
-	},
+/obj/machinery/vending/boozeomat,
 /turf/open/floor/wood,
 /area/awaymission/cabin)
 "bO" = (
@@ -774,7 +772,7 @@
 /turf/open/floor/wood,
 /area/awaymission/cabin)
 "cL" = (
-/obj/structure/sign/barsign{
+/obj/machinery/barsign{
 	pixel_y = 32;
 	req_access = null
 	},

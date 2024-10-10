@@ -1,7 +1,7 @@
 /datum/action/innate/dash
 	name = "Dash"
 	desc = "Teleport to the targeted location."
-	icon_icon = 'icons/mob/actions/actions_items.dmi'
+	button_icon = 'icons/mob/actions/actions_items.dmi'
 	button_icon_state = "jetboot"
 	var/current_charges = 1
 	var/max_charges = 1
@@ -19,7 +19,7 @@
 	dashing_item = dasher
 	holder = user
 
-/datum/action/innate/dash/IsAvailable()
+/datum/action/innate/dash/IsAvailable(feedback = FALSE)
 	if(current_charges > 0)
 		return TRUE
 	else
@@ -29,12 +29,12 @@
 	dashing_item.attack_self(holder) //Used to toggle dash behavior in the dashing item
 
 /datum/action/innate/dash/proc/Teleport(mob/user, atom/target)
-	if(!IsAvailable())
+	if(!IsAvailable(feedback = FALSE))
 		return FALSE
 	var/turf/T = get_turf(target)
 	var/area/AU = get_area(user)
 	var/area/AT = get_area(T)
-	if(AT.noteleport || AU.noteleport)
+	if((AT.area_flags & NOTELEPORT) || (AU.area_flags & NOTELEPORT))
 		return
 	if(target in view(user.client.view, get_turf(user)))
 		var/obj/spot1 = new phaseout(get_turf(user), user.dir)
@@ -43,12 +43,12 @@
 		var/obj/spot2 = new phasein(get_turf(user), user.dir)
 		spot1.Beam(spot2,beam_effect,time=20)
 		current_charges--
-		holder.update_action_buttons_icon()
-		addtimer(CALLBACK(src, .proc/charge), charge_rate)
+		holder.update_mob_action_buttons()
+		addtimer(CALLBACK(src, PROC_REF(charge)), charge_rate)
 
 /datum/action/innate/dash/proc/charge()
 	current_charges = clamp(current_charges + 1, 0, max_charges)
-	holder.update_action_buttons_icon()
+	holder.update_mob_action_buttons()
 	if(recharge_sound)
 		playsound(dashing_item, recharge_sound, 50, 1)
 	to_chat(holder, span_notice("[src] now has [current_charges]/[max_charges] charges."))

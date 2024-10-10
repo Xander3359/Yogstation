@@ -20,9 +20,9 @@
 
 /datum/component/bane/RegisterWithParent()
 	if(speciestype)
-		RegisterSignal(parent, COMSIG_ITEM_AFTERATTACK, .proc/speciesCheck)
+		RegisterSignal(parent, COMSIG_ITEM_AFTERATTACK, PROC_REF(speciesCheck))
 	else
-		RegisterSignal(parent, COMSIG_ITEM_AFTERATTACK, .proc/mobCheck)
+		RegisterSignal(parent, COMSIG_ITEM_AFTERATTACK, PROC_REF(mobCheck))
 
 /datum/component/bane/UnregisterFromParent()
 	UnregisterSignal(parent, COMSIG_ITEM_AFTERATTACK)
@@ -37,8 +37,8 @@
 		return
 	activate(source, target, user)
 
-/datum/component/bane/proc/activate(obj/item/source, mob/living/target, mob/attacker)
-	if(attacker.a_intent != INTENT_HARM)
+/datum/component/bane/proc/activate(obj/item/source, mob/living/target, mob/living/attacker)
+	if(!attacker.combat_mode)
 		return
 
 	var/extra_damage = max(0, source.force * damage_multiplier)

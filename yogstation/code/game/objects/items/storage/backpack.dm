@@ -1,3 +1,6 @@
+/obj/item/storage/backpack
+	sprite_sheets = list(SPECIES_VOX = VOX_BACK_FILE)
+
 /obj/item/storage/backpack/holding
 	icon = 'yogstation/icons/obj/storage.dmi'
 	icon_state = "holdingpack"
@@ -6,7 +9,7 @@
 	var/cut = FALSE
 	var/appears_split = FALSE
 
-/obj/item/storage/backpack/holding/build_worn_icon(var/default_layer = 0, var/default_icon_file = null, var/isinhands = FALSE, var/femaleuniform = NO_FEMALE_UNIFORM)
+/obj/item/storage/backpack/holding/build_worn_icon(default_layer = 0, default_icon_file = null, isinhands = FALSE, femaleuniform = NO_FEMALE_UNIFORM)
 	if(default_icon_file == 'icons/mob/clothing/head/head.dmi')
 		default_icon_file = 'yogstation/icons/mob/clothing/head/head.dmi' // thats a fun dilemma.... how to keep the tg sprites when doing back but do yogs sprites when worn on head.
 	return ..()
@@ -44,7 +47,8 @@
 
 					var/obj/item/storage/backpack/holding/twin = new(loc)
 					var/datum/component/storage/old_other_storage = twin.GetComponent(/datum/component/storage)
-					old_other_storage.RemoveComponent()
+					if(old_other_storage)
+						qdel(old_other_storage)
 					var/datum/component/storage/this_storage = GetComponent(/datum/component/storage)
 					var/datum/component/storage/twin_storage = twin.AddComponent(/datum/component/storage/bluespace/bag_of_holding, this_storage.master()) // add a slave storage component
 					twin_storage.allow_big_nesting = TRUE
@@ -85,7 +89,7 @@
 			var/obj/item/storage/backpack/holding/m_obj = new_master.parent
 			var/datum/component/storage/m_storage = m_obj.GetComponent(/datum/component/storage)
 			if(m_storage)
-				m_storage.RemoveComponent()
+				qdel(m_storage)
 			m_storage = m_obj.AddComponent(m_obj.component_type)
 			m_storage.allow_big_nesting = TRUE
 			m_storage.max_w_class = WEIGHT_CLASS_GIGANTIC
@@ -95,7 +99,7 @@
 				slave.change_master(m_storage)
 			for(var/obj/item/I in src)
 				I.forceMove(m_obj)
-	STR.RemoveComponent()
+	qdel(STR)
 	if(dump && get_turf(src))
 		for(var/obj/item/I in src)
 			I.forceMove(get_turf(src))
@@ -106,7 +110,7 @@
 
 /obj/item/storage/backpack/holding/proc/fuck_up(mob/living/user)
 	var/turf/loccheck = get_turf(src)
-	if(is_reebe(loccheck.z) || istype(loccheck.loc, /area/fabric_of_reality))
+	if(is_reebe(loccheck.z) || istype(loccheck.loc, /area/centcom/fabric_of_reality))
 		qdel(src)
 		return
 	playsound(loccheck,'sound/effects/supermatter.ogg', 200, 1)
@@ -123,8 +127,8 @@
 				M.visible_message(span_danger("The bluespace collapse crushes the air towards it, pulling [M] towards the ground..."))
 				M.Paralyze(5, TRUE, TRUE)		//Overrides stun absorbs.
 		T.TerraformTurf(/turf/open/chasm/magic, /turf/open/chasm/magic)
-	for(var/fabricarea in get_areas(/area/fabric_of_reality))
-		var/area/fabric_of_reality/R = fabricarea
+	for(var/fabricarea in get_areas(/area/centcom/fabric_of_reality))
+		var/area/centcom/fabric_of_reality/R = fabricarea
 		R.origin = loccheck
 	for (var/obj/structure/ladder/unbreakable/binary/ladder in GLOB.ladders)
 		ladder.ActivateAlmonds()
@@ -132,7 +136,7 @@
 
 /obj/item/storage/backpack/holding/equipped(mob/living/carbon/user, slot)
 	. = ..()
-	if(slot == SLOT_HEAD)
+	if(slot == ITEM_SLOT_HEAD)
 		// time to wonkize this shit
 		var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 		var/datum/component/storage/concrete/master = STR.master()
@@ -178,7 +182,7 @@
 	name = "snail shell"
 	desc = "You wonder who this came from."
 	icon = 'yogstation/icons/obj/storage.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/back.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/back.dmi'
 	item_state = "snail_green"
 	icon_state = "snail_green"
 	slowdown = 1
@@ -194,7 +198,7 @@
 	name = "green shell backpack"
 	desc = "An emerald-green snail shell converted into a backpack. Still smells of salt."
 	icon = 'yogstation/icons/obj/storage.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/back.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/back.dmi'
 	item_state = "snail_green"
 	icon_state = "snail_green"
 
@@ -202,7 +206,7 @@
 	name = "banana backpack"
 	desc = "Is it a backpack made of bananas or a backpack with a banana texture? The world may never know."
 	icon = 'yogstation/icons/obj/storage.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/back.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/back.dmi'
 	icon_state = "bananabackpack"
 	item_state = "bananabackpack"
 
@@ -210,7 +214,7 @@
 	name = "clown face backpack"
 	desc = "Sometimes there are some things better left off not existing, this is one of them."
 	icon = 'yogstation/icons/obj/storage.dmi'
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/back.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/back.dmi'
 	icon_state = "clownfacebackpack"
 	item_state = "clownfacebackpack"
 
@@ -223,10 +227,29 @@
 	new /obj/item/clothing/under/yogs/rank/physician(src)
 	new /obj/item/clothing/suit/toggle/labcoat/emt/physician(src)
 	new /obj/item/clothing/head/soft/emt/phys(src)
-	new /obj/item/clothing/under/rank/medical/purple(src)
+	new /obj/item/clothing/under/rank/medical/doctor/purple(src)
 	new /obj/item/clothing/under/yogs/rank/physician/white(src)
 	new /obj/item/clothing/under/yogs/rank/physician/white/skirt(src)
 	new /obj/item/clothing/suit/toggle/labcoat/physician(src)
 	new /obj/item/clothing/head/beret/med/phys(src)
 	new /obj/item/clothing/head/beret/corpsec/phys(src)
 	new /obj/item/clothing/shoes/xeno_wraps/jackboots(src)
+
+/obj/item/storage/backpack/duffelbag/clothing/med/miner
+	name = "Mining Medic's clothing duffelbag"
+	desc = "A large duffel bag filled with clothing."
+	icon_state = "duffel-med"
+	item_state = "duffel-med"
+
+/obj/item/storage/backpack/duffelbag/clothing/med/miner/PopulateContents()
+	new /obj/item/clothing/suit/toggle/labcoat/emt/explorer(src)
+	new /obj/item/clothing/suit/toggle/labcoat/explorer(src)
+	new /obj/item/clothing/head/soft/emt/mining(src)
+	new /obj/item/clothing/head/beret/emt/mining(src)
+	new /obj/item/clothing/under/yogs/rank/miner/medic(src)
+	new /obj/item/storage/belt/medical/mining(src)
+	new /obj/item/clothing/glasses/hud/health/meson(src)
+	new /obj/item/clothing/gloves/color/latex/fireproof(src)
+	new /obj/item/clothing/shoes/sneakers/white(src)
+	new	/obj/item/radio/headset/headset_medcargo(src)
+	new /obj/item/clothing/mask/gas/explorer(src)

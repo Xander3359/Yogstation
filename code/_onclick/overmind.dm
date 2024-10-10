@@ -1,7 +1,7 @@
 // Blob Overmind Controls
 
 
-/mob/camera/blob/ClickOn(var/atom/A, var/params) //Expand blob
+/mob/camera/blob/ClickOn(atom/A, params) //Expand blob
 	var/list/modifiers = params2list(params)
 	if(modifiers["middle"])
 		MiddleClickOn(A)
@@ -28,6 +28,7 @@
 	var/turf/T = get_turf(A)
 	if(T)
 		create_shield(T)
+	return TRUE
 
 /mob/camera/blob/AltClickOn(atom/A) //Remove a blob
 	var/turf/T = get_turf(A)

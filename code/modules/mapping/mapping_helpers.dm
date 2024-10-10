@@ -6,13 +6,14 @@
 	name = "baseturf editor"
 	icon = 'icons/effects/mapping_helpers.dmi'
 	icon_state = ""
-
+	/// Replacing a specific turf
 	var/list/baseturf_to_replace
+	/// The desired bottom turf
 	var/baseturf
 
-	layer = POINT_LAYER
+	plane = POINT_PLANE
 
-/obj/effect/baseturf_helper/Initialize()
+/obj/effect/baseturf_helper/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_LATELOAD
 
@@ -33,22 +34,16 @@
 
 	qdel(src)
 
+/// Replaces all the requested baseturfs (usually space/baseturfbottom) with the desired baseturf. Skips if its already there
 /obj/effect/baseturf_helper/proc/replace_baseturf(turf/thing)
-	var/list/baseturf_cache = thing.baseturfs
-	if(length(baseturf_cache))
-		for(var/i in baseturf_cache)
-			if(baseturf_to_replace[i])
-				baseturf_cache -= i
-		if(!baseturf_cache.len)
-			thing.assemble_baseturfs(baseturf)
-		else
-			thing.PlaceOnBottom(null, baseturf)
-	else if(baseturf_to_replace[thing.baseturfs])
-		thing.assemble_baseturfs(baseturf)
-	else
-		thing.PlaceOnBottom(null, baseturf)
+	thing.remove_baseturfs_from_typecache(baseturf_to_replace)
 
+	if(length(thing.baseturfs))
+		var/turf/tile = thing.baseturfs[1]
+		if(tile == baseturf)
+			return
 
+	thing.place_on_bottom(baseturf)
 
 /obj/effect/baseturf_helper/space
 	name = "space baseturf editor"
@@ -90,27 +85,72 @@
 /obj/effect/mapping_helpers
 	icon = 'icons/effects/mapping_helpers.dmi'
 	icon_state = ""
+	anchored = TRUE
+	// Unless otherwise specified, layer above everything
+	layer = ABOVE_ALL_MOB_LAYER
 	var/late = FALSE
 
-/obj/effect/mapping_helpers/Initialize()
+/obj/effect/mapping_helpers/Initialize(mapload)
 	..()
 	return late ? INITIALIZE_HINT_LATELOAD : INITIALIZE_HINT_QDEL
 
 
-//airlock helpers
+// Airlock helpers
 /obj/effect/mapping_helpers/airlock
 	layer = DOOR_HELPER_LAYER
+	late = TRUE
 
 /obj/effect/mapping_helpers/airlock/Initialize(mapload)
 	. = ..()
 	if(!mapload)
 		log_mapping("[src] spawned outside of mapload!")
 		return
+
 	var/obj/machinery/door/airlock/airlock = locate(/obj/machinery/door/airlock) in loc
 	if(!airlock)
 		log_mapping("[src] failed to find an airlock at [AREACOORD(src)]")
 	else
 		payload(airlock)
+
+/obj/effect/mapping_helpers/airlock/LateInitialize()
+	. = ..()
+	var/obj/machinery/door/airlock/airlock = locate(/obj/machinery/door/airlock) in loc
+	if(!airlock)
+		qdel(src)
+		return
+	if(airlock.cyclelinkedx || airlock.cyclelinkedy)
+		airlock.cyclelinkairlock_target()
+	if(airlock.cyclelinkeddir)
+		airlock.cyclelinkairlock()
+	if(airlock.closeOtherId)
+		airlock.update_other_id()
+	if(airlock.abandoned)
+		var/outcome = rand(1,100)
+		switch(outcome)
+			if(1 to 9)
+				var/turf/here = get_turf(src)
+				for(var/obj/machinery/door/firedoor/FD in here)
+					qdel(FD)
+				for(var/turf/closed/T in range(2, src))
+					here.place_on_top(T.type)
+					qdel(airlock)
+					qdel(src)
+					return
+				here.place_on_top(/turf/closed/wall)
+				qdel(airlock)
+				qdel(src)
+				return
+			if(10 to 11)
+				airlock.lights = FALSE
+				airlock.locked = TRUE
+			if(12 to 15)
+				airlock.locked = TRUE
+			if(16 to 23)
+				airlock.welded = TRUE
+			if(24 to 30)
+				airlock.panel_open = TRUE
+	airlock.update_appearance()
+	qdel(src)
 
 /obj/effect/mapping_helpers/airlock/proc/payload(obj/machinery/door/airlock/payload)
 	return
@@ -152,7 +192,6 @@
 	else
 		airlock.locked = TRUE
 
-
 /obj/effect/mapping_helpers/airlock/unres
 	name = "airlock unresctricted side helper"
 	icon_state = "airlock_unres_helper"
@@ -170,6 +209,54 @@
 	else
 		airlock.abandoned = TRUE
 
+/obj/effect/mapping_helpers/airlock/inaccessible
+	name = "airlock inaccessible helper"
+	icon_state = "airlock_inaccessible"
+
+/obj/effect/mapping_helpers/airlock/inaccessible/payload(obj/machinery/door/airlock/airlock)
+	if(airlock.req_one_access != null)
+		log_mapping("[src] at [AREACOORD(src)] tried to set req_access, but req__one_access was already set!")
+	else
+		airlock.req_access += list(ACCESS_INACCESSIBLE)
+
+
+// Windoor helpers
+/obj/effect/mapping_helpers/windoor
+    layer = WINDOW_HELPER_LAYER
+    late = TRUE
+
+/obj/effect/mapping_helpers/windoor/Initialize(mapload)
+    . = ..()
+    if(!mapload)
+        log_mapping("[src] spawned outside of mapload!")
+        return
+    var/success = FALSE
+    var/windoor_present = FALSE
+    for(var/obj/machinery/door/window/windoor in loc)
+        windoor_present = TRUE
+        if(windoor.dir != dir)
+            continue
+        payload(windoor)
+        success = TRUE
+    if(!success)
+        log_mapping("[src] failed to find a windoor at [AREACOORD(src)]")
+    if(windoor_present && !success)
+        log_mapping("[src] attempted to imprint access at [AREACOORD(src)] but found no valid windoors (windoor present but not matching dir)")
+    qdel(src)
+
+/obj/effect/mapping_helpers/windoor/proc/payload(obj/machinery/door/window/payload)
+	return
+
+/obj/effect/mapping_helpers/windoor/inaccessible
+	name = "windoor inaccessible helper"
+	icon_state = "windoor_inaccessible"
+
+/obj/effect/mapping_helpers/windoor/inaccessible/payload(obj/machinery/door/window/windoor)
+	if(windoor.req_one_access != null)
+		log_mapping("[src] at [AREACOORD(src)] tried to set req_access, but req_one_access was already set!")
+	else
+		windoor.req_access += list(ACCESS_INACCESSIBLE)
+
 
 //needs to do its thing before spawn_rivers() is called
 INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
@@ -177,10 +264,10 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 /obj/effect/mapping_helpers/no_lava
 	icon_state = "no_lava"
 
-/obj/effect/mapping_helpers/no_lava/Initialize()
+/obj/effect/mapping_helpers/no_lava/Initialize(mapload)
 	. = ..()
 	var/turf/T = get_turf(src)
-	T.flags_1 |= NO_LAVA_GEN_1
+	T.turf_flags |= NO_LAVA_GEN
 
 //This helper applies components to things on the map directly.
 /obj/effect/mapping_helpers/component_injector
@@ -195,7 +282,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 	if(!ispath(component_type,/datum/component))
 		CRASH("Wrong component type in [type] - [component_type] is not a component")
 	var/turf/T = get_turf(src)
-	for(var/atom/A in T.GetAllContents())
+	for(var/atom/A in T.get_all_contents())
 		if(A == src)
 			continue
 		if(target_name && A.name != target_name)
@@ -238,7 +325,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 		log_mapping("[src] at [x],[y] could not find any morgues.")
 		return
 	for (var/i = 1 to bodycount)
-		var/obj/structure/bodycontainer/morgue/j = pick(trays)
+		var/obj/structure/bodycontainer/morgue/j = pick_n_take(trays)
 		var/mob/living/carbon/human/h = new /mob/living/carbon/human(j, 1)
 		h.death()
 		for (var/part in h.internal_organs) //randomly remove organs from each body, set those we keep to be in stasis
@@ -247,7 +334,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 			else
 				var/obj/item/organ/O = part
 				O.organ_flags |= ORGAN_FROZEN
-		j.update_icon()
+		j.update_appearance(UPDATE_ICON)
 	qdel(src)
 
 /obj/effect/mapping_helpers/teleport_anchor
@@ -255,7 +342,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 	late = FALSE
 	icon_state = "teleport_anchor"
 
-/obj/effect/mapping_helpers/teleport_anchor/Initialize() //add the tile it is on to areas prefered teleportaiton list
+/obj/effect/mapping_helpers/teleport_anchor/Initialize(mapload) //add the tile it is on to areas prefered teleportaiton list
 	. = ..()
 	var/area/a = get_area(loc)
 	a.teleport_anchors += loc
@@ -266,10 +353,33 @@ INITIALIZE_IMMEDIATE(/obj/effect/mapping_helpers/no_lava)
 	/// List of traits to add to this.
 	var/list/traits_to_add = list()
 
-/obj/effect/mapping_helpers/ztrait_injector/Initialize()
+/obj/effect/mapping_helpers/ztrait_injector/Initialize(mapload)
 	. = ..()
 	var/datum/space_level/level = SSmapping.z_list[z]
 	if(!level || !length(traits_to_add))
 		return
 	level.traits |= traits_to_add
 	SSweather.update_z_level(level) //in case of someone adding a weather for the level, we want SSweather to update for that
+
+/obj/effect/mapping_helpers/firedoor_border_spawner
+	var/orientation = VERTICAL
+	var/obj/machinery/door/firedoor/border_only/door1
+	var/obj/machinery/door/firedoor/border_only/door2
+
+/obj/effect/mapping_helpers/firedoor_border_spawner/Initialize(mapload, _orientation)
+	. = ..()
+	if(_orientation)
+		orientation = _orientation
+	door1 = new(loc)
+	door2 = new(loc)
+	switch(orientation)
+		if(VERTICAL)
+			//door1 is naturally the right orientation
+			door2.dir = 1
+		if(HORIZONTAL)
+			door1.dir = 4
+			door2.dir = 8
+
+
+/obj/effect/mapping_helpers/firedoor_border_spawner/horizontal
+	orientation = HORIZONTAL

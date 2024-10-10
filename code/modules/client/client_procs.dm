@@ -38,7 +38,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	if(!usr || usr != mob)	//stops us calling Topic for somebody else's client. Also helps prevent usr=null
 		return
 
-	if(src.prefs && src.prefs.afreeze && !href_list["priv_msg"] && href_list["_src_"] != "chat" && !src.holder) //yogs start - afreeze
+	if(src.prefs && src.afreeze && !href_list["priv_msg"] && href_list["_src_"] != "chat" && !src.holder) //yogs start - afreeze
 		to_chat(src, span_userdanger("You have been frozen by an administrator."))
 		return //yogs end
 
@@ -94,7 +94,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 			return
 
 	var/stl = CONFIG_GET(number/second_topic_limit)
-	if (!holder && stl)
+	if (!holder && stl && href_list["window_id"] != "statbrowser")
 		var/second = round(world.time, 10)
 		if (!topiclimiter)
 			topiclimiter = new(LIMITER_SIZE)
@@ -140,13 +140,6 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 			hsrc = mob
 		if("mentor") // YOGS - Mentor stuff
 			hsrc = mentor_datum // YOGS - Mentor stuff
-		if("prefs")
-			if (inprefs)
-				return
-			inprefs = TRUE
-			. = prefs.process_link(usr,href_list)
-			inprefs = FALSE
-			return
 		if("vars")
 			return view_var_Topic(href,href_list,hsrc)
 
@@ -167,12 +160,6 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 			return
 
 	..()	//redirect to hsrc.Topic()
-
-/client/proc/is_content_unlocked()
-	if(!is_donator(src)) // yogs - changed this to is_donator so admins get donor perks
-		to_chat(src, "Become a BYOND member to access member-perks and features, as well as support the engine that makes this game possible. Only 10 bucks for 3 months! <a href=\"https://secure.byond.com/membership\">Click Here to find out more</a>.")
-		return 0
-	return 1
 
 /client/proc/handle_spam_prevention(message, mute_type)
 	//Increment message count
@@ -232,10 +219,11 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 /client/New(TopicData)
 	var/tdata = TopicData //save this for later use
+	TopicData = null							//Prevent calls to client.Topic from connect
+
 	//this is a scam, so sometimes the topicdata is set to /?key=value instead of key=value, this is a hack around that
 	if(copytext(tdata, 1, 3) == "/?")
 		tdata = copytext(tdata, 3)
-	TopicData = null							//Prevent calls to client.Topic from connect
 
 	if(connection != "seeker" && connection != "web")//Invalid connection type.
 		return null
@@ -244,9 +232,12 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	GLOB.directory[ckey] = src
 
 	// Instantiate tgui panel
-	tgui_panel = new(src)
+	tgui_panel = new(src, "browseroutput")
 
-	tgui_panel.send_connected()
+	// Set the right-click menu mode
+	set_right_click_menu_mode(TRUE)
+
+	//tgui_panel.send_connected()
 
 	GLOB.ahelp_tickets.ClientLogin(src)
 	var/connecting_admin = GLOB.permissions.load_permissions_for(src) //because de-admined admins connecting should be treated like admins.
@@ -267,12 +258,12 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	prefs = GLOB.preferences_datums[ckey]
 	if(prefs)
 		prefs.parent = src
+		prefs.apply_all_client_preferences()
 	else
 		prefs = new /datum/preferences(src)
 		GLOB.preferences_datums[ckey] = prefs
 	prefs.last_ip = address				//these are gonna be used for banning
 	prefs.last_id = computer_id			//these are gonna be used for banning
-	fps = prefs.clientfps
 
 	if(fexists(roundend_report_file()))
 		add_verb(src, /client/proc/show_previous_roundend_report)
@@ -311,20 +302,12 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 		player_details.byond_version = full_version
 		GLOB.player_details[ckey] = player_details
 
-	// yogs start - Donor stuff
-	if(ckey in GLOB.donators)
-		prefs.unlock_content |= 2
-	else
-		prefs.unlock_content &= ~2 // is_donator relies on prefs.unlock_content
-
-	if(is_donator(src))
+	if (prefs.unlock_content & DONOR_YOGS)
 		src.add_donator_verbs()
 	else
-		if(prefs.yogtoggles & QUIET_ROUND)
-			prefs.yogtoggles &= ~QUIET_ROUND
-			prefs.save_preferences()
+		if(prefs.read_preference(/datum/preference/toggle/quiet_mode))
+			prefs.write_preference(GLOB.preference_entries[/datum/preference/toggle/quiet_mode], FALSE)
 
-	// yogs end
 	. = ..()	//calls mob.Login()
 
 	if (byond_version >= 512)
@@ -351,9 +334,9 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	src << browse(file('html/statbrowser.html'), "window=statbrowser")
 
 	// Initialize tgui panel
-	tgui_panel.initialize()
+	tgui_panel.Initialize()
 	src << browse(file('html/statbrowser.html'), "window=statbrowser")
-	addtimer(CALLBACK(src, .proc/check_panel_loaded), 5 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(check_panel_loaded)), 5 SECONDS)
 
 
 	if(alert_mob_dupe_login)
@@ -410,10 +393,14 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 	if(holder)
 		add_admin_verbs()
-		to_chat(src, get_message_output("memo"))
+		var/memos = get_message_output("memo")
+		if(memos)
+			to_chat(src, memos)
 		adminGreet()
 
 	add_verbs_from_config()
+	if(GLOB.admin_event)
+		add_verb(src, /client/proc/event_info)
 	var/cached_player_age = set_client_age_from_db(tdata) //we have to cache this because other shit may change it and we need it's current value now down below.
 	if (isnum(cached_player_age) && cached_player_age == -1) //first connection
 		player_age = 0
@@ -421,6 +408,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	if (isnum(cached_player_age) && cached_player_age == -1) //first connection
 		if (nnpa >= 0)
 			message_admins("New user: [key_name_admin(src)] ([address]) is connecting here for the first time.")
+			to_chat((GLOB.permissions.admins - GLOB.permissions.deadmins) | GLOB.mentors, "[key_name_mentor(src)] is connecting here for the first time, and might need help! Their BYOND account is [account_age] day[(account_age==1?"":"s")] old, created on [account_join_date].", confidential=TRUE)
 			if (CONFIG_GET(flag/irc_first_connection_alert))
 				send2irc_adminless_only("New-user", "[key_name(src)] is connecting for the first time!")
 	else if (isnum(cached_player_age) && cached_player_age < nnpa)
@@ -429,6 +417,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 		player_age = account_age
 	if(account_age >= 0 && account_age < nnpa)
 		message_admins("[key_name_admin(src)] (IP: [address], ID: [computer_id]) is a new BYOND account [account_age] day[(account_age==1?"":"s")] old, created on [account_join_date].")
+		to_chat((GLOB.permissions.admins - GLOB.permissions.deadmins) | GLOB.mentors, "[key_name_mentor(src)] is connecting, and might need help! Their BYOND account is [account_age] day[(account_age==1?"":"s")] old, created on [account_join_date].", confidential=TRUE)
 		if (CONFIG_GET(flag/irc_first_connection_alert))
 			send2irc_adminless_only("new_byond_user", "[key_name(src)] (IP: [address], ID: [computer_id]) is a new BYOND account [account_age] day[(account_age==1?"":"s")] old, created on [account_join_date].")
 	get_message_output("watchlist entry", ckey)
@@ -437,7 +426,6 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 	send_resources()
 
-	generate_clickcatcher()
 	apply_clickcatcher()
 
 	if(prefs.lastchangelog != GLOB.changelog_hash) //bolds the changelog button on the interface so we know there are updates.
@@ -454,11 +442,13 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 	if(CONFIG_GET(flag/autoconvert_notes))
 		convert_notes_sql(ckey)
-	to_chat(src, get_message_output("message", ckey))
+	var/admin_messages = get_message_output("message", ckey)
+	if(admin_messages)
+		to_chat(src, admin_messages)
 	if(!winexists(src, "asset_cache_browser")) // The client is using a custom skin, tell them.
 		to_chat(src, span_warning("Unable to access asset cache browser, if you are using a custom skin file, please allow DS to download the updated version, if you are not, then make a bug report. This is not a critical issue but can cause issues with resource downloading, as it is impossible to know when extra resources arrived to you."))
 
-
+	update_ambience_pref()
 	//This is down here because of the browse() calls in tooltip/New()
 	if(!tooltips)
 		tooltips = new /datum/tooltip(src)
@@ -479,11 +469,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 				if (verbpath.name[1] != "@")
 					new child(src)
 
-	for (var/thing in prefs.menuoptions)
-		var/datum/verbs/menu/menuitem = GLOB.menulist[thing]
-		if (menuitem)
-			menuitem.Load_checked(src)
-	view_size = new(src, getScreenSize(prefs.widescreenpref))
+	view_size = new(src, getScreenSize(prefs.read_preference(/datum/preference/toggle/widescreen)))
 	view_size.resetFormat()
 	view_size.setZoomMode()
 	Master.UpdateTickRate()
@@ -502,8 +488,6 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 //////////////
 
 /client/Del()
-	//if(credits)
-		//QDEL_LIST(credits)
 	log_access("Logout: [key_name(src)]")
 	if(holder)
 		adminGreet(1)
@@ -534,6 +518,8 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	GLOB.directory -= ckey
 	GLOB.clients -= src
 
+	SSambience.remove_ambience_client(src)
+
 	var/datum/connection_log/CL = GLOB.connection_logs[ckey]
 	if(CL)
 		CL.logout(mob)
@@ -545,7 +531,15 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	seen_messages = null
 	Master.UpdateTickRate()
 	world.sync_logout_with_db(connection_number) // yogs - logout logging
+	if(!gc_destroyed)
+		gc_destroyed = world.time
+		if (!QDELING(src))
+			stack_trace("Client does not purport to be QDELING, this is going to cause bugs in other places!")
 
+		// Yes this is the same as what's found in qdel(). Yes it does need to be here
+		// Get off my back
+		SEND_SIGNAL(src, COMSIG_QDELETING, TRUE)
+		Destroy() //Clean up signals and timers.
 	return ..()
 
 /client/proc/set_client_age_from_db(connectiontopic)
@@ -860,6 +854,16 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 		ip_intel = res.intel
 
 /client/Click(atom/object, atom/location, control, params)
+	if(click_intercept_time)
+		if(click_intercept_time >= world.time)
+			click_intercept_time = 0 //Reset and return. Next click should work, but not this one.
+			return
+		click_intercept_time = 0 //Just reset. Let's not keep re-checking forever.
+
+	if(src.afreeze)
+		to_chat(src, span_userdanger("You have been frozen by an administrator."))
+		return
+
 	var/ab = FALSE
 	var/list/L = params2list(params)
 
@@ -867,7 +871,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	if(dragged && !L[dragged])
 		return
 
-	if (object && object == middragatom && L["left"])
+	if (object && IS_WEAKREF_OF(object, middle_drag_atom_ref) && LAZYACCESS(L, LEFT_CLICK))
 		ab = max(0, 5 SECONDS-(world.time-middragtime)*0.1)
 
 	var/mcl = CONFIG_GET(number/minute_click_limit)
@@ -907,7 +911,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 			to_chat(src, span_danger("Your previous click was ignored because you've done too many in a second"))
 			return
 
-	if (prefs.hotkeys)
+	if (hotkeys)
 		// If hotkey mode is enabled, then clicking the map will automatically
 		// unfocus the text bar. This removes the red color from the text bar
 		// so that the visual focus indicator matches reality.
@@ -915,6 +919,8 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 	else
 		winset(src, null, "input.focus=true input.background-color=[COLOR_INPUT_ENABLED]")
+
+	SEND_SIGNAL(src, COMSIG_CLIENT_CLICK, object, location, control, params, usr)
 
 	..()
 
@@ -951,7 +957,7 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 
 		//Precache the client with all other assets slowly, so as to not block other browse() calls
 		if (CONFIG_GET(flag/asset_simple_preload))
-			addtimer(CALLBACK(SSassets.transport, /datum/asset_transport.proc/send_assets_slow, src, SSassets.transport.preload), 5 SECONDS)
+			addtimer(CALLBACK(SSassets.transport, TYPE_PROC_REF(/datum/asset_transport, send_assets_slow), src, SSassets.transport.preload), 5 SECONDS)
 
 		#if (PRELOAD_RSC == 0)
 		for (var/name in GLOB.vox_sounds)
@@ -990,6 +996,12 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 /client/proc/rescale_view(change, min, max)
 	view_size.setTo(clamp(change, min, max), clamp(change, min, max))
 
+/client/proc/set_eye(new_eye)
+	if(new_eye == eye)
+		return
+	var/atom/old_eye = eye
+	eye = new_eye
+	SEND_SIGNAL(src, COMSIG_CLIENT_SET_EYE, old_eye, new_eye)
 /**
   * Updates the keybinds for special keys
   *
@@ -1004,8 +1016,8 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	if(!D?.key_bindings)
 		return
 	movement_keys = list()
-	for(var/key in D.key_bindings)
-		for(var/kb_name in D.key_bindings[key])
+	for(var/kb_name in D.key_bindings)
+		for(var/key in D.key_bindings[kb_name])
 			switch(kb_name)
 				if("North")
 					movement_keys[key] = NORTH
@@ -1037,25 +1049,20 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 		CRASH("change_view called without argument.")
 
 	view = new_size
+	SEND_SIGNAL(src, COMSIG_VIEW_SET, new_size)
 	apply_clickcatcher()
 	mob.reload_fullscreen()
-
-	if(mob && istype(mob.hud_used, /datum/hud/ai))
-		if(new_size == CONFIG_GET(string/default_view) || new_size == CONFIG_GET(string/default_view_square))
-			QDEL_NULL(mob.hud_used)
-			mob.create_mob_hud()
-			mob.hud_used.show_hud(mob.hud_used.hud_version)
-			mob.hud_used.update_ui_style(ui_style2icon(prefs.UI_style))
 
 	if (isliving(mob))
 		var/mob/living/M = mob
 		M.update_damage_hud()
-	if (prefs.auto_fit_viewport)
-		addtimer(CALLBACK(src,.verb/fit_viewport,10)) //Delayed to avoid wingets from Login calls.
+	if (prefs.read_preference(/datum/preference/toggle/auto_fit_viewport))
+		addtimer(CALLBACK(src, VERB_REF(fit_viewport), 1 SECONDS)) //Delayed to avoid wingets from Login calls.
 
 /client/proc/generate_clickcatcher()
 	if(!void)
 		void = new()
+	if(!(void in screen))
 		screen += void
 
 /client/proc/apply_clickcatcher()
@@ -1066,26 +1073,6 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 /client/proc/AnnouncePR(announcement)
 	if(prefs && prefs.chat_toggles & CHAT_PULLR)
 		to_chat(src, announcement)
-
-/client/proc/show_character_previews(mutable_appearance/MA)
-	var/pos = 0
-	for(var/D in GLOB.cardinals)
-		pos++
-		var/atom/movable/screen/O = LAZYACCESS(char_render_holders, "[D]")
-		if(!O)
-			O = new
-			LAZYSET(char_render_holders, "[D]", O)
-			screen |= O
-		O.appearance = MA
-		O.dir = D
-		O.screen_loc = "character_preview_map:0,[pos]"
-
-/client/proc/clear_character_previews()
-	for(var/index in char_render_holders)
-		var/atom/movable/screen/S = char_render_holders[index]
-		screen -= S
-		qdel(S)
-	char_render_holders = null
 
 /// compiles a full list of verbs and sends it to the browser
 /client/proc/init_verbs()
@@ -1113,4 +1100,56 @@ GLOBAL_LIST_INIT(blacklisted_builds, list(
 	if(statbrowser_ready)
 		return
 	to_chat(src, span_userdanger("Statpanel failed to load, click <a href='?src=[REF(src)];reload_statbrowser=1'>here</a> to reload the panel "))
-	tgui_panel.initialize()
+	tgui_panel.Initialize()
+
+/client/verb/reload_statpanel()
+	set name = "Reload Statpanel"
+	set category = "OOC"
+
+	usr << browse(file('html/statbrowser.html'), "window=statbrowser")
+
+/client/verb/stop_client_sounds()
+	set name = "Stop Sounds"
+	set category = "OOC"
+	set desc = "Stop Current Sounds"
+	SEND_SOUND(usr, sound(null))
+	tgui_panel?.stop_music()
+	SSblackbox.record_feedback("nested tally", "preferences_verb", 1, list("Stop Self Sounds"))
+
+/client/proc/update_ambience_pref()
+	if(prefs.toggles & SOUND_AMBIENCE)
+		if(SSambience.ambience_listening_clients[src] > world.time)
+			return // If already properly set we don't want to reset the timer.
+		SSambience.ambience_listening_clients[src] = world.time + 10 SECONDS //Just wait 10 seconds before the next one aight mate? cheers.
+	else
+		SSambience.ambience_listening_clients -= src
+
+/client/proc/open_filter_editor(atom/in_atom)
+	if(holder)
+		holder.filteriffic = new /datum/filter_editor(in_atom)
+		holder.filteriffic.ui_interact(mob)
+
+/client/proc/open_particle_editor(atom/in_atom)
+	if(holder)
+		holder.particool = new /datum/particle_editor(in_atom)
+		holder.particool.ui_interact(mob)
+
+/// Clears the client's screen, aside from ones that opt out
+/client/proc/clear_screen()
+	for (var/object in screen)
+		if (istype(object, /atom/movable/screen))
+			var/atom/movable/screen/screen_object = object
+			if (!screen_object.clear_with_screen)
+				continue
+
+		screen -= object
+
+/client/proc/set_right_click_menu_mode(shift_only = TRUE)
+	if(shift_only)
+		winset(src, "mapwindow.map", "right-click=true")
+		winset(src, "ShiftUp", "is-disabled=false")
+		winset(src, "Shift", "is-disabled=false")
+	else
+		winset(src, "mapwindow.map", "right-click=false")
+		winset(src, "default.Shift", "is-disabled=true")
+		winset(src, "default.ShiftUp", "is-disabled=true")

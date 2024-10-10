@@ -13,33 +13,32 @@
 /obj/item/energy_katana
 	name = "energy katana"
 	desc = "A katana infused with strong energy."
+	icon = 'icons/obj/weapons/longsword.dmi'
 	icon_state = "energy_katana"
 	item_state = "energy_katana"
 	lefthand_file = 'icons/mob/inhands/weapons/swords_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/swords_righthand.dmi'
 	force = 30
 	throwforce = 30
-	block_chance = 50
 	armour_penetration = 50
 	w_class = WEIGHT_CLASS_NORMAL
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
-	block_chance = 50
 	slot_flags = ITEM_SLOT_BACK|ITEM_SLOT_BELT
 	sharpness = SHARP_EDGED
 	max_integrity = 200
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
-	icon = 'icons/obj/weapons/swords.dmi'
 	var/datum/effect_system/spark_spread/spark_system
 	var/datum/action/innate/dash/ninja/jaunt
 	var/dash_toggled = TRUE
 
-/obj/item/energy_katana/Initialize()
+/obj/item/energy_katana/Initialize(mapload)
 	. = ..()
 	jaunt = new(src)
 	spark_system = new /datum/effect_system/spark_spread()
 	spark_system.set_up(5, 0, src)
 	spark_system.attach(src)
+	AddComponent(/datum/component/blocking, block_force = 15, block_flags = WEAPON_BLOCK_FLAGS|PROJECTILE_ATTACK|REFLECTIVE_BLOCK)
 
 /obj/item/energy_katana/attack_self(mob/user)
 	dash_toggled = !dash_toggled
@@ -58,28 +57,13 @@
 /obj/item/energy_katana/pickup(mob/living/carbon/human/user)
 	. = ..()
 	if(!is_ninja(user)) //stolen directly from the bloody bastard sword
-		if(HAS_TRAIT (user, TRAIT_SHOCKIMMUNE))
-			to_chat(user, span_warning("[src] attempts to shock you."))
-			user.electrocute_act(15,src)
-			return
-		if(user.gloves)
-			if(!user.gloves.siemens_coefficient)
-				to_chat(user, span_warning("[src] attempts to shock you."))
-				user.electrocute_act(15,src)
-				return
-			to_chat(user, span_userdanger("[src] shocks you!")) //duplicate code because wearing gloves did nothing beforehand
-			user.emote("scream")
-			user.electrocute_act(15,src)
-			user.dropItemToGround(src, TRUE)
-			user.Paralyze(50)
-			return
-		else
+		if(user.electrocute_act(15, src, 1, user.held_index_to_hand(user.active_hand_index))) // you tried to grab it with this hand, so we'll shock it
 			to_chat(user, span_userdanger("[src] shocks you!"))
 			user.emote("scream")
-			user.electrocute_act(15,src)
 			user.dropItemToGround(src, TRUE)
 			user.Paralyze(50)
-			return
+		else
+			to_chat(user, span_warning("[src] attempts to shock you."))
 	jaunt.Grant(user, src)
 	user.update_icons()
 	playsound(src, 'sound/items/unsheath.ogg', 25, 1)
@@ -116,7 +100,7 @@
 
 	if(user.put_in_hands(src))
 		msg = "Your Energy Katana teleports into your hand!"
-	else if(user.equip_to_slot_if_possible(src, SLOT_BELT, 0, 1, 1))
+	else if(user.equip_to_slot_if_possible(src, ITEM_SLOT_BELT, 0, 1, 1))
 		msg = "Your Energy Katana teleports back to you, sheathing itself as it does so!</span>"
 	else
 		msg = "Your Energy Katana teleports to your location!"

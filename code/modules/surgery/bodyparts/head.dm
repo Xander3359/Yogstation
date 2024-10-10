@@ -5,7 +5,7 @@
 	icon_state = "default_human_head"
 	max_damage = 200
 	body_zone = BODY_ZONE_HEAD
-	body_part = HEAD
+	body_part = HEAD|NECK
 	w_class = WEIGHT_CLASS_BULKY //Quite a hefty load
 	slowdown = 1 //Balancing measure
 	throw_range = 2 //No head bowling
@@ -14,7 +14,7 @@
 	stam_damage_coeff = 1
 	max_stamina_damage = 100
 	wound_resistance = 5
-	disabled_wound_penalty = 25
+	disabled_wound_penalty = 50
 	scars_covered_by_clothes = FALSE
 
 	var/mob/living/brain/brainmob = null //The current occupant.
@@ -22,7 +22,7 @@
 	var/obj/item/organ/eyes/eyes
 	var/obj/item/organ/ears/ears
 	var/obj/item/organ/tongue/tongue
-
+	var/eyes_icon = 'icons/mob/human_face.dmi'
 	//Limb appearance info:
 	var/real_name = "" //Replacement name
 	//Hair colour and style
@@ -107,6 +107,8 @@
 		playsound(T, 'sound/misc/splort.ogg', 50, 1, -1)
 	for(var/obj/item/I in src)
 		if(I == brain)
+			if(!brain.can_extract())
+				return
 			if(user)
 				user.visible_message(span_warning("[user] saws [src] open and pulls out a brain!"), span_notice("You saw [src] open and pull out a brain."))
 			if(brainmob)
@@ -158,7 +160,7 @@
 				if(S.hair_color == "mutcolor")
 					facial_hair_color = H.dna.features["mcolor"]
 				else if(hair_color == "fixedmutcolor")
-					facial_hair_color = "#[S.fixed_mut_color]"
+					facial_hair_color = "[S.fixed_mut_color]"
 				else
 					facial_hair_color = S.hair_color
 			else
@@ -175,7 +177,7 @@
 				if(S.hair_color == "mutcolor")
 					hair_color = H.dna.features["mcolor"]
 				else if(hair_color == "fixedmutcolor")
-					hair_color = "#[S.fixed_mut_color]"
+					hair_color = "[S.fixed_mut_color]"
 				else
 					hair_color = S.hair_color
 			else
@@ -188,6 +190,10 @@
 			else
 				hair_color = "000"
 			hair_alpha = initial(hair_alpha)
+		if(HAIRCOLOR in S.species_traits)
+			hair_color = H.hair_color
+		if(FACEHAIRCOLOR in S.species_traits)
+			facial_hair_color = H.facial_hair_color
 		// lipstick
 		if(H.lip_style && (LIPS in S.species_traits))
 			lip_style = H.lip_style
@@ -195,6 +201,9 @@
 		else
 			lip_style = null
 			lip_color = "white"
+		if(S.eyes_icon)
+			eyes_icon = S.eyes_icon
+		eyes_static = S.get_eyes_static(H)
 	..()
 
 /obj/item/bodypart/head/update_icon_dropped()
@@ -218,7 +227,7 @@
 				var/datum/sprite_accessory/S = GLOB.facial_hair_styles_list[facial_hair_style]
 				if(S)
 					var/image/facial_overlay = image(S.icon, "[S.icon_state]", -HAIR_LAYER, SOUTH)
-					facial_overlay.color = "#" + facial_hair_color
+					facial_overlay.color = facial_hair_color
 					facial_overlay.alpha = hair_alpha
 					. += facial_overlay
 
@@ -239,7 +248,7 @@
 				var/datum/sprite_accessory/S2 = GLOB.hair_styles_list[hair_style]
 				if(S2)
 					var/image/hair_overlay = image(S2.icon, "[S2.icon_state]", -HAIR_LAYER, SOUTH)
-					hair_overlay.color = "#" + hair_color
+					hair_overlay.color = hair_color
 					hair_overlay.alpha = hair_alpha
 					. += hair_overlay
 
@@ -251,13 +260,16 @@
 			. += lips_overlay
 
 		// eyes
-		var/image/eyes_overlay = image('icons/mob/human_face.dmi', "eyes_missing", -BODY_LAYER, SOUTH)
+		var/image/eyes_overlay = image(eyes_icon, "eyes_missing", -BODY_LAYER, SOUTH)
 		. += eyes_overlay
 		if(eyes)
 			eyes_overlay.icon_state = eyes.eye_icon_state
-
 			if(eyes.eye_color)
-				eyes_overlay.color = "#" + eyes.eye_color
+				eyes_overlay.color = eyes.eye_color
+			if(eyes_static)
+				var/mutable_appearance/eyes_static_sprite = mutable_appearance(eyes_overlay.icon, "[eyes_overlay.icon_state]_static_[eyes_static]", eyes_overlay.layer, appearance_flags = RESET_COLOR)
+				eyes_static_sprite.dir = eyes_overlay.dir
+				eyes_overlay.add_overlay(eyes_static_sprite)
 
 /obj/item/bodypart/head/monkey
 	icon = 'icons/mob/animal_parts.dmi'

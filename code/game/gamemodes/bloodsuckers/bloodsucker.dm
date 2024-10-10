@@ -4,13 +4,13 @@
 	report_type = "Bloodsucker"
 	antag_flag = ROLE_BLOODSUCKER
 	false_report_weight = 10
-	restricted_jobs = list("AI", "Cyborg")
+	restricted_jobs = list("AI", "Cyborg", "Synthetic")
 	protected_jobs = list(
 		"Captain", "Head of Personnel", "Head of Security",
 		"Research Director", "Chief Engineer", "Chief Medical Officer", "Curator", 
 		"Warden", "Security Officer", "Detective", "Brig Physician",
 	)
-	required_players = 25
+	required_players = 20
 	required_enemies = 1
 	recommended_enemies = 4
 	reroll_friendly = 1
@@ -38,8 +38,8 @@
 		if(!antag_candidates.len)
 			break
 		var/datum/mind/bloodsucker = antag_pick(antag_candidates)
-		//Yogs start -- fixes plasmaman vampires
-		if(bloodsucker?.current?.client.prefs.pref_species && (NOBLOOD in bloodsucker.current.client.prefs.pref_species.species_traits))
+
+		if(!bloodsucker.prepare_bloodsucker(bloodsucker))
 			antag_candidates -= bloodsucker // kinda need to do this to prevent some edge-case infinite loop or whatever
 			i-- // to undo the imminent increment
 			continue

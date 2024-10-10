@@ -32,7 +32,7 @@
 	density = FALSE
 	pass_flags = PASSTABLE | PASSMOB
 	mob_size = MOB_SIZE_SMALL
-	mob_biotypes = list(MOB_ORGANIC, MOB_BEAST, MOB_REPTILE)
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST|MOB_REPTILE
 	gold_core_spawnable = HOSTILE_SPAWN
 	can_be_held = TRUE
 	worn_slot_flags = ITEM_SLOT_NECK
@@ -59,7 +59,7 @@
 
 /mob/living/simple_animal/hostile/retaliate/poison/snake/AttackingTarget()
 	if(istype(target, /mob/living/simple_animal/mouse))
-		visible_message(span_notice("[src]] consumes [target] in a single gulp!"), span_notice("You consume [target] in a single gulp!"))
+		visible_message(span_notice("[src] consumes [target] in a single gulp!"), span_notice("You consume [target] in a single gulp!"))
 		QDEL_NULL(target)
 		adjustBruteLoss(-2)
 	else

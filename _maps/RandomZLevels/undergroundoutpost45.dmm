@@ -298,9 +298,8 @@
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
-/obj/item/clothing/under/pj/blue,
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
 	},
@@ -345,9 +344,9 @@
 	},
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
-/obj/item/clothing/under/suit_jacket/female,
+/obj/item/clothing/under/suit/female,
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
 	},
@@ -382,7 +381,7 @@
 	icon_state = "hydro";
 	locked = 0;
 	name = "botanist's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/item/storage/bag/plants/portaseeder,
 /obj/item/plant_analyzer,
@@ -410,7 +409,7 @@
 	icon_state = "sec";
 	locked = 1;
 	name = "security officer's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 1
@@ -498,7 +497,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "bo" = (
 /obj/structure/table/wood,
-/obj/item/storage/box/fancy/cigarettes{
+/obj/item/storage/fancy/cigarettes{
 	pixel_y = 2
 	},
 /obj/item/lighter{
@@ -611,8 +610,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "bB" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 5;
-	level = 1
+	dir = 5
 	},
 /obj/effect/turf_decal/tile/neutral{
 	dir = 4
@@ -637,8 +635,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "bD" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 10;
-	level = 1
+	dir = 10
 	},
 /obj/effect/turf_decal/tile/neutral{
 	dir = 1
@@ -796,8 +793,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "bV" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 10;
-	level = 1
+	dir = 10
 	},
 /turf/closed/wall,
 /area/awaymission/undergroundoutpost45/central)
@@ -807,7 +803,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 351.9
+	initial_temperature = 351.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "bX" = (
@@ -815,7 +811,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 351.9
+	initial_temperature = 351.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "bY" = (
@@ -1025,7 +1021,7 @@
 	icon_state = "hydro";
 	locked = 0;
 	name = "botanist's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/item/clothing/suit/apron,
 /obj/item/storage/bag/plants/portaseeder,
@@ -1189,8 +1185,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "cM" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 5;
-	level = 2
+	dir = 5
 	},
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
@@ -1274,8 +1269,7 @@
 /area/awaymission/undergroundoutpost45/central)
 "cV" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 10;
-	level = 1
+	dir = 10
 	},
 /turf/closed/wall/rust,
 /area/awaymission/undergroundoutpost45/central)
@@ -1427,7 +1421,7 @@
 	},
 /area/awaymission/undergroundoutpost45/central)
 "do" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -1763,7 +1757,7 @@
 /obj/structure/closet/secure_closet/freezer{
 	locked = 0;
 	name = "meat fridge";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/plasteel/showroomfloor{
 	heat_capacity = 1e+006
@@ -1781,12 +1775,12 @@
 /obj/item/reagent_containers/food/condiment/milk,
 /obj/item/reagent_containers/food/condiment/milk,
 /obj/item/reagent_containers/food/condiment/milk,
-/obj/item/storage/box/fancy/egg_box,
+/obj/item/storage/fancy/egg_box,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/secure_closet/freezer{
 	locked = 0;
 	name = "refrigerator";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/plasteel/cafeteria{
 	dir = 5;
@@ -1828,9 +1822,9 @@
 /area/awaymission/undergroundoutpost45/central)
 "dR" = (
 /obj/machinery/door/airlock/security{
-	name = "Security Checkpoint";
-	req_access_txt = "201"
+	name = "Security Checkpoint"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -1902,9 +1896,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/public/glass{
-	name = "Hydroponics";
-	req_access_txt = "201"
+	name = "Hydroponics"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -1946,9 +1940,9 @@
 	icon_state = "1-2"
 	},
 /obj/machinery/door/airlock/command{
-	name = "Gateway Chamber";
-	req_access_txt = "201"
+	name = "Gateway Chamber"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -1966,9 +1960,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/maintenance{
-	name = "Security Checkpoint Maintenance";
-	req_access_txt = "201"
+	name = "Security Checkpoint Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -2050,9 +2044,9 @@
 "eo" = (
 /obj/machinery/door/firedoor,
 /obj/machinery/door/airlock/public/glass{
-	name = "Hydroponics";
-	req_access_txt = "201"
+	name = "Hydroponics"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -2112,14 +2106,13 @@
 	icon_plating = "asteroidplating";
 	icon_state = "asteroidplating";
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "ev" = (
-/obj/item/clothing/under/pj/red,
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
@@ -2147,8 +2140,10 @@
 	base_state = "right";
 	dir = 8;
 	icon_state = "right";
-	name = "Security Checkpoint";
-	req_access_txt = "201"
+	name = "Security Checkpoint"
+	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 8
 	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
@@ -2247,7 +2242,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "eK" = (
@@ -2290,8 +2285,10 @@
 	base_state = "left";
 	dir = 8;
 	icon_state = "left";
-	name = "Security Checkpoint";
-	req_access_txt = "201"
+	name = "Security Checkpoint"
+	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 8
 	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
@@ -2331,8 +2328,10 @@
 	base_state = "left";
 	dir = 4;
 	icon_state = "left";
-	name = "Hydroponics Desk";
-	req_access_txt = "201"
+	name = "Hydroponics Desk"
+	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 4
 	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
@@ -2494,8 +2493,10 @@
 	base_state = "right";
 	dir = 4;
 	icon_state = "right";
-	name = "Hydroponics Desk";
-	req_access_txt = "201"
+	name = "Hydroponics Desk"
+	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 4
 	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
@@ -2625,7 +2626,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/central)
 "fo" = (
@@ -2730,9 +2731,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/maintenance{
-	name = "Hydroponics Maintenance";
-	req_access_txt = "201"
+	name = "Hydroponics Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -2861,7 +2862,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/central)
 "fK" = (
@@ -2876,8 +2877,10 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/door/window/eastleft{
 	dir = 1;
-	name = "Hydroponics Desk";
-	req_access_txt = "201"
+	name = "Hydroponics Desk"
+	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 1
 	},
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
@@ -2931,7 +2934,7 @@
 	},
 /area/awaymission/undergroundoutpost45/central)
 "fT" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -3014,15 +3017,13 @@
 /area/awaymission/undergroundoutpost45/central)
 "gc" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 5;
-	level = 1
+	dir = 5
 	},
 /turf/closed/wall/r_wall,
 /area/awaymission/undergroundoutpost45/central)
 "gd" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 10;
-	level = 1
+	dir = 10
 	},
 /turf/closed/wall/r_wall,
 /area/awaymission/undergroundoutpost45/central)
@@ -3042,7 +3043,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "gg" = (
@@ -3058,9 +3059,9 @@
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "gi" = (
 /obj/machinery/door/airlock/maintenance{
-	name = "Kitchen Maintenance";
-	req_access_txt = "201"
+	name = "Kitchen Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -3089,7 +3090,6 @@
 	name = "Kitchen Crate"
 	},
 /obj/item/storage/box/mousetraps,
-/obj/item/clothing/under/waiter,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plasteel/showroomfloor{
 	heat_capacity = 1e+006
@@ -3156,9 +3156,9 @@
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "gu" = (
 /obj/machinery/door/airlock{
-	name = "Kitchen Cold Room";
-	req_access_txt = "201"
+	name = "Kitchen Cold Room"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/showroomfloor{
 	heat_capacity = 1e+006
 	},
@@ -3190,7 +3190,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "gC" = (
@@ -3462,7 +3462,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/research)
 "he" = (
@@ -3473,7 +3473,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "hf" = (
@@ -3481,7 +3481,7 @@
 	dir = 8
 	},
 /obj/machinery/firealarm{
-	dir = 8;
+	dir = 4;
 	pixel_x = -24
 	},
 /turf/open/floor/plasteel{
@@ -3505,7 +3505,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "hi" = (
@@ -3573,9 +3573,7 @@
 	},
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "ho" = (
-/obj/machinery/vending/boozeomat{
-	req_access_txt = "0"
-	},
+/obj/machinery/vending/boozeomat,
 /obj/effect/turf_decal/tile/bar,
 /obj/effect/turf_decal/tile/bar{
 	dir = 1
@@ -3862,8 +3860,7 @@
 "hP" = (
 /obj/machinery/door/firedoor,
 /obj/machinery/door/airlock/public/glass{
-	name = "Kitchen";
-	req_access_txt = "201"
+	name = "Kitchen"
 	},
 /obj/structure/disposalpipe/segment{
 	dir = 4
@@ -3872,6 +3869,7 @@
 /obj/effect/turf_decal/tile/bar{
 	dir = 1
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -3917,8 +3915,7 @@
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "hU" = (
 /obj/machinery/atmospherics/pipe/simple/supply/hidden{
-	dir = 4;
-	level = 2
+	dir = 4
 	},
 /obj/structure/table,
 /obj/item/book/manual/chef_recipes,
@@ -3930,8 +3927,7 @@
 "hV" = (
 /obj/effect/spawner/structure/window/reinforced,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden{
-	dir = 4;
-	level = 2
+	dir = 4
 	},
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
@@ -4137,7 +4133,7 @@
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "ip" = (
 /obj/machinery/firealarm{
-	dir = 8;
+	dir = 4;
 	pixel_x = -24
 	},
 /obj/structure/disposalpipe/segment,
@@ -4184,9 +4180,9 @@
 	icon_state = "1-2"
 	},
 /obj/machinery/door/window{
-	name = "Gateway Chamber";
-	req_access_txt = "201"
+	name = "Gateway Chamber"
 	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general,
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
 	},
@@ -4490,8 +4486,7 @@
 /area/awaymission/undergroundoutpost45/gateway)
 "iX" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 10;
-	level = 1
+	dir = 10
 	},
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
@@ -4588,7 +4583,7 @@
 	icon_state = "secure";
 	locked = 0;
 	name = "kitchen Cabinet";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/item/reagent_containers/food/condiment/flour,
 /obj/item/reagent_containers/food/condiment/flour,
@@ -4679,9 +4674,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/research{
-	name = "Gateway Observation";
-	req_access_txt = "201"
+	name = "Gateway Observation"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
 	},
@@ -4776,14 +4771,14 @@
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "jy" = (
 /obj/machinery/door/window/southright{
-	name = "Bar Door";
-	req_access_txt = "201"
+	name = "Bar Door"
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/turf_decal/tile/bar,
 /obj/effect/turf_decal/tile/bar{
 	dir = 1
 	},
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -4810,13 +4805,13 @@
 	dir = 8
 	},
 /obj/machinery/door/airlock{
-	name = "Kitchen";
-	req_access_txt = "201"
+	name = "Kitchen"
 	},
 /obj/effect/turf_decal/tile/bar,
 /obj/effect/turf_decal/tile/bar{
 	dir = 1
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -4904,7 +4899,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/gateway)
 "jM" = (
@@ -4919,9 +4914,9 @@
 /obj/structure/disposalpipe/segment,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/research{
-	name = "Research Lab";
-	req_access_txt = "201"
+	name = "Research Lab"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -4938,7 +4933,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/research)
 "jR" = (
@@ -5130,7 +5125,7 @@
 	icon_state = "rd";
 	locked = 1;
 	name = "research director's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/plasteel/cafeteria{
 	dir = 5;
@@ -5166,7 +5161,7 @@
 	},
 /area/awaymission/undergroundoutpost45/gateway)
 "kh" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -5214,18 +5209,18 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/command{
-	name = "Gateway EVA";
-	req_access_txt = "201"
+	name = "Gateway EVA"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
 /area/awaymission/undergroundoutpost45/gateway)
 "km" = (
-/obj/item/clothing/under/suit_jacket/navy,
+/obj/item/clothing/under/suit/navy,
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
@@ -5439,9 +5434,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/research{
-	name = "Research Division Access";
-	req_access_txt = "201"
+	name = "Research Division Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -5515,12 +5510,12 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/research{
-	name = "Research Division Access";
-	req_access_txt = "201"
+	name = "Research Division Access"
 	},
 /obj/effect/turf_decal/tile/purple{
 	dir = 4
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -5929,7 +5924,7 @@
 	icon_state = "sec";
 	locked = 1;
 	name = "security officer's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/red,
 /obj/effect/turf_decal/tile/red{
@@ -5971,9 +5966,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/research{
-	name = "Research Division Access";
-	req_access_txt = "201"
+	name = "Research Division Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -6068,12 +6063,12 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/research{
-	name = "Research Division Access";
-	req_access_txt = "201"
+	name = "Research Division Access"
 	},
 /obj/effect/turf_decal/tile/purple{
 	dir = 2
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -6235,9 +6230,9 @@
 /area/awaymission/undergroundoutpost45/research)
 "lO" = (
 /obj/machinery/door/airlock/research{
-	name = "Research Division Access";
-	req_access_txt = "201"
+	name = "Research Division Access"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -6449,9 +6444,9 @@
 /obj/structure/disposalpipe/segment,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/command{
-	name = "Research Director's Office";
-	req_access_txt = "201"
+	name = "Research Director's Office"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/cafeteria{
 	dir = 5;
 	heat_capacity = 1e+006
@@ -6613,7 +6608,7 @@
 /obj/item/clothing/glasses/meson,
 /obj/structure/closet/secure_closet/engineering_personal{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/yellow{
 	dir = 1
@@ -6754,7 +6749,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/gateway)
 "mJ" = (
@@ -6768,9 +6763,9 @@
 /obj/structure/disposalpipe/segment,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/maintenance{
-	name = "Research Maintenance";
-	req_access_txt = "201"
+	name = "Research Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -6820,7 +6815,7 @@
 /area/awaymission/undergroundoutpost45/research)
 "mQ" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /turf/open/floor/plasteel/cafeteria{
@@ -7953,14 +7948,14 @@
 	id = "UO45_biohazard";
 	name = "Biohazard Door Control";
 	pixel_y = 8;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/machinery/button/door{
 	desc = "A remote control-switch that controls the privacy shutters.";
 	id = "UO45_rdprivacy";
 	name = "Privacy Shutter Control";
 	pixel_y = -2;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/plasteel/cafeteria{
 	dir = 5;
@@ -8017,9 +8012,9 @@
 /area/awaymission/undergroundoutpost45/research)
 "oE" = (
 /obj/machinery/door/airlock/security/glass{
-	name = "Security Office";
-	req_access_txt = "201"
+	name = "Security Office"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -8390,7 +8385,7 @@
 	id = "UO45_biohazard";
 	name = "Biohazard Door Control";
 	pixel_y = -24;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/turf_decal/tile/red,
@@ -8422,7 +8417,7 @@
 	},
 /area/awaymission/undergroundoutpost45/research)
 "pl" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -8519,7 +8514,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "pv" = (
@@ -8530,7 +8525,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "pw" = (
@@ -8542,7 +8537,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/engineering)
 "px" = (
@@ -8661,9 +8656,9 @@
 /area/awaymission/undergroundoutpost45/research)
 "pI" = (
 /obj/machinery/door/airlock/command{
-	name = "Server Room";
-	req_access_txt = "201"
+	name = "Server Room"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
 	},
@@ -8672,6 +8667,7 @@
 /obj/machinery/door/airlock{
 	name = "Private Restroom"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/freezer{
 	heat_capacity = 1e+006
 	},
@@ -8686,9 +8682,9 @@
 /area/awaymission/undergroundoutpost45/research)
 "pM" = (
 /obj/machinery/door/airlock/research/glass{
-	name = "Research Storage";
-	req_access_txt = "201"
+	name = "Research Storage"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/white{
 	heat_capacity = 1e+006
 	},
@@ -8835,7 +8831,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "qb" = (
@@ -8850,9 +8846,9 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/scrubbers/visible,
 /obj/machinery/door/airlock/engineering/glass{
-	name = "SMES Room";
-	req_access_txt = "201"
+	name = "SMES Room"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
 	},
@@ -8982,7 +8978,7 @@
 /area/awaymission/undergroundoutpost45/research)
 "qq" = (
 /obj/machinery/vending/medical{
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/plasteel/white/side{
 	dir = 6;
@@ -9069,7 +9065,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "qA" = (
@@ -9080,7 +9076,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "qB" = (
@@ -9091,7 +9087,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "qC" = (
@@ -9176,8 +9172,7 @@
 	layer = 2.9
 	},
 /obj/structure/closet/secure_closet/engineering_personal{
-	req_access = null;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/turf_decal/tile/yellow{
@@ -9309,9 +9304,9 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/command/glass{
-	name = "Server Room";
-	req_access_txt = "201"
+	name = "Server Room"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel/dark{
 	heat_capacity = 1e+006
 	},
@@ -9495,7 +9490,7 @@
 	},
 /area/awaymission/undergroundoutpost45/engineering)
 "rk" = (
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/turf_decal/tile/yellow{
@@ -9597,8 +9592,7 @@
 	locked = 1;
 	name = "UO45 Engineering APC";
 	pixel_x = -25;
-	req_access = null;
-	req_access_txt = "201";
+	req_access = list("ruins_general");
 	start_charge = 100
 	},
 /obj/machinery/atmospherics/components/unary/vent_pump/on{
@@ -9628,7 +9622,7 @@
 	name = "Engineering Lockdown";
 	pixel_x = 24;
 	pixel_y = 6;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/item/clothing/suit/armor/vest,
 /obj/item/clothing/head/helmet,
@@ -9636,7 +9630,7 @@
 	icon_state = "sec";
 	locked = 1;
 	name = "security officer's locker";
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/red,
 /obj/effect/turf_decal/tile/red{
@@ -9652,9 +9646,8 @@
 "rs" = (
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
-/obj/item/clothing/under/pj/red,
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
 	},
@@ -9779,13 +9772,12 @@
 	dir = 4
 	},
 /obj/machinery/atmospherics/pipe/simple/supply/hidden{
-	dir = 4;
-	level = 2
+	dir = 4
 	},
 /obj/machinery/door/airlock/maintenance{
-	name = "Research Maintenance";
-	req_access_txt = "201"
+	name = "Research Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -10118,14 +10110,16 @@
 	base_state = "left";
 	dir = 4;
 	icon_state = "left";
-	name = "Engineering Reception";
-	req_access_txt = "201"
+	name = "Engineering Reception"
 	},
 /obj/item/paper_bin{
 	pixel_x = 1;
 	pixel_y = 9
 	},
 /obj/item/pen,
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 4
+	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -10196,7 +10190,7 @@
 	},
 /obj/structure/closet/secure_closet/personal/cabinet{
 	locked = 0;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /turf/open/floor/carpet{
 	heat_capacity = 1e+006
@@ -10220,8 +10214,7 @@
 	icon_state = "mining";
 	locked = 0;
 	name = "miner's equipment";
-	req_access = null;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/item/storage/backpack/satchel/eng,
 /obj/item/clothing/gloves/fingerless,
@@ -10570,10 +10563,12 @@
 	base_state = "right";
 	dir = 4;
 	icon_state = "right";
-	name = "Engineering Reception";
-	req_access_txt = "201"
+	name = "Engineering Reception"
 	},
 /obj/item/folder/red,
+/obj/effect/mapping_helpers/windoor/access/all/ruins/general{
+	dir = 4
+	},
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -10973,7 +10968,7 @@
 	name = "Privacy Shutters";
 	pixel_x = -24;
 	pixel_y = 6;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/red{
 	dir = 1
@@ -11090,8 +11085,7 @@
 /area/awaymission/undergroundoutpost45/engineering)
 "tK" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 5;
-	level = 1
+	dir = 5
 	},
 /turf/closed/wall/rust,
 /area/awaymission/undergroundoutpost45/research)
@@ -11100,10 +11094,10 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/engineering{
-	name = "Engineering Maintenance";
-	req_access_txt = "201"
+	name = "Engineering Maintenance"
 	},
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -11292,7 +11286,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/crew_quarters)
 "uc" = (
@@ -11313,9 +11307,9 @@
 /obj/structure/disposalpipe/segment,
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,
 /obj/machinery/door/airlock/engineering{
-	name = "Engineering Foyer";
-	req_access_txt = "201"
+	name = "Engineering Foyer"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -11601,10 +11595,10 @@
 /area/awaymission/undergroundoutpost45/engineering)
 "uF" = (
 /obj/machinery/door/airlock/security/glass{
-	name = "Security Office";
-	req_access_txt = "201"
+	name = "Security Office"
 	},
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -11615,9 +11609,9 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/scrubbers/visible,
 /obj/machinery/door/airlock/engineering{
-	name = "Engineering";
-	req_access_txt = "201"
+	name = "Engineering"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -11744,7 +11738,6 @@
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/computer/atmos_control{
 	dir = 4;
-	level = 3;
 	name = "Distribution and Waste Monitor";
 	sensors = list("UO45_air_sensor" = "Mixed Air Supply Tank", "UO45_distro_meter" = "Distribution Loop", "UO45_waste_meter" = "Waste Loop")
 	},
@@ -11758,8 +11751,7 @@
 /area/awaymission/undergroundoutpost45/engineering)
 "uV" = (
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
-	dir = 5;
-	level = 1
+	dir = 5
 	},
 /obj/structure/chair/office/dark{
 	dir = 8
@@ -11946,7 +11938,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "vm" = (
@@ -12109,9 +12101,9 @@
 	icon_state = "4-8"
 	},
 /obj/machinery/door/airlock/engineering{
-	name = "Engineering";
-	req_access_txt = "201"
+	name = "Engineering"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -12172,7 +12164,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/research)
 "vI" = (
@@ -12189,9 +12181,9 @@
 /area/awaymission/undergroundoutpost45/mining)
 "vM" = (
 /obj/machinery/door/airlock/maintenance{
-	name = "Mining Maintenance";
-	req_access_txt = "201"
+	name = "Mining Maintenance"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plating{
 	heat_capacity = 1e+006
 	},
@@ -12200,9 +12192,9 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/mining/glass{
-	name = "Mining Foyer";
-	req_access_txt = "201"
+	name = "Mining Foyer"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -12214,9 +12206,9 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,
 /obj/machinery/door/airlock/mining/glass{
-	name = "Mining Foyer";
-	req_access_txt = "201"
+	name = "Mining Foyer"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -12287,9 +12279,7 @@
 /obj/structure/sign/warning/electricshock{
 	pixel_y = -32
 	},
-/obj/machinery/vending/engivend{
-	req_access_txt = "0"
-	},
+/obj/machinery/vending/engivend,
 /obj/machinery/camera{
 	c_tag = "Engineering Foyer";
 	dir = 1;
@@ -12431,7 +12421,7 @@
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden{
 	dir = 4
 	},
-/obj/item/twohanded/required/kirbyplants{
+/obj/item/kirbyplants{
 	layer = 5
 	},
 /obj/effect/decal/cleanable/dirt,
@@ -12469,7 +12459,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/mining)
 "wk" = (
@@ -12503,8 +12493,7 @@
 	icon_state = "1-8"
 	},
 /obj/machinery/door/airlock/command/glass{
-	name = "Chief Engineer";
-	req_access_txt = "201"
+	name = "Chief Engineer"
 	},
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/effect/turf_decal/tile/neutral{
@@ -12517,6 +12506,7 @@
 /obj/effect/turf_decal/tile/neutral{
 	dir = 8
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -12981,8 +12971,7 @@
 	pixel_y = -24
 	},
 /obj/structure/closet/secure_closet/miner{
-	req_access = null;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plasteel{
@@ -13020,7 +13009,7 @@
 /area/awaymission/undergroundoutpost45/mining)
 "xb" = (
 /obj/structure/table/reinforced,
-/obj/item/storage/box/fancy/cigarettes{
+/obj/item/storage/fancy/cigarettes{
 	pixel_x = -2
 	},
 /obj/item/lighter{
@@ -13122,9 +13111,9 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/mining{
-	name = "Processing Area";
-	req_access_txt = "201"
+	name = "Processing Area"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -13133,13 +13122,13 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/atmospherics/pipe/simple/scrubbers/hidden,
 /obj/machinery/door/airlock/mining{
-	name = "Processing Area";
-	req_access_txt = "201"
+	name = "Processing Area"
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/cable{
 	icon_state = "1-2"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -13173,7 +13162,7 @@
 	name = "Engineering Lockdown";
 	pixel_x = -6;
 	pixel_y = -24;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/machinery/button/door{
 	desc = "A remote control-switch for secure storage.";
@@ -13181,7 +13170,7 @@
 	name = "Engineering Secure Storage";
 	pixel_x = 6;
 	pixel_y = -24;
-	req_access_txt = "201"
+	req_access = list("ruins_general")
 	},
 /obj/effect/turf_decal/tile/neutral{
 	dir = 1
@@ -13457,12 +13446,12 @@
 	dir = 4
 	},
 /obj/machinery/door/airlock/mining/glass{
-	name = "Mining EVA";
-	req_access_txt = "201"
+	name = "Mining EVA"
 	},
 /obj/structure/cable{
 	icon_state = "4-8"
 	},
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -13603,11 +13592,11 @@
 "xX" = (
 /obj/machinery/atmospherics/pipe/simple/supply/hidden,
 /obj/machinery/door/airlock/external{
-	name = "Mining External Airlock";
-	req_access_txt = "201"
+	name = "Mining External Airlock"
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel{
 	heat_capacity = 1e+006
 	},
@@ -13678,10 +13667,10 @@
 /area/awaymission/undergroundoutpost45/mining)
 "yf" = (
 /obj/machinery/door/airlock/external{
-	name = "Mining External Airlock";
-	req_access_txt = "201"
+	name = "Mining External Airlock"
 	},
 /obj/effect/turf_decal/sand,
+/obj/effect/mapping_helpers/airlock/access/all/ruins/general,
 /turf/open/floor/plasteel,
 /area/awaymission/undergroundoutpost45/mining)
 "yg" = (
@@ -13692,7 +13681,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/mining)
 "yh" = (
@@ -13701,7 +13690,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yi" = (
@@ -13710,7 +13699,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yj" = (
@@ -13721,7 +13710,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yk" = (
@@ -13731,7 +13720,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yl" = (
@@ -13742,7 +13731,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "ym" = (
@@ -13752,7 +13741,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yn" = (
@@ -13761,7 +13750,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yo" = (
@@ -13771,7 +13760,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yp" = (
@@ -13781,7 +13770,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yq" = (
@@ -13790,7 +13779,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yr" = (
@@ -13799,7 +13788,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yt" = (
@@ -13809,7 +13798,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yu" = (
@@ -13819,7 +13808,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yw" = (
@@ -13829,7 +13818,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yz" = (
@@ -13838,7 +13827,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yA" = (
@@ -13848,7 +13837,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yB" = (
@@ -13857,7 +13846,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yC" = (
@@ -13867,7 +13856,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yD" = (
@@ -13878,7 +13867,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "yH" = (
@@ -13889,7 +13878,7 @@
 	heat_capacity = 1e+006;
 	initial_gas_mix = "co2=173.4;n2=135.1;plasma=229.8;TEMP=351.9";
 	name = "Cave Floor";
-	temperature = 363.9
+	initial_temperature = 363.9
 	},
 /area/awaymission/undergroundoutpost45/caves)
 "zi" = (

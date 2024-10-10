@@ -8,7 +8,7 @@
 	idle_power_usage = 20
 	active_power_usage = 5000
 	
-	req_access = list(ACCESS_ROBOTICS)
+	req_access = list(ACCESS_ROBO_CONTROL)
 	///Whether the access is hacked or not
 	var/hacked = FALSE
 	///World ticks the machine is electified for
@@ -19,12 +19,8 @@
 	subsystem_type = /datum/controller/subsystem/processing/fastprocess
 	/// Controls whether or not the more dangerous designs have been unlocked by a head's id manually, rather than alert level unlocks
 	var/authorization_override = FALSE
-	/// Tracks whether the station is in full danger mode to unlock combat mechs
-	var/red_alert = FALSE
 	/// ID card of the person using the machine for the purpose of tracking access
 	var/obj/item/card/id/id_card = new()
-	/// Combined boolean value of red alert, auth override, and the users access for the sake of smaller if statements. if this is true, combat parts are available
-	var/combat_parts_allowed = FALSE
 	/// Current items in the build queue.
 	var/list/queue = list()
 	/// Whether or not the machine is building the entire queue automagically.
@@ -60,12 +56,12 @@
 								"Cyborg",
 								"Ripley",
 								"Odysseus",
-								"Firefighter",
 								"Clarke",
 								"Gygax",
 								"Durand",
 								"H.O.N.K",
 								"Phazon",
+								"Sidewinder",
 								"Exosuit Equipment",
 								"Exosuit Ammunition",
 								"Cyborg Upgrade Modules",
@@ -74,13 +70,6 @@
 								"Control Interfaces",
 								"IPC Components",
 								"Misc"
-								)
-	var/list/combat_parts = list(
-								"Gygax",
-								"Durand",
-								"H.O.N.K",
-								"Phazon",
-								"Exosuit Ammunition",
 								)
 
 /obj/machinery/mecha_part_fabricator/Initialize(mapload)
@@ -140,7 +129,7 @@
 			do_sparks(1, FALSE, src)
 			authorization_override = TRUE //just in case it wasn't already for some reason. keycard reader is busted.
 			return
-		if(ACCESS_HEADS in C.access)
+		if(ACCESS_COMMAND in C.access)
 			if(!authorization_override)
 				authorization_override = TRUE
 				to_chat(user, span_warning("You override the safety protocols on the [src], removing access restrictions from this terminal."))
@@ -170,7 +159,7 @@
 	var/datum/wound/blunt/severe/break_it = new
 	///Picks limb to break. People with less limbs have a chance of it grapping at air
 	var/obj/item/bodypart/bone = C.get_bodypart(pick(BODY_ZONE_R_ARM, BODY_ZONE_L_ARM, BODY_ZONE_R_LEG, BODY_ZONE_L_LEG))
-	if(bone)
+	if(bone && Adjacent(user))
 		to_chat(C,span_userdanger("The manipulator arms grapple after your [bone.name], attempting to break its bone!"))
 		break_it.apply_wound(bone)
 		bone.receive_damage(brute=50, updating_health=TRUE)
@@ -240,6 +229,8 @@
 					sub_category += "Medical"
 				if(module_types & BORG_MODULE_ENGINEERING)
 					sub_category += "Engineering"
+				if(module_types & BORG_MODULE_SERVICE)
+					sub_category += "Service"
 			else
 				sub_category += "All Cyborgs"
 		// Else check if this design builds a piece of exosuit equipment.
@@ -253,8 +244,6 @@
 					category_override += "Ripley"
 				if(mech_types & EXOSUIT_MODULE_ODYSSEUS)
 					category_override += "Odysseus"
-				if(mech_types & EXOSUIT_MODULE_FIREFIGHTER)
-					category_override += "Firefighter"
 				if(mech_types & EXOSUIT_MODULE_GYGAX)
 					category_override += "Gygax"
 				if(mech_types & EXOSUIT_MODULE_DURAND)
@@ -263,6 +252,8 @@
 					category_override += "H.O.N.K"
 				if(mech_types & EXOSUIT_MODULE_PHAZON)
 					category_override += "Phazon"
+				if(mech_types & EXOSUIT_MODULE_SIDEWINDER)
+					category_override += "Sidewinder"
 
 
 	var/list/part = list(
@@ -476,11 +467,11 @@
   * Does final checks for datum IDs and makes sure this machine can build the designs.
   * * part_list - List of datum design ids for designs to add to the queue.
   */
-/obj/machinery/mecha_part_fabricator/proc/add_part_set_to_queue(list/part_list)
+/obj/machinery/mecha_part_fabricator/proc/add_part_set_to_queue(list/part_list, mob/user)
 	for(var/v in stored_research.researched_designs)
 		var/datum/design/D = SSresearch.techweb_design_by_id(v)
-		if((D.build_type & MECHFAB) && (D.id in part_list))
-			add_to_queue(D)
+		if((D.build_type & MECHFAB) && (D.id in part_list) && (!D.combat_design || combat_parts_allowed(user)))
+			add_to_queue(D, user)
 
 /**
   * Adds a datum design to the build queue.
@@ -488,7 +479,9 @@
   * Returns TRUE if successful and FALSE if the design was not added to the queue.
   * * D - Datum design to add to the queue.
   */
-/obj/machinery/mecha_part_fabricator/proc/add_to_queue(datum/design/D)
+/obj/machinery/mecha_part_fabricator/proc/add_to_queue(datum/design/D, mob/user)
+	if(D.combat_design && !combat_parts_allowed(user))
+		return FALSE
 	if(!istype(queue))
 		queue = list()
 	if(D)
@@ -563,20 +556,14 @@
 /obj/machinery/mecha_part_fabricator/ui_static_data(mob/user)
 	var/list/data = list()
 
-	var/list/final_sets = list()
+	var/list/final_sets = part_sets.Copy()
 	var/list/buildable_parts = list()
 
-	for(var/part_set in part_sets)
-		if(combat_parts.Find(part_set) && !combat_parts_allowed)
-			continue
-		final_sets += part_set
 	for(var/v in stored_research.researched_designs)
 		var/datum/design/D = SSresearch.techweb_design_by_id(v)
 		if(D.build_type & MECHFAB)
-			if(ispath(D.build_path, /obj/item/mecha_parts/mecha_equipment/weapon) && !combat_parts_allowed) // Yogs -- ID swiping for combat parts
-				var/obj/item/mecha_parts/mecha_equipment/weapon/check = D
-				if(initial(check.restricted))
-					continue
+			if(D.combat_design && !combat_parts_allowed(user)) // Yogs -- ID swiping for combat parts
+				continue
 			// This is for us.
 			var/list/part = output_part_info(D, TRUE)
 
@@ -600,7 +587,6 @@
 
 /obj/machinery/mecha_part_fabricator/ui_data(mob/user)
 	var/list/data = list()
-	check_auth_changes(user)
 	data["materials"] = output_available_resources()
 
 	if(being_built)
@@ -623,26 +609,23 @@
 	data["isProcessingQueue"] = process_queue
 	data["authorization"] = authorization_override
 	data["user_clearance"] = head_or_silicon(user)
-	data["alert_level"] = GLOB.security_level 
-	data["combat_parts_allowed"] = combat_parts_allowed
+	data["alert_level"] = SSsecurity_level.get_current_level_as_number()
+	data["combat_parts_allowed"] = combat_parts_allowed(user)
 	data["emagged"] = (obj_flags & EMAGGED)
 	data["silicon_user"] = issilicon(user)
 
 	return data
 
 /// Updates the various authorization checks used to determine if combat parts are available to the current user
-/obj/machinery/mecha_part_fabricator/proc/check_auth_changes(mob/user)
-	red_alert = (GLOB.security_level >= SEC_LEVEL_RED)
-	if(combat_parts_allowed != (authorization_override || red_alert || head_or_silicon(user)))
-		combat_parts_allowed = (authorization_override || red_alert || head_or_silicon(user))
-		update_static_data(user)
+/obj/machinery/mecha_part_fabricator/proc/combat_parts_allowed(mob/user)
+	return authorization_override || SSsecurity_level.get_current_level_as_number() >= SEC_LEVEL_RED || head_or_silicon(user)
 
 /// made as a lazy check to allow silicons full access always
 /obj/machinery/mecha_part_fabricator/proc/head_or_silicon(mob/user)
 	if(issilicon(user))
 		return TRUE
 	id_card = user.get_idcard(hand_first = TRUE)
-	return ACCESS_HEADS in id_card?.access
+	return ACCESS_COMMAND in id_card?.access
 
 /obj/machinery/mecha_part_fabricator/ui_act(action, list/params)
 	. = ..()
@@ -663,7 +646,7 @@
 		if("add_queue_set")
 			// Add all parts of a set to queue
 			var/part_list = params["part_list"]
-			add_part_set_to_queue(part_list)
+			add_part_set_to_queue(part_list, usr)
 			return
 		if("add_queue_part")
 			// Add a specific part to queue
@@ -671,7 +654,7 @@
 			for(var/v in stored_research.researched_designs)
 				var/datum/design/D = SSresearch.techweb_design_by_id(v)
 				if((D.build_type & MECHFAB) && (D.id == T))
-					add_to_queue(D)
+					add_to_queue(D, usr)
 					break
 			return
 		if("del_queue_part")
@@ -781,15 +764,17 @@
 		return FALSE
 	return TRUE
 
-/obj/machinery/mecha_part_fabricator/emag_act(mob/user)
+/obj/machinery/mecha_part_fabricator/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(obj_flags & EMAGGED)
 		to_chat(user, span_warning("[src] has no functional safeties to emag."))
-		return
+		return FALSE
 	do_sparks(1, FALSE, src)
 	to_chat(user, span_notice("You short out [src]'s safeties."))
 	authorization_override = TRUE
 	obj_flags |= EMAGGED
 	update_static_data(user)
+	return TRUE
+	
 
 /obj/machinery/mecha_part_fabricator/maint
 	link_on_init = FALSE

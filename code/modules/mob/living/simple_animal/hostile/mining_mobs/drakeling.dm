@@ -3,11 +3,11 @@
 	desc = "A baby dragon! While relatively smaller than an adult, it's still larger than a person."
 	maxHealth = 200
 	health = 200
-	speed = 5
+	speed = 3
 	move_to_delay = 10
 	speak_emote = list("roars")
-	mob_biotypes = list(MOB_ORGANIC, MOB_BEAST)
-	a_intent = INTENT_HARM
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST
+	combat_mode = TRUE
 	attack_sound = 'sound/magic/demon_attack1.ogg'
 	icon = 'icons/mob/lavaland/lavaland_monsters.dmi'
 	icon_state = "ash_whelp"
@@ -22,7 +22,7 @@
 	response_disarm = "gently pushes aside"
 	response_harm   = "kicks"
 	speak_chance = 5
-	weather_immunities = list("lava", "ash")
+	weather_immunities = ALL
 	movement_type = FLYING
 	faction = list("neutral")
 	minbodytemp = 0 //SPACE
@@ -36,12 +36,17 @@
 	buckle_lying = 0
 	var/attack_cooldown = 0
 	var/list/food_items = list(/obj/item/reagent_containers/food/snacks/meat/slab/goliath = 20, /obj/item/reagent_containers/food/snacks/meat/steak/goliath = 40)
-	var/list/action_types = list(/obj/effect/proc_holder/drakeling/fire_breath, /obj/effect/proc_holder/drakeling/wing_flap)
-	var/list/obj/effect/proc_holder/drakeling/dragon_actions = list()
 	var/grinding = FALSE
-	var/datum/action/drake_ollie/dollie
+	///list for the typepath of all the abilities this drakeling has access to
+	var/list/mounted_abilities = list(
+		/datum/action/cooldown/drake_ollie,
+		/datum/action/cooldown/spell/pointed/drakeling/wing_flap,
+		/datum/action/cooldown/spell/pointed/drakeling/fire_breath
+	)
+	///list for storing all the instantiated abilities
+	var/list/datum/action/cooldown/instantiated = list()
 
-/mob/living/simple_animal/hostile/drakeling/Initialize()
+/mob/living/simple_animal/hostile/drakeling/Initialize(mapload)
 	. = ..()
 	var/datum/component/riding/D = LoadComponent(/datum/component/riding)
 	D.set_riding_offsets(RIDING_OFFSET_ALL, list(TEXT_NORTH = list(0, 8, MOB_LAYER), TEXT_SOUTH = list(0, 8, MOB_LAYER), TEXT_EAST = list(0, 8, MOB_LAYER), TEXT_WEST = list( 0, 8, MOB_LAYER)))
@@ -50,37 +55,31 @@
 	D.set_vehicle_dir_layer(EAST, ABOVE_MOB_LAYER)
 	D.set_vehicle_dir_layer(WEST, ABOVE_MOB_LAYER)
 	D.vehicle_move_delay = 1
-	dollie = new
-	dollie.dragon = src
-	for(var/action_type in action_types)
-		var/obj/effect/proc_holder/drakeling/attack_action = new action_type
-		AddAbility(attack_action)
-		dragon_actions |= attack_action
-		attack_action.drake = src
-	RegisterSignal(src, COMSIG_MOVABLE_BUCKLE, .proc/give_abilities)
-	RegisterSignal(src, COMSIG_MOVABLE_UNBUCKLE, .proc/remove_abilities)
+
+	for(var/abilitypath as anything in mounted_abilities)
+		var/datum/action/cooldown/ability = new abilitypath(src)
+		instantiated |= ability
+
+	remove_abilities(src)
+	RegisterSignal(src, COMSIG_MOVABLE_BUCKLE, PROC_REF(give_abilities))
+	RegisterSignal(src, COMSIG_MOVABLE_UNBUCKLE, PROC_REF(remove_abilities))
 
 /mob/living/simple_animal/hostile/drakeling/proc/give_abilities(mob/living/drake, mob/living/M, force = FALSE)
 	toggle_ai(AI_OFF)
-	if(istype(click_intercept, /obj/effect/proc_holder/drakeling))
-		var/obj/effect/proc_holder/drakeling/D = click_intercept
-		D.remove_ranged_ability()
-	dollie.Grant(M)
-	for(var/action in dragon_actions)
-		var/obj/effect/proc_holder/drakeling/attack_action = action
-		RemoveAbility(attack_action)
-		M.AddAbility(attack_action)
+	for(var/datum/action/cooldown/ability as anything in instantiated)
+		if(click_intercept == ability)
+			ability.unset_click_ability(ability.owner)
+		ability.Remove(src)
+		ability.Grant(M)
 
 /mob/living/simple_animal/hostile/drakeling/proc/remove_abilities(mob/living/drake, mob/living/M, force = FALSE)
 	toggle_ai(AI_ON)
-	if(istype(M.click_intercept, /obj/effect/proc_holder/drakeling))
-		var/obj/effect/proc_holder/drakeling/D = M.click_intercept
-		D.remove_ranged_ability()
-	dollie.Remove(M)
-	for(var/action in dragon_actions)
-		var/obj/effect/proc_holder/drakeling/attack_action = action
-		M.RemoveAbility(attack_action)
-		AddAbility(attack_action)
+	for(var/datum/action/cooldown/ability as anything in instantiated)
+		if(M)
+			if(M.click_intercept == ability)
+				ability.unset_click_ability(ability.owner)
+			ability.Remove(M)
+		ability.Grant(src)
 
 /mob/living/simple_animal/hostile/drakeling/attackby(obj/item/O, mob/user, params)
 	if(istype(O, /obj/item/clothing/neck/petcollar))
@@ -108,82 +107,58 @@
 
 
 
-/obj/effect/proc_holder/drakeling
+/datum/action/cooldown/spell/pointed/drakeling
 	name = "ULTRA DRAGON ATTACK"
-	desc = "if you can see this something has probably gone very wrong and you should make a bug report."
-	var/mob/living/simple_animal/hostile/drakeling/drake
-	var/cooldown = 5 SECONDS
-	action_background_icon_state = "bg_demon"
+	desc = "If you can see this something has probably gone very wrong and you should make a bug report."
+	background_icon_state = "bg_demon"
 	panel = "Dragon"
-	active = FALSE
-	var/prepare_message = span_notice("You prepare %YOUR ULTRA DRAGON ATTACK")
-	var/unprepare_message = span_notice("You decide to spare the mortals for now...")
 
-/obj/effect/proc_holder/drakeling/Click()
-	if(!isliving(usr))
+	cooldown_time = 5 SECONDS
+	active_msg = span_notice("You prepare YOUR ULTRA MEGA DRAGON ATTACK")
+	deactive_msg = span_notice("You decide to spare the mortals for now...")
+	spell_requirements = NONE
+	var/mob/living/simple_animal/hostile/drakeling/drake
+
+/datum/action/cooldown/spell/pointed/drakeling/link_to(Target)
+	. = ..()
+	drake = Target || target
+
+/datum/action/cooldown/spell/pointed/drakeling/InterceptClickOn(mob/living/caller, params, atom/target)
+	. = ..()
+	if(!.)
+		return FALSE
+	drake.face_atom(target)
+	if(drake.attack_cooldown > world.time)
+		to_chat(owner, span_warning("Your[owner == drake ? "" : " dragon's"] attack is not ready yet!"))
 		return TRUE
-	var/mob/living/user = usr
-	if(can_cast(user))
-		fire(user)
+	drake.attack_cooldown = cooldown_time + world.time
+	addtimer(CALLBACK(src, PROC_REF(cooldown_over), owner), cooldown_time)
+	if(owner != drake)
+		addtimer(CALLBACK(src, PROC_REF(cooldown_over), drake), cooldown_time)
+
 	return TRUE
 
-/obj/effect/proc_holder/drakeling/proc/can_cast(mob/living/L)
-	. = TRUE
-	if(L.stat)
-		to_chat(L, "You must be conscious to do this!")
-		return FALSE
-	if(L.IsStun() || L.IsParalyzed())
-		to_chat(L, "You can't [L == drake ? "use your attacks" : "direct your dragon"] while you're stunned!")
-		return FALSE
-	if(L.restrained())
-		to_chat(L, "You can't [L == drake ? "use your attacks" : "direct your dragon"] while you're restrained!")
-		return FALSE
+/datum/action/cooldown/spell/pointed/drakeling/proc/cooldown_over(mob/living/L)
+	to_chat(L, span_notice("You[L == drake ? "are" : "r dragon is"] ready for another attack!"))
 
-/obj/effect/proc_holder/drakeling/fire(mob/living/user)
-	var/msg
-	if(!active)
-		msg = replacetext(prepare_message, "%YOUR", "[user == drake ? "your" : "to direct your dragon's"]")
-		add_ranged_ability(usr, msg, TRUE)
-	else
-		msg = replacetext(unprepare_message, "%YOUR", "[user == drake ? "your" : "to direct your dragon's"]")
-		remove_ranged_ability(msg)
-
-
-/obj/effect/proc_holder/drakeling/InterceptClickOn(mob/living/L, params, atom/A)
-	if(..())
-		return TRUE
-	drake.face_atom(A)
-	if(drake.attack_cooldown > world.time)
-		to_chat(L, "<span class='warning'>Your[L == drake ? "" : " dragon's"] attack is not ready yet!")
-		return TRUE
-	if(!can_cast(L))
-		remove_ranged_ability(L)
-		return  TRUE
-	drake.attack_cooldown = cooldown + world.time
-	addtimer(CALLBACK(src, .proc/cooldown_over, L), cooldown)
-	if(L != drake)
-		addtimer(CALLBACK(src, .proc/cooldown_over, drake), cooldown)
-
-/obj/effect/proc_holder/drakeling/proc/cooldown_over(mob/living/L)
-	to_chat(L, "<span class='notice'>You[L == drake ? "are" : "r dragon is"] ready for another attack!")
-
-/obj/effect/proc_holder/drakeling/Destroy()
+/datum/action/cooldown/spell/pointed/drakeling/Destroy()
 	drake = null
 	return ..()
 
 ///drakeling fire breath attack: shoots a short line of fire that is very effective against lavaland fauna and not very effective against much else
-/obj/effect/proc_holder/drakeling/fire_breath
+/datum/action/cooldown/spell/pointed/drakeling/fire_breath
 	name = "Fire Breath"
 	desc = "Breathe a short flame that is effective against fauna but worthless off of lavaland."
-	action_icon = 'icons/obj/wizard.dmi'
-	action_icon_state = "fireball"
-	cooldown = 2 SECONDS
-	prepare_message = span_notice("You prepare %YOUR fire breath attack")
-	unprepare_message = span_notice("You decide to refrain from roasting more peasants for the time.")
+	button_icon = 'icons/obj/wizard.dmi'
+	button_icon_state = "fireball"
+	cooldown_time = 1.6 SECONDS //kinetic gun
+	active_msg = span_notice("You prepare the fire breath attack")
+	deactive_msg = span_notice("You decide to refrain from roasting more peasants for the time.")
 
-/obj/effect/proc_holder/drakeling/fire_breath/InterceptClickOn(mob/living/L, params, atom/A)
-	if(..())
-		return TRUE
+/datum/action/cooldown/spell/pointed/drakeling/fire_breath/InterceptClickOn(mob/living/L, params, atom/A)
+	. = ..()
+	if(!.)
+		return FALSE
 	playsound(get_turf(drake),'sound/magic/fireball.ogg', 100, 1)
 	var/turf/T = get_turf(drake)
 	var/range = is_mining_level(T.z) ? 4 : 1 //1 tile range means it tends to be incapable of firing diagonally but if it's any longer it's "not a melee weapon"
@@ -191,10 +166,12 @@
 	var/list/turfs = list()
 	var/list/protected = list(drake, L)
 	turfs = drake.line_target(range, A)
-	INVOKE_ASYNC(src, .proc/drakeling_fire_line, drake, turfs, damage, protected)
+	INVOKE_ASYNC(src, PROC_REF(drakeling_fire_line), drake, turfs, damage, protected)
+
+	return TRUE
 
 ///gets the list of turfs the fire breath attack hits
-/mob/living/simple_animal/hostile/drakeling/proc/line_target(var/range, var/atom/at)
+/mob/living/simple_animal/hostile/drakeling/proc/line_target(range, atom/at)
 	if(!at)
 		return
 	var/angle = ATAN2(at.x - src.x, at.y - src.y)
@@ -207,7 +184,7 @@
 	return (getline(src, T) - get_turf(src))
 
 ///actual bit that shoots fire for the fire breath attack
-/obj/effect/proc_holder/drakeling/proc/drakeling_fire_line(var/source, var/list/turfs, var/damage, var/list/protected)
+/datum/action/cooldown/spell/pointed/drakeling/fire_breath/proc/drakeling_fire_line(source, list/turfs, damage, list/protected)
 	var/list/hit_list = list()
 	for(var/turf/T in turfs)
 		if(istype(T, /turf/closed))
@@ -225,19 +202,20 @@
 		sleep(0.1 SECONDS)
 
 ///drakeling wing flap attack: deals relatively minor damage to lavaland fauna and pushes anything it hits away, also breaks rocks on contact like a plasmacutter
-/obj/effect/proc_holder/drakeling/wing_flap
+/datum/action/cooldown/spell/pointed/drakeling/wing_flap
 	name = "Wing Flap"
 	desc = "Causes a large, powerful gust of air to push stuff away, deal damage to fauna, and break rocks."
-	action_icon_state = "tornado"
-	action_icon = 'icons/obj/wizard.dmi'
-	cooldown = 2 SECONDS
-	prepare_message = span_notice("You prepare %YOUR wings.")
-	unprepare_message = span_notice("You stop the flapping.")
-	var/shootie = /obj/item/projectile/wing
+	button_icon_state = "tornado"
+	button_icon = 'icons/obj/wizard.dmi'
+	cooldown_time = 1 SECONDS //adv cutter
+	active_msg = span_notice("You ready the wings.")
+	deactive_msg = span_notice("You stop the flapping.")
+	var/shootie = /obj/projectile/wing
 
-/obj/effect/proc_holder/drakeling/wing_flap/InterceptClickOn(mob/living/L, params, atom/A)
-	if(..())
-		return TRUE
+/datum/action/cooldown/spell/pointed/drakeling/wing_flap/InterceptClickOn(mob/living/L, params, atom/A)
+	. = ..()
+	if(!.)
+		return FALSE
 	playsound(get_turf(drake),'sound/magic/repulse.ogg', 100, 1)
 	var/list/shooties = list()
 	shooties += new shootie(get_turf(drake))
@@ -248,11 +226,13 @@
 		shooties += new shootie(get_step(drake, NORTH))
 		shooties += new shootie(get_step(drake, SOUTH))
 	for(var/S in shooties)
-		var/obj/item/projectile/wing/shooted = S
+		var/obj/projectile/wing/shooted = S
 		shooted.firer = L
 		shooted.fire(dir2angle(drake.dir))
 
-/obj/item/projectile/wing
+	return TRUE
+
+/obj/projectile/wing
 	name = "wing blast"
 	damage = 0
 	range = 5
@@ -260,7 +240,7 @@
 	icon_state = "energy2"
 	var/mine_range = 5 //same as an advanced cutter but there's three of them
 
-/obj/item/projectile/wing/on_hit(atom/target)
+/obj/projectile/wing/on_hit(atom/target)
 	. = ..()
 	if(isliving(target))
 		var/mob/living/L = target
@@ -286,33 +266,38 @@
 
 
 ///dragon ollie, do I have to explain?
-/datum/action/drake_ollie
+/datum/action/cooldown/drake_ollie
 	name = "DRAGON Ollie"
 	desc = "This seems like a REALLY COOL IDEA"
-	icon_icon = 'icons/mob/actions/actions_animal.dmi'
+	button_icon = 'icons/mob/actions/actions_animal.dmi'
 	button_icon_state = "dragon_ollie"
-	//cooldown to next jump
-	var/next_ollie
+	cooldown_time = 5 SECONDS //this gives a "slight" speed boost when used and unlike the skateboard variant doesn't have much of a downside so the cooldown is longer
 	var/mob/living/simple_animal/hostile/drakeling/dragon
 
-/datum/action/drake_ollie/Trigger()
-	if(world.time > next_ollie)
-		if(dragon.grinding)
-			return
-		var/mob/living/L = owner
-		var/turf/landing_turf = get_step(dragon.loc, dragon.dir)
-		L.spin(0.4 SECONDS, 0.1 SECONDS)
-		animate(L, pixel_y = -6, time = 0.4 SECONDS)
-		animate(dragon, pixel_y = -6, time = 0.3 SECONDS)
-		playsound(dragon, 'sound/vehicles/skateboard_ollie.ogg', 50, TRUE)
-		passtable_on(L, VEHICLE_TRAIT)
-		passtable_on(dragon, VEHICLE_TRAIT)
-		L.Move(landing_turf, dragon.dir)
-		passtable_off(L, VEHICLE_TRAIT)
-		passtable_off(dragon, VEHICLE_TRAIT)
-		if(locate(/obj/structure/table) in dragon.loc.contents)
-			addtimer(CALLBACK(dragon, /mob/living/simple_animal/hostile/drakeling.proc/grind), 2)
-		next_ollie = world.time + 50 //this gives a "slight" speed boost when used and unlike the skateboard variant doesn't have much of a downside so the cooldown is longer
+/datum/action/cooldown/drake_ollie/IsAvailable(feedback)
+	if(dragon.grinding)
+		return FALSE
+	return ..()
+	
+/datum/action/cooldown/drake_ollie/link_to(Target)
+	. = ..()
+	dragon = Target || target
+
+/datum/action/cooldown/drake_ollie/Activate(atom/target)
+	. = ..()
+	var/mob/living/L = owner
+	var/turf/landing_turf = get_step(dragon.loc, dragon.dir)
+	L.spin(0.4 SECONDS, 0.1 SECONDS)
+	animate(L, pixel_y = -6, time = 0.4 SECONDS)
+	animate(dragon, pixel_y = -6, time = 0.3 SECONDS)
+	playsound(dragon, 'sound/vehicles/skateboard_ollie.ogg', 50, TRUE)
+	passtable_on(L, VEHICLE_TRAIT)
+	passtable_on(dragon, VEHICLE_TRAIT)
+	L.Move(landing_turf, dragon.dir)
+	passtable_off(L, VEHICLE_TRAIT)
+	passtable_off(dragon, VEHICLE_TRAIT)
+	if(locate(/obj/structure/table) in landing_turf.contents)
+		addtimer(CALLBACK(dragon, TYPE_PROC_REF(/mob/living/simple_animal/hostile/drakeling, grind)), 2)
 
 /mob/living/simple_animal/hostile/drakeling/proc/grind()
 	var/turf/T = get_step(src, dir)
@@ -321,7 +306,7 @@
 		return
 	if(has_buckled_mobs() && locate(/obj/structure/table) in loc.contents)
 		playsound(src, 'sound/vehicles/skateboard_roll.ogg', 50, TRUE)
-		addtimer(CALLBACK(src, .proc/grind), 2)
+		addtimer(CALLBACK(src, PROC_REF(grind)), 2)
 		return
 	else
 		grinding = FALSE

@@ -13,18 +13,16 @@
 	log_admin("[key_name(admin)] has heresized [key_name(new_owner)].")
 
 /datum/antagonist/heretic_monster/greet()
-	owner.current.playsound_local(get_turf(owner.current), 'sound/ambience/antag/ecult_op.ogg', 100, FALSE, pressure_affected = FALSE)//subject to change
+	owner.current.playsound_local(get_turf(owner.current), 'sound/ambience/antag/heretic/heretic_gain.ogg', 100, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
 	to_chat(owner, span_boldannounce("You became an Eldritch Horror!"))
 
 /datum/antagonist/heretic_monster/on_gain()
-	SSticker.mode.update_heretic_icons_added(owner)
 	return ..()
 
 /datum/antagonist/heretic_monster/on_removal()
 	if(owner)
 		to_chat(owner, span_boldannounce("Your master is no longer [master.owner.current.real_name]"))
 		owner = null
-	SSticker.mode.update_heretic_icons_removed(owner)
 	return ..()
 
 /datum/antagonist/heretic_monster/proc/set_owner(datum/antagonist/_master)

@@ -6,11 +6,11 @@
 	icon_living = "skeleton"
 	icon_dead = "skeleton"
 	gender = NEUTER
-	mob_biotypes = list(MOB_UNDEAD, MOB_HUMANOID)
+	mob_biotypes = MOB_UNDEAD|MOB_HUMANOID
 	turns_per_move = 5
 	speak_emote = list("rattles")
 	emote_see = list("rattles")
-	a_intent = INTENT_HARM
+	combat_mode = TRUE
 	maxHealth = 40
 	health = 40
 	speed = 1
@@ -29,13 +29,14 @@
 	stat_attack = UNCONSCIOUS
 	gold_core_spawnable = HOSTILE_SPAWN
 	faction = list("skeleton")
-	see_in_dark = 8
-	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
+	// Going for a sort of pale bluegreen here, shooting for boneish
+	lighting_cutoff_red = 15
+	lighting_cutoff_green = 25
+	lighting_cutoff_blue = 35
 	deathmessage = "collapses into a pile of bones!"
 	del_on_death = 1
 	loot = list(/obj/effect/decal/remains/human)
-
-	do_footstep = TRUE
+	footstep_type = FOOTSTEP_MOB_SHOE
 
 /mob/living/simple_animal/hostile/skeleton/eskimo
 	name = "undead eskimo"
@@ -45,13 +46,13 @@
 	icon_dead = "eskimo_dead"
 	maxHealth = 55
 	health = 55
-	weather_immunities = list(WEATHER_SNOW)
+	weather_immunities = WEATHER_STORM
 	gold_core_spawnable = NO_SPAWN
 	melee_damage_lower = 17
 	melee_damage_upper = 20
 	deathmessage = "collapses into a pile of bones, its gear falling to the floor!"
 	loot = list(/obj/effect/decal/remains/human,
-				/obj/item/twohanded/spear,
+				/obj/item/melee/spear,
 				/obj/item/clothing/shoes/winterboots,
 				/obj/item/clothing/suit/hooded/wintercoat)
 
@@ -64,7 +65,7 @@
 	icon_dead = "templar_dead"
 	maxHealth = 150
 	health = 150
-	weather_immunities = list(WEATHER_SNOW)
+	weather_immunities = WEATHER_STORM
 	speed = 2
 	gold_core_spawnable = NO_SPAWN
 	speak_chance = 1
@@ -85,7 +86,7 @@
 	speed = 5
 	maxHealth = 75
 	health = 75
-	weather_immunities = list(WEATHER_SNOW)
+	weather_immunities = WEATHER_STORM
 	color = rgb(114,228,250)
 	loot = list(/obj/effect/decal/remains/human{color = rgb(114,228,250)})
 
@@ -121,6 +122,6 @@
 	attack_sound = 'sound/weapons/sonic_jackhammer.ogg'
 	loot = list(/obj/effect/decal/remains/plasma, /obj/item/pickaxe/drill/jackhammer)
 
-/mob/living/simple_animal/hostile/skeleton/plasmaminer/Initialize()
+/mob/living/simple_animal/hostile/skeleton/plasmaminer/Initialize(mapload)
 	. = ..()
 	set_light(2)

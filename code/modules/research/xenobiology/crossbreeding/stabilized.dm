@@ -14,7 +14,7 @@ Stabilized extracts:
 	var/datum/status_effect/linked_effect
 	var/mob/living/owner
 
-/obj/item/slimecross/stabilized/Initialize()
+/obj/item/slimecross/stabilized/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj,src)
 
@@ -90,7 +90,7 @@ Stabilized extracts:
 
 /obj/item/slimecross/stabilized/sepia
 	colour = "sepia"
-	effect_desc = "Randomly adjusts the owner's speed."
+	effect_desc = "Adjusts the speed at which the owner does actions."
 
 /obj/item/slimecross/stabilized/cerulean
 	colour = "cerulean"
@@ -129,7 +129,7 @@ Stabilized extracts:
 					mob_spawn_pets += T
 	mob_type = pick(mob_spawn_pets)
 
-/obj/item/slimecross/stabilized/gold/Initialize()
+/obj/item/slimecross/stabilized/gold/Initialize(mapload)
 	. = ..()
 	generate_mobtype()
 

@@ -1,5 +1,6 @@
 /datum/symptom/necroseed
 	name = "Necropolis Seed"
+	icon = "necropolis_seed"
 	desc = "An infantile form of the root of Lavaland's tendrils. Forms a symbiotic bond with the host, making them stronger and hardier, at the cost of speed. Should the disease be cured, the host will be severely weakened."
 	stealth = 0
 	resistance = 3
@@ -21,6 +22,7 @@
 	var/list/cached_tentacle_turfs
 	var/turf/last_location
 	var/tentacle_recheck_cooldown = 100
+	compatible_biotypes = ALL_BIOTYPES
 
 /datum/symptom/necroseed/Start(datum/disease/advance/A)
 	. = ..()
@@ -56,7 +58,7 @@
 				H.physiology.punchdamagehigh_bonus += 4
 				H.physiology.punchdamagelow_bonus += 4
 				H.physiology.punchstunthreshold_bonus += 1				//Makes standard punches 5-14 with higher stun chance (1-10, stun on 10 -> 5-14, stun on 11-14)
-				H.physiology.brute_mod *= 0.6			
+				H.physiology.brute_mod *= 0.6
 				H.physiology.burn_mod *= 0.6
 				H.physiology.heat_mod *= 0.6
 				H.add_movespeed_modifier(MOVESPEED_ID_NECRO_VIRUS_SLOWDOWN, update=TRUE, priority=100, multiplicative_slowdown=0.5)
@@ -64,8 +66,8 @@
 				if(fireproof)
 					ADD_TRAIT(H, TRAIT_RESISTHEAT, DISEASE_TRAIT)
 					ADD_TRAIT(H, TRAIT_RESISTHIGHPRESSURE, DISEASE_TRAIT)
-					M.weather_immunities |= "ash"
-					M.weather_immunities |= "lava"
+					M.weather_immunities |= WEATHER_ASH
+					M.weather_immunities |= WEATHER_LAVA
 		else
 			if(prob(base_message_chance))
 				to_chat(M, span_notice("[pick("Your skin has become a hardened carapace", "Your strength is superhuman.", "You feel invincible.")]"))
@@ -101,7 +103,7 @@
 		H.remove_movespeed_modifier(MOVESPEED_ID_NECRO_VIRUS_SLOWDOWN)
 		H.physiology.punchdamagehigh_bonus -= 4
 		H.physiology.punchdamagelow_bonus -= 4
-		H.physiology.punchstunthreshold_bonus -= 1	
+		H.physiology.punchstunthreshold_bonus -= 1
 		H.physiology.brute_mod /= 0.6
 		H.physiology.burn_mod /= 0.6
 		H.physiology.heat_mod /= 0.6
@@ -109,6 +111,6 @@
 		if(fireproof)
 			REMOVE_TRAIT(H, TRAIT_RESISTHIGHPRESSURE, DISEASE_TRAIT)
 			REMOVE_TRAIT(H, TRAIT_RESISTHEAT, DISEASE_TRAIT)
-			H.weather_immunities -= "ash"
-			H.weather_immunities -= "lava"
+			H.weather_immunities &= ~WEATHER_ASH
+			H.weather_immunities &= ~WEATHER_LAVA
 

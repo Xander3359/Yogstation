@@ -27,7 +27,7 @@
 	var/suction_enabled = TRUE
 	var/transmit_enabled = TRUE
 
-/obj/machinery/dish_drive/Initialize()
+/obj/machinery/dish_drive/Initialize(mapload)
 	. = ..()
 	RefreshParts()
 
@@ -47,7 +47,7 @@
 	flick("synthesizer_beam", src)
 
 /obj/machinery/dish_drive/attackby(obj/item/I, mob/living/user, params)
-	if(is_type_in_list(I, collectable_items) && user.a_intent != INTENT_HARM)
+	if(is_type_in_list(I, collectable_items) && !user.combat_mode)
 		if(!user.transferItemToLoc(I, src))
 			return
 		to_chat(user, span_notice("You put [I] in [src], and it's beamed into energy!"))
@@ -125,6 +125,6 @@
 		playsound(src, 'sound/items/pshoom.ogg', 50, TRUE)
 		playsound(bin, 'sound/items/pshoom.ogg', 50, TRUE)
 		Beam(bin, icon_state = "rped_upgrade", time = 5)
-		bin.update_icon()
+		bin.update_appearance(UPDATE_ICON)
 		flick("synthesizer_beam", src)
 	time_since_dishes = world.time + 600

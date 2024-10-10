@@ -3,6 +3,7 @@
 	antagpanel_category = "Brother"
 	job_rank = ROLE_BROTHER
 	var/special_role = ROLE_BROTHER
+	antag_hud_name = "brother"
 	var/datum/team/brother_team/team
 	antag_moodlet = /datum/mood_event/focused
 	can_hijack = HIJACK_HIJACKER
@@ -19,7 +20,6 @@
 
 /datum/antagonist/brother/on_gain()
 	SSticker.mode.brothers += owner
-	objectives += team.objectives
 	owner.special_role = special_role
 	if(owner.current)
 		give_pinpointer()
@@ -28,9 +28,19 @@
 	return ..()
 
 /datum/antagonist/brother/proc/equip_brother()
+	var/mob/living/carbon/brother = owner.current
 	var/obj/item/book/granter/crafting_recipe/weapons/W = new
-	W.on_reading_finished(owner.current)
+	W.on_reading_finished(brother)
 	qdel(W)
+
+	if(istype(brother))
+		var/obj/item/storage/box/bloodbrother/T = new()
+		if(brother.equip_to_slot_or_del(T, ITEM_SLOT_BACKPACK))
+			SEND_SIGNAL(brother.back, COMSIG_TRY_STORAGE_SHOW, brother)
+			return
+	
+	//this only prints if it fails to give the box
+	to_chat(brother, span_userdanger("Unfortunately, you weren't able to get a keepsake box. This is bad and you should adminhelp (press F1)."))
 
 /datum/antagonist/brother/on_removal()
 	SSticker.mode.brothers -= owner
@@ -42,6 +52,34 @@
 
 /datum/antagonist/brother/antag_panel_data()
 	return "Conspirators : [get_brother_names()]"
+
+/datum/antagonist/brother/get_preview_icon()
+	var/mob/living/carbon/human/dummy/consistent/brother1 = new
+	var/mob/living/carbon/human/dummy/consistent/brother2 = new
+
+	brother1.dna.features["mcolor"] = "#ff4d4d"
+	brother1.set_species(/datum/species/ethereal)
+
+	brother2.dna.features["moth_antennae"] = "Plain"
+	brother2.dna.features["moth_markings"] = "None"
+	brother2.dna.features["moth_wings"] = "Plain"
+	brother2.set_species(/datum/species/moth)
+
+	var/icon/brother1_icon = render_preview_outfit(/datum/outfit/job/quartermaster, brother1)
+	brother1_icon.Blend(icon('icons/effects/blood.dmi', "maskblood"), ICON_OVERLAY)
+	brother1_icon.Shift(WEST, 8)
+
+	var/icon/brother2_icon = render_preview_outfit(/datum/outfit/job/scientist, brother2)
+	brother2_icon.Blend(icon('icons/effects/blood.dmi', "uniformblood"), ICON_OVERLAY)
+	brother2_icon.Shift(EAST, 8)
+
+	var/icon/final_icon = brother1_icon
+	final_icon.Blend(brother2_icon, ICON_OVERLAY)
+
+	qdel(brother1)
+	qdel(brother2)
+
+	return finish_preview_icon(final_icon)
 
 /datum/antagonist/brother/proc/get_brother_names()
 	var/list/brothers = team.members - owner
@@ -74,7 +112,6 @@
 	for(var/datum/mind/M in team.members) // Link the implants of all team members
 		var/obj/item/implant/bloodbrother/T = locate() in M.current.implants
 		I.link_implant(T)
-	SSticker.mode.update_brother_icons_added(owner)
 	owner.current.playsound_local(get_turf(owner.current), 'sound/ambience/antag/tatoralert.ogg', 100, FALSE, pressure_affected = FALSE)
 
 /datum/antagonist/brother/admin_add(datum/mind/new_owner,mob/admin)
@@ -102,26 +139,24 @@
 
 /datum/antagonist/brother/get_admin_commands()
 	. = ..()
-	.["Convert To Traitor"] = CALLBACK(src, .proc/make_traitor)
+	.["Convert To Traitor"] = CALLBACK(src, PROC_REF(make_traitor))
 
 /datum/antagonist/brother/proc/make_traitor()
-	if(alert("Are you sure? This will turn the blood brother into a traitor with the same objectives!",,"Yes","No") != "Yes")
+	if(tgui_alert(usr, "Are you sure? This will turn the blood brother into a traitor with the same objectives!",,list("Yes","No")) != "Yes")
 		return
 
 	var/datum/antagonist/traitor/tot = new()
 	tot.give_objectives = FALSE
 	
-	for(var/datum/objective/obj in objectives)
+	for(var/datum/objective/obj in team.objectives)
 		var/obj_type = obj.type
 		var/datum/objective/new_obj = new obj_type()
 		new_obj.owner = owner
 		new_obj.copy_target(obj)
 		tot.add_objective(new_obj)
-		qdel(obj)
-	objectives.Cut()
 	
-	owner.add_antag_datum(tot)
 	owner.remove_antag_datum(/datum/antagonist/brother)
+	owner.add_antag_datum(tot)
 
 /datum/antagonist/brother/proc/give_pinpointer()
 	if(owner && owner.current)
@@ -188,8 +223,8 @@
 	if(is_hijacker)
 		if(!locate(/datum/objective/hijack) in objectives)
 			add_objective(new/datum/objective/hijack)
-	else if(!locate(/datum/objective/escape) in objectives)
-		add_objective(new/datum/objective/escape)
+	else if(!locate(/datum/objective/escape/onesurvivor) in objectives)
+		add_objective(new/datum/objective/escape/onesurvivor)
 
 /datum/team/brother_team/proc/forge_single_objective()
 	if(prob(50))
@@ -205,3 +240,36 @@
 
 /datum/team/brother_team/antag_listing_name()
 	return "[name] blood brothers"
+
+
+//box given to every bloodbrother
+/obj/item/storage/box/bloodbrother
+	name = "keepsake box"
+	desc = "A box full of unusual items found in the maintenance hallways."
+	///total tc cost that can be inside the box
+	var/total_box_value = 5
+	///maximum amount of tc any individual item can be
+	var/item_value_cap = 2
+	///list of categories that items are allowed to come from
+	var/list/allowed_categories = list(UPLINK_CATEGORY_STEALTH_GADGETS, UPLINK_CATEGORY_MISC, UPLINK_CATEGORY_BADASS)
+
+/obj/item/storage/box/bloodbrother/PopulateContents()
+	var/list/uplink_items = get_uplink_items(null, FALSE)
+	var/remaining_value = total_box_value
+
+	for(var/i = 50; i > 0; i--) //only iterate 50 times, so it doesn't get stuck in an infinite loop
+		if(remaining_value <= 0)
+			break
+
+		var/category = pick(allowed_categories)
+		var/item = pick(uplink_items[category])
+		var/datum/uplink_item/I = uplink_items[category][item]
+
+		if(I.cost > item_value_cap || I.cost > remaining_value)
+			uplink_items[category] -= uplink_items[category][item] //remove it so it can't keep getting picked despite being invalid
+			continue
+		remaining_value -= I.cost
+		new I.item(src)
+
+	if(remaining_value > 0)
+		message_admins("a blood brother has spawned with a keepsake box that has less than the usual value of items, please alert a coder")

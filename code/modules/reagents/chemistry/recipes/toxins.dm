@@ -3,7 +3,7 @@
 	name = /datum/reagent/toxin/formaldehyde
 	id = "Formaldehyde"
 	results = list(/datum/reagent/toxin/formaldehyde = 3)
-	required_reagents = list(/datum/reagent/consumable/ethanol = 1, /datum/reagent/oxygen = 1, /datum/reagent/silver = 1)
+	required_reagents = list(/datum/reagent/consumable/ethanol = 1, /datum/reagent/gas/oxygen = 1, /datum/reagent/silver = 1)
 	required_temp = 420
 
 /datum/chemical_reaction/fentanyl
@@ -17,7 +17,7 @@
 	name = "Cyanide"
 	id = /datum/reagent/toxin/cyanide
 	results = list(/datum/reagent/toxin/cyanide = 3)
-	required_reagents = list(/datum/reagent/oil = 1, /datum/reagent/ammonia = 1, /datum/reagent/oxygen = 1)
+	required_reagents = list(/datum/reagent/oil = 1, /datum/reagent/ammonia = 1, /datum/reagent/gas/oxygen = 1)
 	required_temp = 380
 
 
@@ -25,7 +25,7 @@
 	name = "Fluorosulphuric acid"
 	id = /datum/reagent/toxin/acid/fluacid
 	results = list(/datum/reagent/toxin/acid/fluacid = 4)
-	required_reagents = list(/datum/reagent/toxin/acid = 1, /datum/reagent/fluorine = 1, /datum/reagent/hydrogen = 1, /datum/reagent/potassium = 1)
+	required_reagents = list(/datum/reagent/toxin/acid = 1, /datum/reagent/fluorine = 1, /datum/reagent/gas/hydrogen = 1, /datum/reagent/potassium = 1)
 	required_temp = 380
 
 /datum/chemical_reaction/sulfonal
@@ -50,7 +50,7 @@
 	name = "Lexorin"
 	id = /datum/reagent/toxin/lexorin
 	results = list(/datum/reagent/toxin/lexorin = 3)
-	required_reagents = list(/datum/reagent/toxin/plasma = 1, /datum/reagent/toxin/chloralhydrate = 1, /datum/reagent/oxygen = 1)
+	required_reagents = list(/datum/reagent/toxin/plasma = 1, /datum/reagent/toxin/chloralhydrate = 1, /datum/reagent/gas/oxygen = 1)
 
 /datum/chemical_reaction/chloralhydrate
 	name = "Chloral Hydrate"
@@ -80,7 +80,7 @@
 	name = "Mindbreaker Toxin"
 	id = /datum/reagent/toxin/mindbreaker
 	results = list(/datum/reagent/toxin/mindbreaker = 5)
-	required_reagents = list(/datum/reagent/silicon = 1, /datum/reagent/hydrogen = 1, /datum/reagent/medicine/charcoal = 1)
+	required_reagents = list(/datum/reagent/silicon = 1, /datum/reagent/gas/hydrogen = 1, /datum/reagent/medicine/charcoal = 1)
 
 /datum/chemical_reaction/heparin
 	name = "Heparin"
@@ -100,7 +100,7 @@
 	name = "Anacea"
 	id = /datum/reagent/toxin/anacea
 	results = list(/datum/reagent/toxin/anacea = 3)
-	required_reagents = list(/datum/reagent/medicine/haloperidol = 1, /datum/reagent/impedrezene = 1, /datum/reagent/uranium/radium = 1)
+	required_reagents = list(/datum/reagent/medicine/naloxone = 1, /datum/reagent/impedrezene = 1, /datum/reagent/uranium/radium = 1)
 
 /datum/chemical_reaction/mimesbane
 	name = "Mime's Bane"
@@ -119,3 +119,26 @@
 	results = list(/datum/reagent/toxin/plasma = 12) //One sheet of hot ice makes 200m of plasma
 	required_reagents = list(/datum/reagent/toxin/hot_ice = 1)
 	required_temp = T0C + 30 //Don't burst into flames when you melt
+
+/datum/chemical_reaction/polonium
+	name = "Polonium"
+	id = /datum/reagent/toxin/polonium
+	results = list(/datum/reagent/toxin/polonium = 1)
+	required_reagents = list(/datum/reagent/redspace = 1, /datum/reagent/consumable/energy_drink/nuka_cola = 1, /datum/reagent/uranium= 1)
+	mix_message = span_danger("The mixture suddenly flashes a brilliant red, leaving behind a slurry of pale green glowing slush.")
+
+/datum/chemical_reaction/spewium
+	name = "Spewium"
+	id = /datum/reagent/toxin/spewium
+	results = list(/datum/reagent/toxin/spewium = 1)
+	required_reagents = list(/datum/reagent/liquidgibs = 1, /datum/reagent/consumable/milk = 1, /datum/reagent/redspace = 1)
+	mix_message = span_danger("The mixture suddenly flashes a brilliant red, leaving behind a sickening mass of foul green and orange chunks.")
+	required_temp = 380
+
+/datum/chemical_reaction/initropidril
+	name = "Initropidril"
+	id = /datum/reagent/toxin/initropidril
+	results = list(/datum/reagent/toxin/initropidril = 3)
+	required_reagents = list(/datum/reagent/medicine/corazone = 1, /datum/reagent/toxin/cyanide = 1, /datum/reagent/redspace = 4)
+	mix_message = span_danger("The mixture suddenly flashes a brilliant red, leaving behind a swirling mixture of smoking purple liquid.")
+	required_temp = 670

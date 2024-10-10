@@ -7,11 +7,17 @@
 	invisibility = INVISIBILITY_ABSTRACT // nope cant see this shit
 	anchored = TRUE
 
+/obj/effect/step_trigger/Initialize(mapload)
+	. = ..()
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_ENTERED = PROC_REF(on_entered),
+	)
+	AddElement(/datum/element/connect_loc, loc_connections)
+
 /obj/effect/step_trigger/proc/Trigger(atom/movable/A)
 	return 0
 
-/obj/effect/step_trigger/Crossed(H as mob|obj)
-	..()
+/obj/effect/step_trigger/proc/on_entered(datum/source, atom/movable/H, ...)
 	if(!H)
 		return
 	if(isobserver(H) && !affect_ghosts)
@@ -161,12 +167,12 @@
 		s.start()
 
 	if(entersmoke)
-		var/datum/effect_system/smoke_spread/s = new
-		s.set_up(4, 1, src, 0)
+		var/datum/effect_system/fluid_spread/smoke/s = new
+		s.set_up(4, holder = src, location = src)
 		s.start()
 	if(exitsmoke)
-		var/datum/effect_system/smoke_spread/s = new
-		s.set_up(4, 1, dest, 0)
+		var/datum/effect_system/fluid_spread/smoke/s = new
+		s.set_up(4, holder = src, location = dest)
 		s.start()
 
 	uses--

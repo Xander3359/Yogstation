@@ -17,6 +17,7 @@
 	var/list/activate_reagents = list() ///Reagents required for activation
 	var/recurring = FALSE
 	var/plort_value = 10 //For setting the research points given from each core
+	var/react_time = 5 SECONDS // For grenades to react instantly
 
 /obj/item/slime_extract/examine(mob/user)
 	. = ..()
@@ -37,7 +38,7 @@
 		qdel(O)
 	..()
 
-/obj/item/slime_extract/Initialize()
+/obj/item/slime_extract/Initialize(mapload)
 	. = ..()
 	create_reagents(100, INJECTABLE | DRAWABLE)
 
@@ -134,7 +135,7 @@
 			user.visible_message(span_warning("[user] starts shaking violently!"),span_warning("Your [name] starts pulsing violently..."))
 			if(do_after(user, 5 SECONDS, user))
 				var/mob/living/simple_animal/S = create_random_mob(user.drop_location(), HOSTILE_SPAWN)
-				if(user.a_intent != INTENT_HARM)
+				if(!user.combat_mode)
 					S.faction |= "neutral"
 				else
 					S.faction |= "slime"
@@ -272,13 +273,13 @@
 				to_chat(user, span_warning("Your glow is already enhanced!"))
 				return
 			species.update_glow(user, 5)
-			addtimer(CALLBACK(species, /datum/species/jelly/luminescent.proc/update_glow, user, LUMINESCENT_DEFAULT_GLOW), 600)
+			addtimer(CALLBACK(species, TYPE_PROC_REF(/datum/species/jelly/luminescent, update_glow), user, LUMINESCENT_DEFAULT_GLOW), 600)
 			to_chat(user, span_notice("You start glowing brighter."))
 
 		if(SLIME_ACTIVATE_MAJOR)
 			user.visible_message(span_warning("[user]'s skin starts flashing intermittently..."), span_warning("Your skin starts flashing intermittently..."))
 			if(do_after(user, 2.5 SECONDS, user))
-				empulse(user, 1, 2)
+				empulse(user, EMP_HEAVY, 2)
 				user.visible_message(span_warning("[user]'s skin flashes!"), span_warning("Your skin flashes as you emit an electromagnetic pulse!"))
 				return 600
 
@@ -320,11 +321,7 @@
 			return 250
 
 		if(SLIME_ACTIVATE_MAJOR)
-			var/location = get_turf(user)
-			var/datum/effect_system/foam_spread/s = new()
-			s.set_up(20, location, user.reagents)
-			s.start()
-			user.reagents.clear_reagents()
+			user.reagents.create_foam(/datum/effect_system/fluid_spread/foam, 20)
 			user.visible_message(span_danger("Foam spews out from [user]'s skin!"), span_warning("You activate [src], and foam bursts out of your skin!"))
 			return 600
 
@@ -339,8 +336,8 @@
 	switch(activation_type)
 		if(SLIME_ACTIVATE_MINOR)
 			to_chat(user, span_notice("You activate [src]. You start feeling colder!"))
-			user.ExtinguishMob()
-			user.adjust_fire_stacks(-20)
+			user.extinguish_mob()
+			user.adjust_wet_stacks(20)
 			user.reagents.add_reagent(/datum/reagent/consumable/frostoil,4)
 			user.reagents.add_reagent(/datum/reagent/medicine/cryoxadone,5)
 			return 100
@@ -492,7 +489,7 @@
 				return
 			to_chat(user, span_notice("You feel your skin harden and become more resistant."))
 			species.armor += 25
-			addtimer(CALLBACK(src, .proc/reset_armor, species), 1200)
+			addtimer(CALLBACK(src, PROC_REF(reset_armor), species), 1200)
 			return 450
 
 		if(SLIME_ACTIVATE_MAJOR)
@@ -625,7 +622,8 @@
 /obj/item/slime_extract/rainbow/activate(mob/living/carbon/human/user, datum/species/jelly/luminescent/species, activation_type)
 	switch(activation_type)
 		if(SLIME_ACTIVATE_MINOR)
-			user.dna.features["mcolor"] = pick("FFFFFF","7F7F7F", "7FFF7F", "7F7FFF", "FF7F7F", "7FFFFF", "FF7FFF", "FFFF7F")
+			user.dna.features["mcolor"] = pick("#FFFFFF","#7F7F7F", "#7FFF7F", "#7F7FFF", "#FF7F7F", "#7FFFFF", "#FF7FFF", "#FFFF7F")
+			user.dna.update_uf_block(DNA_MUTANT_COLOR_BLOCK)
 			user.updateappearance(mutcolor_update=1)
 			species.update_glow(user)
 			to_chat(user, span_notice("You feel different..."))
@@ -733,6 +731,7 @@
 		SM.key = C.key
 		SM.sentience_act()
 		SM.mind.enslave_mind_to_creator(user)
+		SM.mind.add_antag_datum(/datum/antagonist/sentient_creature)
 		to_chat(SM, span_warning("All at once it makes sense: you know what you are and who you are! Self awareness is yours!"))
 		to_chat(SM, span_userdanger("You are grateful to be self aware and owe [user.real_name] a great debt. Serve [user.real_name], and assist [user.p_them()] in completing [user.p_their()] goals at any cost."))
 		if(SM.flags_1 & HOLOGRAM_1) //Check to see if it's a holodeck creature
@@ -772,7 +771,7 @@
 	var/prompted = 0
 	var/animal_type = SENTIENCE_ORGANIC
 
-/obj/item/slimepotion/transference/afterattack(mob/living/M, mob/user)
+/obj/item/slimepotion/transference/afterattack(mob/living/M, mob/living/user)
 	if(prompted || !ismob(M))
 		return
 	if(!isanimal(M) || M.ckey) //much like sentience, these will not work on something that is already player controlled
@@ -954,17 +953,26 @@
 		return
 	if(user != L)
 		L.visible_message(span_notice("[user] tries to feed [src] to [L]..."), span_boldwarning("[user] tries to feed [src] to you!"))
-		if(!do_mob(user, L, 10 SECONDS))
+		if(!do_after(user, 10 SECONDS, L))
 			return
 	if(iscarbon(L))
 		var/mob/living/carbon/C = L
-		if(C.dna && !(MGENDER in C.dna.species.species_traits) && !(FGENDER in C.dna.species.species_traits) && !(AGENDER in C.dna.species.species_traits))
-			if(C.gender == MALE)
+		if(C.dna && C.dna.species.possible_genders.len > 1)
+			if(C.gender == MALE && (FEMALE in C.dna.species.possible_genders))
 				C.gender = FEMALE
-				C.visible_message(span_boldnotice("[C] suddenly looks more feminine!"), span_boldwarning("You suddenly feel more feminine!"))
-			else
+			else if(C.gender == FEMALE && (MALE in C.dna.species.possible_genders))
 				C.gender = MALE
-				C.visible_message(span_boldnotice("[C] suddenly looks more masculine!"), span_boldwarning("You suddenly feel more masculine!"))
+			else
+				var/list/temp_genders = C.dna.species.possible_genders
+				temp_genders.Remove(C.gender)
+				C.gender = pick(temp_genders)
+			var/gender_adjective = "different"
+			switch(C.gender)
+				if(MALE)
+					gender_adjective = "more masculine"
+				if(FEMALE)
+					gender_adjective = "more feminine"
+			C.visible_message(span_boldnotice("[C] suddenly looks [gender_adjective]!"), span_boldwarning("You suddenly feel [gender_adjective]!"))
 			C.regenerate_icons()
 		else
 			C.visible_message(span_boldnotice("[C]'s physiology fails to change!"), span_boldwarning("The potion fails to meaningfully effect you!"))
@@ -1076,9 +1084,10 @@
 
 /obj/item/areaeditor/blueprints/slime/edit_area()
 	..()
-	var/area/A = get_area(src)
-	for(var/turf/T in A)
-		T.remove_atom_colour(WASHABLE_COLOUR_PRIORITY)
-		T.add_atom_colour("#2956B2", FIXED_COLOUR_PRIORITY)
-	A.xenobiology_compatible = TRUE
+	var/area/area = get_area(src)
+	for (var/list/zlevel_turfs as anything in area.get_zlevel_turf_lists())
+		for(var/turf/area_turf as anything in zlevel_turfs)
+			area_turf.remove_atom_colour(WASHABLE_COLOUR_PRIORITY)
+			area_turf.add_atom_colour("#2956B2", FIXED_COLOUR_PRIORITY)
+	area.xenobiology_compatible = TRUE
 	qdel(src)

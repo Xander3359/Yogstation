@@ -45,6 +45,8 @@
 	data["lawchanges"] = length(GLOB.lawchanges)
 	return data
 
+#define THUNDERDOME_TEMPLATE_FILE "admin_thunderdome.dmm"
+
 /datum/tgui_secrets_panel/ui_act(action, params)
 	if(..())
 		return
@@ -80,25 +82,25 @@
 				mob_user << browse(dat, "window=showadmins;size=600x500")
 
 		if("tdomereset")
-			if(!check_rights_for(rights, R_ADMIN))
-				return
-			var/delete_mobs = tgui_alert(mob_user, "Clear all mobs?","Confirm",list("Yes","No","Cancel"))
-			if(delete_mobs == "Cancel")
+			var/delete_mobs = tgui_alert(usr, "Clear all mobs?", "Thunderdome Reset", list("Yes", "No", "Cancel"))
+			if(!delete_mobs || delete_mobs == "Cancel")
 				return
 
-			log_admin("[key_name(mob_user)] reset the thunderdome to default with delete_mobs==[delete_mobs].", 1)
-			message_admins(span_adminnotice("[key_name_admin(mob_user)] reset the thunderdome to default with delete_mobs=[delete_mobs]."))
+			log_admin("[key_name(holder)] reset the thunderdome to default with delete_mobs marked as [delete_mobs].")
+			message_admins(span_adminnotice("[key_name_admin(holder)] reset the thunderdome to default with delete_mobs marked as [delete_mobs]."))
 
-			var/area/thunderdome = GLOB.areas_by_type[/area/tdome/arena]
+			var/area/thunderdome = GLOB.areas_by_type[/area/centcom/tdome/arena]
 			if(delete_mobs == "Yes")
 				for(var/mob/living/mob in thunderdome)
 					qdel(mob) //Clear mobs
 			for(var/obj/obj in thunderdome)
-				if(!istype(obj, /obj/machinery/camera) && !istype(obj, /obj/effect/abstract/proximity_checker))
+				if(!istype(obj, /obj/machinery/camera))
 					qdel(obj) //Clear objects
 
-			var/area/template = GLOB.areas_by_type[/area/tdome/arena_source]
-			template.copy_contents_to(thunderdome)
+			var/datum/map_template/thunderdome_template = SSmapping.map_templates[THUNDERDOME_TEMPLATE_FILE]
+			thunderdome_template.should_place_on_top = FALSE
+			var/turf/thunderdome_corner = locate(thunderdome.x - 3, thunderdome.y - 1, 1) // have to do a little bit of coord manipulation to get it in the right spot
+			thunderdome_template.load(thunderdome_corner)
 
 		if("clear_virus")
 
@@ -237,7 +239,7 @@
 			dat += "<table cellspacing=5><tr><th>Name</th><th>DNA</th><th>Blood Type</th></tr>"
 			for(var/mob/living/carbon/human/H in GLOB.carbon_list)
 				if(H.ckey)
-					dat += "<tr><td>[H]</td><td>[H.dna.unique_enzymes]</td><td>[H.dna.blood_type]</td></tr>"
+					dat += "<tr><td>[H]</td><td>[H.dna.unique_enzymes]</td><td>[H.dna.blood_type.name]</td></tr>"
 			dat += "</table>"
 			dat += "</BODY></HTML>"
 			mob_user << browse(dat, "window=DNA;size=440x410")
@@ -248,7 +250,7 @@
 			dat += "<table cellspacing=5><tr><th>Name</th><th>Fingerprints</th></tr>"
 			for(var/mob/living/carbon/human/H in GLOB.carbon_list)
 				if(H.ckey)
-					dat += "<tr><td>[H]</td><td>[md5(H.dna.uni_identity)]</td></tr>"
+					dat += "<tr><td>[H]</td><td>[md5(H.dna.unique_identity)]</td></tr>"
 			dat += "</table></BODY></HTML>"
 			mob_user << browse(dat, "window=fingerprints;size=440x410")
 
@@ -312,6 +314,7 @@
 			var/objective = stripped_input(mob_user, "Enter an objective")
 			if(!objective)
 				return
+			var/tc_amount = input(mob_user, "How much TC should they all get?") as null|num
 			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Traitor All", "[objective]"))
 			for(var/mob/living/H in GLOB.player_list)
 				if(!(ishuman(H)||istype(H, /mob/living/silicon/)))
@@ -327,6 +330,11 @@
 				new_objective.explanation_text = objective
 				T.add_objective(new_objective)
 				H.mind.add_antag_datum(T)
+				if(tc_amount && tc_amount != TELECRYSTALS_DEFAULT)//if the admin chose a different starting TC amount
+					if(T.uplink_holder)
+						var/datum/component/uplink/uplink = T.uplink_holder.GetComponent(/datum/component/uplink)
+						if(uplink)
+							uplink.telecrystals = tc_amount
 			message_admins(span_adminnotice("[key_name_admin(mob_user)] used everyone is a traitor secret. Objective is [objective]"))
 			log_admin("[key_name(mob_user)] used everyone is a traitor secret. Objective is [objective]")
 
@@ -364,14 +372,6 @@
 			message_admins(span_boldannounce("[key_name_admin(mob_user)] changed the bomb cap to [GLOB.MAX_EX_DEVESTATION_RANGE], [GLOB.MAX_EX_HEAVY_RANGE], [GLOB.MAX_EX_LIGHT_RANGE]"))
 			log_admin("[key_name(mob_user)] changed the bomb cap to [GLOB.MAX_EX_DEVESTATION_RANGE], [GLOB.MAX_EX_HEAVY_RANGE], [GLOB.MAX_EX_LIGHT_RANGE]")
 
-		if("blackout")
-			if(!check_rights_for(rights, R_FUN))
-				return
-			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Break All Lights"))
-			message_admins("[key_name_admin(mob_user)] broke all lights")
-			for(var/obj/machinery/light/L in GLOB.machines)
-				L.break_light_tube()
-
 		if("anime")
 			if(!check_rights_for(rights, R_FUN))
 				return
@@ -388,7 +388,7 @@
 			for(var/mob/living/carbon/human/H in GLOB.carbon_list)
 				if(!get_turf(H))
 					continue
-				if(H.client?.prefs?.disable_alternative_announcers)
+				if(H.client?.prefs?.read_preference(/datum/preference/toggle/disable_alternative_announcers))
 					SEND_SOUND(H, sound(SSstation.default_announcer.event_sounds[ANNOUNCER_ANIMES]))
 				else
 					SEND_SOUND(H, sound(SSstation.announcer.event_sounds[ANNOUNCER_ANIMES]))
@@ -405,14 +405,22 @@
 				H.fully_replace_character_name(H.real_name,newname)
 				H.update_mutant_bodyparts()
 				if(animetype == "Yes")
-					var/seifuku = pick(typesof(/obj/item/clothing/under/schoolgirl))
-					var/obj/item/clothing/under/schoolgirl/I = new seifuku
+					var/seifuku = pick(typesof(/obj/item/clothing/under/costume/schoolgirl))
+					var/obj/item/clothing/under/costume/schoolgirl/I = new seifuku
 					var/olduniform = H.w_uniform
 					H.temporarilyRemoveItemFromInventory(H.w_uniform, TRUE, FALSE)
-					H.equip_to_slot_or_del(I, SLOT_W_UNIFORM)
+					H.equip_to_slot_or_del(I, ITEM_SLOT_ICLOTHING)
 					qdel(olduniform)
 					if(droptype == "Yes")
 						ADD_TRAIT(I, TRAIT_NODROP, ADMIN_TRAIT)
+
+		if("blackout")
+			if(!check_rights_for(rights, R_FUN))
+				return
+			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Break All Lights"))
+			message_admins("[key_name_admin(mob_user)] broke all lights")
+			for(var/obj/machinery/light/L in GLOB.machines)
+				L.break_light_tube()
 
 		if("whiteout")
 			if(!check_rights_for(rights, R_FUN))
@@ -421,6 +429,13 @@
 			message_admins("[key_name_admin(mob_user)] fixed all lights")
 			for(var/obj/machinery/light/L in GLOB.machines)
 				L.fix()
+
+		if("flickerout")
+			if(!check_rights_for(rights, R_FUN))
+				return
+			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Flicker All Lights"))
+			message_admins("[key_name_admin(mob_user)] flickered the lights")
+			flicker_all_lights()
 
 		if("floorlava")
 			SSweather.run_weather(/datum/weather/floor_is_lava)
@@ -440,7 +455,7 @@
 					var/datum/round_event/disease_outbreak/DO = E
 					DO.virus_type = virus
 
-		if("retardify")
+		if("stupify")
 			if(!check_rights_for(rights, R_FUN))
 				return
 			SSblackbox.record_feedback("nested tally", "admin_secrets_fun_used", 1, list("Mass Braindamage"))
@@ -457,7 +472,7 @@
 				if(is_station_level(W.z) && !istype(get_area(W), /area/bridge) && !istype(get_area(W), /area/crew_quarters) && !istype(get_area(W), /area/security/prison))
 					W.req_access = list()
 			message_admins("[key_name_admin(mob_user)] activated Egalitarian Station mode (All doors are open access)")
-			priority_announce("CentCom airlock control override activated. Please take this time to get acquainted with your coworkers.", null, RANDOM_REPORT_SOUND)
+			priority_announce("CentCom airlock control override activated. Please take this time to get acquainted with your coworkers.", null, SSstation.announcer.get_rand_report_sound())
 
 		if("ancap")
 			if(!check_rights_for(rights, R_FUN))
@@ -466,9 +481,9 @@
 			SSeconomy.full_ancap = !SSeconomy.full_ancap
 			message_admins("[key_name_admin(mob_user)] toggled Anarcho-capitalist mode")
 			if(SSeconomy.full_ancap)
-				priority_announce("The NAP is now in full effect.", null, RANDOM_REPORT_SOUND)
+				priority_announce("The NAP is now in full effect.", null, SSstation.announcer.get_rand_report_sound())
 			else
-				priority_announce("The NAP has been revoked.", null, RANDOM_REPORT_SOUND)
+				priority_announce("The NAP has been revoked.", null, SSstation.announcer.get_rand_report_sound())
 
 		if("dorf")
 			if(!check_rights_for(rights, R_FUN))
@@ -508,7 +523,7 @@
 				M.check_access()
 				if (ACCESS_MAINT_TUNNELS in M.req_access)
 					M.req_access = list()
-					M.req_one_access = list(ACCESS_BRIG,ACCESS_ENGINE)
+					M.req_one_access = list(ACCESS_BRIG,ACCESS_ENGINEERING)
 			message_admins("[key_name_admin(mob_user)] made all maint doors engineering and brig access-only.")
 		if("infinite_sec")
 			if(!check_rights_for(rights, R_DEBUG))
@@ -554,6 +569,15 @@
 					id.critter_money = FALSE
 			message_admins("[key_name_admin(mob_user)] has deactivated critter money (pets generated on money withdrawl)!")
 			log_admin("[key_name(mob_user)] has deactivated critter money.")
+		if("halflife")
+			if(!check_rights_for(rights, R_FUN))
+				return
+			for(var/obj/machinery/power/supermatter_crystal/S in GLOB.machines)
+				if(!isturf(S.loc) || !is_station_level(S.z))
+					continue
+				S.antinoblium_attached = TRUE
+			message_admins("[key_name_admin(mob_user)] has started a resonance cascade!")
+			log_admin("[key_name(mob_user)] has started a resonance cascade.")
 
 	if(E)
 		E.processing = FALSE
@@ -565,3 +589,5 @@
 		log_admin("[key_name(mob_user)] used secret [action]")
 		if (ok)
 			to_chat(world, text("<B>A secret has been activated by []!</B>", mob_user.key))
+
+#undef THUNDERDOME_TEMPLATE_FILE

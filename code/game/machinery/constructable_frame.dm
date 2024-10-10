@@ -71,7 +71,7 @@
 		amt += req_components[path]
 	return amt
 
-/obj/structure/frame/machine/attackby(obj/item/P, mob/user, params)
+/obj/structure/frame/machine/attackby(obj/item/P, mob/living/user, params)
 	if(!istype(user, /mob/living))
 		return
 	switch(state)
@@ -267,7 +267,7 @@
 						return 1
 				to_chat(user, span_warning("You cannot add that to the machine!"))
 				return 0
-	if(user.a_intent == INTENT_HARM)
+	if(user.combat_mode)
 		return ..()
 
 /obj/structure/frame/machine/deconstruct(disassembled = TRUE)
@@ -280,7 +280,7 @@
 	..()
 
 /obj/structure/frame/machine/MouseDrop_T(atom/dropping, mob/user)
-	if(istype(dropping, /obj/item/circuitboard) || istype(dropping, /obj/item/stock_parts))
+	if((istype(dropping, /obj/item/circuitboard) || istype(dropping, /obj/item/stock_parts)) && !issilicon(user))
 		attackby(dropping, user)
 	else
 		..()

@@ -49,6 +49,8 @@
 	..()
 	if(surgery_target)
 		target = surgery_target
+		if(is_synth(target))
+			ignore_clothes = TRUE
 		target.surgeries += src
 		if(surgery_location)
 			location = surgery_location
@@ -91,7 +93,7 @@
 
 	//Get the surgery bed component and adds available surgeries to the list
 	var/datum/component/surgery_bed/SB
-	for(var/obj/op_table in T.GetAllContents())
+	for(var/obj/op_table in T.get_all_contents())
 		SB = op_table.GetComponent(/datum/component/surgery_bed)
 		if(istype(SB))
 			break
@@ -100,7 +102,7 @@
 		adv_surgeries |= SB.get_surgeries()
 
 	//Get the advanced health analyzer in the off hand or pockets if available and adds available surgeries to the list
-	var/analyzerlocations = list(user.get_inactive_held_item(), user.get_item_by_slot(SLOT_L_STORE), user.get_item_by_slot(SLOT_R_STORE))
+	var/analyzerlocations = list(user.get_inactive_held_item(), user.get_item_by_slot(ITEM_SLOT_LPOCKET), user.get_item_by_slot(ITEM_SLOT_RPOCKET))
 	var/obj/item/healthanalyzer/advanced/adv = locate() in analyzerlocations
 	if(iscyborg(user) && !istype(adv))
 		var/mob/living/silicon/robot/R = user
@@ -119,14 +121,14 @@
 	if(type in adv_surgeries)
 		return TRUE
 
-/datum/surgery/proc/next_step(mob/user, intent)
+/datum/surgery/proc/next_step(mob/user, modifiers)
 	if(location != user.zone_selected)
 		return FALSE
 	if(step_in_progress)
 		return TRUE
 
 	var/try_to_fail = FALSE
-	if(intent == INTENT_DISARM)
+	if(modifiers && modifiers[RIGHT_CLICK])
 		try_to_fail = TRUE
 
 	var/datum/surgery_step/S = get_surgery_step()
@@ -163,7 +165,7 @@
 	var/probability = 0.5
 	var/turf/T = get_turf(target)
 
-	for(var/obj/op_table in T.GetAllContents())
+	for(var/obj/op_table in T.get_all_contents())
 		var/datum/component/surgery_bed/SB = op_table.GetComponent(/datum/component/surgery_bed)
 		if(SB)
 			probability = SB.success_chance
@@ -195,7 +197,7 @@
 	icon_state = "datadisk1"
 	materials = list(/datum/material/iron=300, /datum/material/glass=100)
 
-/obj/item/disk/surgery/debug/Initialize()
+/obj/item/disk/surgery/debug/Initialize(mapload)
 	. = ..()
 	surgeries = list()
 	var/list/req_tech_surgeries = subtypesof(/datum/surgery)

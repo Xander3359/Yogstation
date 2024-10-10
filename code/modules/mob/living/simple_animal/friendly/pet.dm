@@ -1,7 +1,7 @@
 /mob/living/simple_animal/pet
 	icon = 'icons/mob/pets.dmi'
 	mob_size = MOB_SIZE_SMALL
-	mob_biotypes = list(MOB_ORGANIC, MOB_BEAST)
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST
 	blood_volume = BLOOD_VOLUME_GENERIC
 	var/unique_pet = FALSE // if the mob can be renamed
 	var/obj/item/clothing/neck/petcollar/pcollar
@@ -59,15 +59,11 @@
 	else
 		..()
 
-/mob/living/simple_animal/pet/attack_hand(mob/living/carbon/human/M)
+/mob/living/simple_animal/pet/attack_hand(mob/living/carbon/human/M, modifiers)
 	. = ..()
-	switch(M.a_intent)
-		if(INTENT_HELP)
-			wuv(M)
-		if(INTENT_HARM)
-			wuv(M, FALSE)
+	wuv(M, !M.combat_mode)
 
-/mob/living/simple_animal/pet/Initialize()
+/mob/living/simple_animal/pet/Initialize(mapload)
 	. = ..()
 	if(pcollar)
 		pcollar = new(src)
@@ -90,7 +86,7 @@
 		collar_type = "[initial(collar_type)]_dead"
 	regenerate_icons()
 
-/mob/living/simple_animal/pet/gib()
+/mob/living/simple_animal/pet/gib(no_brain, no_organs, no_bodyparts, no_items)
 	if(pcollar)
 		pcollar.forceMove(drop_location())
 		pcollar = null

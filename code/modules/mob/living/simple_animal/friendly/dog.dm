@@ -5,7 +5,7 @@
 	icon_state = "blackdog"
 	icon_living = "blackdog"
 	icon_dead = "blackdog_dead"
-	mob_biotypes = list(MOB_ORGANIC, MOB_BEAST)
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST
 	response_help  = "pets"
 	response_disarm = "bops"
 	response_harm   = "kicks"
@@ -15,13 +15,15 @@
 	emote_hear = list("barks!", "woofs!", "yaps.","pants.")
 	emote_see = list("shakes its head.", "chases its tail.","shivers.")
 	faction = list("neutral")
-	see_in_dark = 5
-	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
+	// VERY red, to fit the eyes
+	lighting_cutoff_red = 22
+	lighting_cutoff_green = 5
+	lighting_cutoff_blue = 5
 	speak_chance = 1
 	turns_per_move = 10
 	gold_core_spawnable = FRIENDLY_SPAWN
 	can_be_held = TRUE
-	do_footstep = TRUE
+	footstep_type = FOOTSTEP_MOB_CLAW
 	wuv_happy = "yaps happily!"
 	wuv_angy = "growls!"
 
@@ -74,11 +76,13 @@
 	animal_species = /mob/living/simple_animal/pet/dog/corgi/borgi
 	nofur = TRUE
 
-/mob/living/simple_animal/pet/dog/corgi/borgi/emag_act(user as mob)
-	if(!emagged)
-		emagged = TRUE
-		visible_message(span_warning("[user] swipes a card through [src]."), span_notice("You overload [src]s internal reactor."))
-		addtimer(CALLBACK(src, .proc/explode), 1000)
+/mob/living/simple_animal/pet/dog/corgi/borgi/emag_act(mob/user, obj/item/card/emag/emag_card)
+	if(emagged)
+		return FALSE
+	emagged = TRUE
+	visible_message(span_warning("[user] swipes a card through [src]."), span_notice("You overload [src]s internal reactor."))
+	addtimer(CALLBACK(src, PROC_REF(explode)), 1000)
+	return TRUE
 
 /mob/living/simple_animal/pet/dog/corgi/borgi/proc/explode()
 	visible_message(span_warning("[src] makes an odd whining noise."))
@@ -119,19 +123,19 @@
 	animal_species = /mob/living/simple_animal/pet/dog/corgi/exoticcorgi
 	nofur = TRUE
 
-/mob/living/simple_animal/pet/dog/Initialize()
+/mob/living/simple_animal/pet/dog/Initialize(mapload)
 	. = ..()
 	var/dog_area = get_area(src)
 	for(var/obj/structure/bed/dogbed/D in dog_area)
-		if(!D.owner)
-			D.update_owner(src)
+		if(D.update_owner(src)) //No muscling in on my turf you fucking parrot
 			break
 
-/mob/living/simple_animal/pet/dog/corgi/Initialize()
+/mob/living/simple_animal/pet/dog/corgi/Initialize(mapload)
 	. = ..()
 	regenerate_icons()
+	AddElement(/datum/element/strippable, GLOB.strippable_corgi_items)
 
-/mob/living/simple_animal/pet/dog/corgi/exoticcorgi/Initialize()
+/mob/living/simple_animal/pet/dog/corgi/exoticcorgi/Initialize(mapload)
 		. = ..()
 		var/newcolor = rgb(rand(0, 255), rand(0, 255), rand(0, 255))
 		add_atom_colour(newcolor, FIXED_COLOUR_PRIORITY)
@@ -140,19 +144,164 @@
 	..(gibbed)
 	regenerate_icons()
 
-/mob/living/simple_animal/pet/dog/corgi/show_inv(mob/user)
-	if(!user.canUseTopic(src, BE_CLOSE, FALSE, NO_TK))
+GLOBAL_LIST_INIT(strippable_corgi_items, create_strippable_list(list(
+	/datum/strippable_item/corgi_head,
+	/datum/strippable_item/corgi_back,
+	/datum/strippable_item/corgi_collar,
+	/datum/strippable_item/corgi_id,
+)))
+
+
+/datum/strippable_item/corgi_head
+	key = STRIPPABLE_ITEM_HEAD
+
+/datum/strippable_item/corgi_head/get_item(atom/source)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
 		return
-	user.set_machine(src)
 
+	return corgi_source.inventory_head
 
-	var/dat = 	"<HTML><HEAD><meta charset='UTF-8'></HEAD><BODY><div align='center'><b>Inventory of [name]</b></div><p>"
-	dat += "<br><B>Head:</B> <A href='?src=[REF(src)];[inventory_head ? "remove_inv=head'>[inventory_head]" : "add_inv=head'>Nothing"]</A>"
-	dat += "<br><B>Back:</B> <A href='?src=[REF(src)];[inventory_back ? "remove_inv=back'>[inventory_back]" : "add_inv=back'>Nothing"]</A>"
-	dat += "<br><B>Collar:</B> <A href='?src=[REF(src)];[pcollar ? "remove_inv=collar'>[pcollar]" : "add_inv=collar'>Nothing"]</A></BODY></HTML>"
+/datum/strippable_item/corgi_head/finish_equip(atom/source, obj/item/equipping, mob/user)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
 
-	user << browse(dat, "window=mob[REF(src)];size=325x500")
-	onclose(user, "mob[REF(src)]")
+	corgi_source.place_on_head(equipping, user)
+
+/datum/strippable_item/corgi_head/finish_unequip(atom/source, mob/user, place_in_hand = FALSE)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	user.put_in_hands(corgi_source.inventory_head)
+	corgi_source.inventory_head = null
+	corgi_source.update_corgi_fluff()
+	corgi_source.regenerate_icons()
+
+/datum/strippable_item/corgi_back
+	key = STRIPPABLE_ITEM_BACK
+
+/datum/strippable_item/corgi_back/get_item(atom/source)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	return corgi_source.inventory_back
+
+/datum/strippable_item/corgi_back/try_equip(atom/source, obj/item/equipping, mob/user)
+	. = ..()
+	if (!.)
+		return FALSE
+
+	if (!ispath(equipping.dog_fashion, /datum/dog_fashion/back))
+		to_chat(user, "<span class='warning'>You set [equipping] on [source]'s back, but it falls off!</span>")
+		equipping.forceMove(source.drop_location())
+		if (prob(25))
+			step_rand(equipping)
+		dance_rotate(source, set_original_dir = TRUE)
+
+		return FALSE
+
+	return TRUE
+
+/datum/strippable_item/corgi_back/finish_equip(atom/source, obj/item/equipping, mob/user)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	equipping.forceMove(corgi_source)
+	corgi_source.inventory_back = equipping
+	corgi_source.update_corgi_fluff()
+	corgi_source.regenerate_icons()
+
+/datum/strippable_item/corgi_back/finish_unequip(atom/source, mob/user, place_in_hand = FALSE)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	user.put_in_hands(corgi_source.inventory_back)
+	corgi_source.inventory_back = null
+	corgi_source.update_corgi_fluff()
+	corgi_source.regenerate_icons()
+
+/datum/strippable_item/corgi_collar
+	key = STRIPPABLE_ITEM_CORGI_COLLAR
+
+/datum/strippable_item/corgi_collar/get_item(atom/source)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	return corgi_source.pcollar
+
+/datum/strippable_item/corgi_collar/try_equip(atom/source, obj/item/equipping, mob/user)
+	. = ..()
+	if (!.)
+		return FALSE
+
+	if (!istype(equipping, /obj/item/clothing/neck/petcollar))
+		to_chat(user, "<span class='warning'>That's not a collar.</span>")
+		return FALSE
+
+	return TRUE
+
+/datum/strippable_item/corgi_collar/finish_equip(atom/source, obj/item/equipping, mob/user)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	corgi_source.add_collar(equipping, user)
+	corgi_source.update_corgi_fluff()
+
+/datum/strippable_item/corgi_collar/finish_unequip(atom/source, mob/user, place_in_hand = FALSE)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	user.put_in_hands(corgi_source.pcollar)
+	corgi_source.pcollar = null
+	corgi_source.update_corgi_fluff()
+	corgi_source.regenerate_icons()
+
+/datum/strippable_item/corgi_id
+	key = STRIPPABLE_ITEM_ID
+
+/datum/strippable_item/corgi_id/get_item(atom/source)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	return corgi_source.access_card
+
+/datum/strippable_item/corgi_id/try_equip(atom/source, obj/item/equipping, mob/user)
+	. = ..()
+	if (!.)
+		return FALSE
+
+	if (!istype(equipping, /obj/item/card/id))
+		to_chat(user, "<span class='warning'>You can't pin [equipping] to [source]!</span>")
+		return FALSE
+
+	return TRUE
+
+/datum/strippable_item/corgi_id/finish_equip(atom/source, obj/item/equipping, mob/user)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	equipping.forceMove(source)
+	corgi_source.access_card = equipping
+
+/datum/strippable_item/corgi_id/finish_unequip(atom/source, mob/user, place_in_hand = FALSE)
+	var/mob/living/simple_animal/pet/dog/corgi/corgi_source = source
+	if (!istype(corgi_source))
+		return
+
+	user.put_in_hands(corgi_source.access_card)
+	corgi_source.access_card = null
+	corgi_source.update_corgi_fluff()
+	corgi_source.regenerate_icons()
 
 /mob/living/simple_animal/pet/dog/corgi/getarmor(def_zone, type)
 	var/armorval = 0
@@ -195,112 +344,12 @@
 	..()
 	update_corgi_fluff()
 
-/mob/living/simple_animal/pet/dog/corgi/Topic(href, href_list)
-	if(!(iscarbon(usr) || iscyborg(usr)) || !usr.canUseTopic(src, BE_CLOSE, FALSE, NO_TK))
-		usr << browse(null, "window=mob[REF(src)]")
-		usr.unset_machine()
-		return
-
-	//Removing from inventory
-	if(href_list["remove_inv"])
-		var/remove_from = href_list["remove_inv"]
-		switch(remove_from)
-			if(BODY_ZONE_HEAD)
-				if(inventory_head)
-					usr.put_in_hands(inventory_head)
-					inventory_head = null
-					update_corgi_fluff()
-					regenerate_icons()
-				else
-					to_chat(usr, span_danger("There is nothing to remove from its [remove_from]."))
-					return
-			if("back")
-				if(inventory_back)
-					usr.put_in_hands(inventory_back)
-					inventory_back = null
-					update_corgi_fluff()
-					regenerate_icons()
-				else
-					to_chat(usr, span_danger("There is nothing to remove from its [remove_from]."))
-					return
-			if("collar")
-				if(pcollar)
-					usr.put_in_hands(pcollar)
-					pcollar = null
-					update_corgi_fluff()
-					regenerate_icons()
-
-		show_inv(usr)
-
-	//Adding things to inventory
-	else if(href_list["add_inv"])
-		var/add_to = href_list["add_inv"]
-
-		switch(add_to)
-			if("collar")
-				var/obj/item/clothing/neck/petcollar/P = usr.get_active_held_item()
-				if(!istype(P))
-					to_chat(usr,span_warning("That's not a collar."))
-					return
-				add_collar(P, usr)
-				update_corgi_fluff()
-
-			if(BODY_ZONE_HEAD)
-				place_on_head(usr.get_active_held_item(),usr)
-
-			if("back")
-				if(inventory_back)
-					to_chat(usr, span_warning("It's already wearing something!"))
-					return
-				else
-					var/obj/item/item_to_add = usr.get_active_held_item()
-
-					if(!item_to_add)
-						usr.visible_message("[usr] pets [src].",span_notice("You rest your hand on [src]'s back for a moment."))
-						return
-
-					if(!usr.temporarilyRemoveItemFromInventory(item_to_add))
-						to_chat(usr, span_warning("\The [item_to_add] is stuck to your hand, you cannot put it on [src]'s back!"))
-						return
-
-					if(istype(item_to_add, /obj/item/grenade/plastic)) // last thing he ever wears, I guess
-						item_to_add.afterattack(src,usr,1)
-						return
-
-					//The objects that corgis can wear on their backs.
-					var/allowed = FALSE
-					if(ispath(item_to_add.dog_fashion, /datum/dog_fashion/back))
-						allowed = TRUE
-
-					if(!allowed)
-						to_chat(usr, span_warning("You set [item_to_add] on [src]'s back, but it falls off!"))
-						item_to_add.forceMove(drop_location())
-						if(prob(25))
-							step_rand(item_to_add)
-						for(var/i in list(1,2,4,8,4,8,4,dir))
-							setDir(i)
-							sleep(0.1 SECONDS)
-						return
-
-					item_to_add.forceMove(src)
-					src.inventory_back = item_to_add
-					update_corgi_fluff()
-					regenerate_icons()
-
-		show_inv(usr)
-	else
-		return ..()
-
 //Corgis are supposed to be simpler, so only a select few objects can actually be put
 //to be compatible with them. The objects are below.
 //Many  hats added, Some will probably be removed, just want to see which ones are popular.
 // > some will probably be removed
 
 /mob/living/simple_animal/pet/dog/corgi/proc/place_on_head(obj/item/item_to_add, mob/user)
-
-	if(istype(item_to_add, /obj/item/grenade/plastic)) // last thing he ever wears, I guess
-		INVOKE_ASYNC(item_to_add, /obj/item.proc/afterattack, src, user, 1)
-		return
 
 	if(inventory_head)
 		if(user)
@@ -339,9 +388,8 @@
 		item_to_add.forceMove(drop_location())
 		if(prob(25))
 			step_rand(item_to_add)
-		for(var/i in list(1,2,4,8,4,8,4,dir))
-			setDir(i)
-			sleep(0.1 SECONDS)
+		dance_rotate(src, set_original_dir = TRUE)
+		return FALSE
 
 	return valid
 
@@ -383,7 +431,7 @@
 	var/memory_saved = FALSE
 	var/saved_head //path
 
-/mob/living/simple_animal/pet/dog/corgi/Ian/Initialize()
+/mob/living/simple_animal/pet/dog/corgi/Ian/Initialize(mapload)
 	. = ..()
 	//parent call must happen first to ensure IAN
 	//is not in nullspace when child puppies spawn
@@ -401,7 +449,7 @@
 		desc = "At a ripe old age of [record_age] Ian's not as spry as he used to be, but he'll always be the HoP's beloved corgi." //RIP
 		turns_per_move = 20
 
-/mob/living/simple_animal/pet/dog/corgi/Ian/Life()
+/mob/living/simple_animal/pet/dog/corgi/Ian/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	if(!stat && SSticker.current_state == GAME_STATE_FINISHED && !memory_saved)
 		Write_Memory(FALSE)
 		memory_saved = TRUE
@@ -454,7 +502,7 @@
 	fdel(json_file)
 	WRITE_FILE(json_file, json_encode(file_data))
 
-/mob/living/simple_animal/pet/dog/corgi/Ian/Life()
+/mob/living/simple_animal/pet/dog/corgi/Ian/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 
 	//Feeding, chasing food, FOOOOODDDD
@@ -529,7 +577,7 @@
 	nofur = TRUE
 	unique_pet = TRUE
 
-/mob/living/simple_animal/pet/dog/corgi/narsie/Life()
+/mob/living/simple_animal/pet/dog/corgi/narsie/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 	for(var/mob/living/simple_animal/pet/P in range(1, src))
 		if(P != src && prob(5))
@@ -659,7 +707,7 @@
 		return
 	..()
 
-/mob/living/simple_animal/pet/dog/corgi/Lisa/Life()
+/mob/living/simple_animal/pet/dog/corgi/Lisa/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 
 	make_babies()
@@ -672,7 +720,7 @@
 					setDir(i)
 					sleep(0.1 SECONDS)
 
-/mob/living/simple_animal/pet/dog/pug/Life()
+/mob/living/simple_animal/pet/dog/pug/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 
 	if(!stat && !resting && !buckled)

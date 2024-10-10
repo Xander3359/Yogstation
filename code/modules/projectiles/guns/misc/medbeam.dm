@@ -16,7 +16,7 @@
 
 	weapon_weight = WEAPON_MEDIUM
 
-/obj/item/gun/medbeam/Initialize()
+/obj/item/gun/medbeam/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 
@@ -33,6 +33,9 @@
 	..()
 	LoseTarget()
 
+/**
+ * Proc that always is called when we want to end the beam and makes sure things are cleaned up, see beam_died()
+ */
 /obj/item/gun/medbeam/proc/LoseTarget()
 	if(active)
 		qdel(current_beam)
@@ -41,6 +44,19 @@
 		on_beam_release(current_target)
 	current_target = null
 
+/**
+ * Proc that is only called when the beam fails due to something, so not when manually ended.
+ * manual disconnection = LoseTarget, so it can silently end
+ * automatic disconnection = beam_died, so we can give a warning message first
+ */
+/obj/item/gun/medbeam/proc/beam_died()
+	SIGNAL_HANDLER
+	current_beam = null
+	active = FALSE //skip qdelling the beam again if we're doing this proc, because
+	if(isliving(loc))
+		to_chat(loc, span_warning("You lose control of the beam!"))
+	LoseTarget()
+
 /obj/item/gun/medbeam/process_fire(atom/target, mob/living/user, message = TRUE, params = null, zone_override = "", bonus_spread = 0)
 	if(isliving(user))
 		add_fingerprint(user)
@@ -48,16 +64,17 @@
 	if(current_target)
 		LoseTarget()
 	if(!isliving(target))
-		return
+		return FALSE
 
 	current_target = target
 	active = TRUE
-	current_beam = new(user,current_target,time=6000,beam_icon_state="medbeam",btype=/obj/effect/ebeam/medical)
-	INVOKE_ASYNC(current_beam, /datum/beam.proc/Start)
+	current_beam = user.Beam(current_target, icon_state="medbeam", time = 10 MINUTES, maxdistance = max_range, beam_type = /obj/effect/ebeam/medical)
+	RegisterSignal(current_beam, COMSIG_QDELETING, PROC_REF(beam_died))//this is a WAY better rangecheck than what was done before (process check)
 
 	SSblackbox.record_feedback("tally", "gun_fired", 1, type)
+	return TRUE
 
-/obj/item/gun/medbeam/process()
+/obj/item/gun/medbeam/process(delta_time)
 
 	var/source = loc
 	if(!mounted && !isliving(source))
@@ -80,7 +97,7 @@
 		return
 
 	if(current_target)
-		on_beam_tick(current_target)
+		on_beam_tick(current_target, delta_time)
 
 /obj/item/gun/medbeam/proc/los_check(atom/movable/user, mob/target)
 	var/turf/user_turf = user.loc
@@ -102,25 +119,28 @@
 				return 0
 		for(var/obj/effect/ebeam/medical/B in turf)// Don't cross the str-beams!
 			if(B.owner.origin != current_beam.origin)
-				explosion(B.loc,0,3,5,8)
+				explosion(B.loc, heavy_impact_range = 3, light_impact_range = 5, flash_range = 8)
 				qdel(dummy)
 				return 0
 	qdel(dummy)
 	return 1
 
-/obj/item/gun/medbeam/proc/on_beam_hit(var/mob/living/target)
+/obj/item/gun/medbeam/proc/on_beam_hit(mob/living/target)
 	return
 
-/obj/item/gun/medbeam/proc/on_beam_tick(var/mob/living/target)
+/obj/item/gun/medbeam/proc/on_beam_tick(mob/living/target, delta_time = SSOBJ_DT)
 	if(target.health != target.maxHealth)
-		new /obj/effect/temp_visual/heal(get_turf(target), "#80F5FF")
-	target.adjustBruteLoss(-4)
-	target.adjustFireLoss(-4)
-	target.adjustToxLoss(-1)
-	target.adjustOxyLoss(-1)
+		new /obj/effect/temp_visual/heal(get_turf(target), COLOR_HEALING_CYAN)
+	var/need_mob_update
+	need_mob_update = target.adjustBruteLoss(-2 * delta_time, updating_health = FALSE, forced = TRUE)
+	need_mob_update += target.adjustFireLoss(-2 * delta_time, updating_health = FALSE, forced = TRUE)
+	need_mob_update += target.adjustToxLoss(-0.5 * delta_time, updating_health = FALSE, forced = TRUE)
+	need_mob_update += target.adjustOxyLoss(-0.5 * delta_time, updating_health = FALSE, forced = TRUE)
+	if(need_mob_update)
+		target.updatehealth()
 	return
 
-/obj/item/gun/medbeam/proc/on_beam_release(var/mob/living/target)
+/obj/item/gun/medbeam/proc/on_beam_release(mob/living/target)
 	return
 
 /obj/effect/ebeam/medical
@@ -130,7 +150,7 @@
 /obj/item/gun/medbeam/mech
 	mounted = 1
 
-/obj/item/gun/medbeam/mech/Initialize()
+/obj/item/gun/medbeam/mech/Initialize(mapload)
 	. = ..()
 	STOP_PROCESSING(SSobj, src) //Mech mediguns do not process until installed, and are controlled by the holder obj
 
@@ -166,10 +186,10 @@
 	if(current_target && !ubering)
 
 		if(current_target.health == current_target.maxHealth)
-			ubercharge += 1.25*delta_time/10 // 80 seconds
+			ubercharge += 1.25*delta_time // 80 seconds
 
 		if(current_target.health < current_target.maxHealth)
-			ubercharge += 2.5*delta_time/10 // 40 seconds
+			ubercharge += 2.5*delta_time // 40 seconds
 
 	if(ubering)
 		// No uber flashing
@@ -177,7 +197,7 @@
 			uber_act()
 			ubercharge = 0
 		else
-			ubercharge -= 12.5*delta_time/10
+			ubercharge -= 12.5*delta_time // 8 second uber
 		if(ubercharge <= 0)
 			uber_act()
 
@@ -232,7 +252,7 @@
 
 /datum/action/item_action/activate_uber
 	name = "Activate Übercharge"
-	icon_icon = 'icons/obj/chronos.dmi'
+	button_icon = 'icons/obj/chronos.dmi'
 	button_icon_state = "chronogun"
 
 /// Activates über if ubercharge is ready
@@ -243,7 +263,7 @@
 
 	var/obj/item/gun/medbeam/uber/gun = target
 
-	if(!IsAvailable())
+	if(!IsAvailable(feedback = FALSE))
 		return
 
 	if(gun.ubering)
@@ -261,7 +281,7 @@
 	name = "medical beamgun arm"
 	desc = "A bulky medical beam gun based on syndicate designs, can only be used when attached to an arm."
 
-/obj/item/gun/medbeam/arm/Initialize()
+/obj/item/gun/medbeam/arm/Initialize(mapload)
 	. = ..()
 	ADD_TRAIT(src, TRAIT_NODROP, HAND_REPLACEMENT_TRAIT)
 

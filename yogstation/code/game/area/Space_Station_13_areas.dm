@@ -2,22 +2,12 @@
 	name = "Paramedic Staging Area"
 	icon_state = "emergencystorage"
 
-//Minsky Specific Areas
-/area/medical/paramedic/a
-	name = "Primary Paramedic Staging Area"
-	icon_state = "emergencystorage"
-
-/area/medical/paramedic/b
-	name = "Secondary Paramedic Staging Area"
-	icon_state = "emergencystorage"
-//end Minsky Specific Areas
-
 /area/medical/psych
-	name = "Psychiatrists office"
+	name = "Psychiatrist's Office"
 	icon_state = "exam_room"
 
 /area/clerk
-	name = "Clerks office"
+	name = "Clerk's Office"
 	icon_state = "cafeteria"
 
 /area/security/brig/infirmary
@@ -42,10 +32,8 @@
 /area/bluespace_locker
 	name = "Bluespace Locker"
 	icon_state = "away"
-	requires_power = FALSE
 	has_gravity = STANDARD_GRAVITY
-	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
-	noteleport = TRUE
+	area_flags = NOTELEPORT
 
 /area/vacant_room/office/office_b
 	name = "Vacant Office - B"
@@ -85,3 +73,8 @@
 /area/security/podbay
 	name = "Security Podbay"
 	icon_state = "security"
+
+
+/area/shipbreak
+	name = "Shipbreak Zone"
+	icon_state = "escape"

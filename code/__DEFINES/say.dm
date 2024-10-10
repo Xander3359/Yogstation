@@ -23,11 +23,8 @@
 
 #define MODE_ROBOT "robot"
 
-#define MODE_R_HAND "right hand"
-#define MODE_KEY_R_HAND "r"
-
-#define MODE_L_HAND "left hand"
-#define MODE_KEY_L_HAND "l"
+#define MODE_RADIO "radio"
+#define MODE_KEY_RADIO "r"
 
 #define MODE_INTERCOM "intercom"
 #define MODE_KEY_INTERCOM "i"
@@ -80,6 +77,8 @@
 #define SPAN_CLOWN "clown"
 #define SPAN_SINGING "singing"
 #define SPAN_CULTLARGE "cultlarge"
+#define SPAN_HELIUM "small"
+#define SPAN_PROGENITOR "progenitor"
 
 //bitflag #defines for return value of the radio() proc.
 #define ITALICS			(1<<0)
@@ -111,3 +110,24 @@
 
 //Used in visible_message_flags, audible_message_flags and runechat_flags
 #define EMOTE_MESSAGE (1<<0)
+
+//Typing indicator defines, used in /mob/create_typing_indicator()
+#define BUBBLE_DEFAULT "default"
+#define BUBBLE_LAWYER "lawyer"
+#define BUBBLE_ROBOT "robot"
+#define BUBBLE_MACHINE "machine"
+#define BUBBLE_SYNDIBOT "syndibot"
+#define BUBBLE_SWARMER "swarmer"
+#define BUBBLE_SLIME "slime"
+#define BUBBLE_CLOCK "clock"
+#define BUBBLE_ALIEN "alien"
+#define BUBBLE_ALIENROYAL "alienroyal"
+#define BUBBLE_DARKSPAWN "darkspawn"
+#define BUBBLE_GUARDIAN "guardian"
+#define BUBBLE_BLOB "blob"
+
+
+#define MAX_FLAVOR_LEN 4096		//double the maximum message length.
+
+/// Default volume of speech sound effects (this is actually multiplied by 5 when used)
+#define DEFAULT_SPEECH_VOLUME 60

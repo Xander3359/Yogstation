@@ -43,7 +43,7 @@
 	plantname = "Red Onion Sprouts"
 	weed_chance = 1
 	product = /obj/item/reagent_containers/food/snacks/grown/onion/red
-	reagents_add = list(/datum/reagent/consumable/nutriment = 0.1, /datum/reagent/consumable/tearjuice = 0.05)
+	reagents_add = list(/datum/reagent/consumable/nutriment = 0.1, /datum/reagent/consumable/tea/hotrjuice = 0.05)
 	rarity = 10
 
 /obj/item/reagent_containers/food/snacks/grown/onion/red
@@ -56,10 +56,10 @@
 	wine_power = 60
 
 /obj/item/reagent_containers/food/snacks/grown/onion/slice(accuracy, obj/item/W, mob/user)
-	var/datum/effect_system/smoke_spread/chem/S = new	//Since the onion is destroyed when it's sliced,
+	var/datum/effect_system/fluid_spread/smoke/chem/S = new	//Since the onion is destroyed when it's sliced,
 	var/splat_location = get_turf(src)	//we need to set up the smoke beforehand
 	S.attach(splat_location)
-	S.set_up(reagents, 0, splat_location, 0)
+	S.set_up(0, location = splat_location, carry = reagents)
 	if(..())
 		S.start()
 		return TRUE
@@ -79,4 +79,4 @@
 	desc = "They shine like exceptionally low quality amethyst."
 	icon_state = "onionslice_red"
 	filling_color = "#C29ACF"
-	list_reagents = list(/datum/reagent/consumable/nutriment = 5, /datum/reagent/consumable/tearjuice = 2.5)
+	list_reagents = list(/datum/reagent/consumable/nutriment = 5, /datum/reagent/consumable/tea/hotrjuice = 2.5)

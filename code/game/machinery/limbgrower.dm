@@ -12,7 +12,7 @@
 	circuit = /obj/item/circuitboard/machine/limbgrower
 
 	/// The category of limbs we're browing in our UI.
-	var/selected_category = "human"
+	var/selected_category = SPECIES_HUMAN
 	/// If we're currently printing something.
 	var/busy = FALSE
 	/// How efficient our machine is. Better parts = less chemicals used and less power used. Range of 1 to 0.25.
@@ -24,7 +24,7 @@
 	/// Our internal techweb for limbgrower designs.
 	var/datum/techweb/stored_research
 	/// All the categories of organs we can print.
-	var/list/categories = list("human", "lizard", "moth", "plasmaman", "ethereal", "polysmorph", "other")
+	var/list/categories = list(SPECIES_HUMAN, SPECIES_LIZARD, SPECIES_MOTH, SPECIES_PLASMAMAN, SPECIES_ETHEREAL, SPECIES_POLYSMORPH, SPECIES_VOX, "other")
 	//yogs grower a little different because we're going to allow meats to be converted to synthflesh because hugbox
 	var/list/accepted_biomass = list(
 		/obj/item/reagent_containers/food/snacks/meat/slab/monkey = 25, 
@@ -33,7 +33,7 @@
 		/obj/item/stack/sheet/animalhide/human = 50
 		)
 	var/biomass_per_slab = 20
-/obj/machinery/limbgrower/Initialize()
+/obj/machinery/limbgrower/Initialize(mapload)
 	create_reagents(100, OPENCONTAINER)
 	stored_research = new /datum/techweb/specialized/autounlocking/limbgrower
 	. = ..()
@@ -126,7 +126,7 @@
 	return
 //end yog (please)
 
-/obj/machinery/limbgrower/attackby(obj/item/user_item, mob/user, params)
+/obj/machinery/limbgrower/attackby(obj/item/user_item, mob/living/user, params)
 	if (busy)
 		to_chat(user, span_alert("The Limb Grower is busy. Please wait for completion of previous operation."))
 		return
@@ -137,7 +137,7 @@
 			"<span class='hear'>You hear the clatter of a floppy drive.</span>")
 		busy = TRUE
 		var/obj/item/disk/design_disk/limbs/limb_design_disk = user_item
-		if(do_after(user, 2 SECONDS, target = src))
+		if(do_after(user, 2 SECONDS, src))
 			for(var/datum/design/found_design in limb_design_disk.blueprints)
 				stored_research.add_design(found_design)
 			update_static_data(user)
@@ -169,7 +169,7 @@
 	if(panel_open && default_deconstruction_crowbar(user_item))
 		return
 
-	if(user.a_intent == INTENT_HARM) //so we can hit the machine
+	if(user.combat_mode) //so we can hit the machine
 		return ..()
 
 /obj/machinery/limbgrower/ui_act(action, list/params)
@@ -210,7 +210,7 @@
 			flick("limbgrower_fill",src)
 			icon_state = "limbgrower_idleon"
 			selected_category = params["active_tab"]
-			addtimer(CALLBACK(src, .proc/build_item, consumed_reagents_list), production_speed * production_coefficient)
+			addtimer(CALLBACK(src, PROC_REF(build_item), consumed_reagents_list), production_speed * production_coefficient)
 			. = TRUE
 
 	return
@@ -255,9 +255,9 @@
 		/// The limb we're making with our buildpath, so we can edit it.
 	var/obj/item/bodypart/limb = new buildpath(loc)
 	/// Species with greyscale limbs.
-	var/list/greyscale_species = list("human", "lizard", "ethereal")
+	var/list/greyscale_species = list(SPECIES_HUMAN, SPECIES_LIZARD, SPECIES_ETHEREAL)
 	if(selected_category in greyscale_species) //Species with greyscale parts should be included here
-		if(selected_category == "human") //humans don't use the full colour spectrum, they use random_skin_tone
+		if(selected_category == SPECIES_HUMAN) //humans don't use the full colour spectrum, they use random_skin_tone
 			limb.skin_tone = random_skin_tone()
 		else
 			limb.species_color = random_short_color()
@@ -302,9 +302,9 @@
 	return TRUE
 
 /// Emagging a limbgrower allows you to build synthetic armblades.
-/obj/machinery/limbgrower/emag_act(mob/user)
+/obj/machinery/limbgrower/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(obj_flags & EMAGGED)
-		return
+		return FALSE
 	for(var/design_id in SSresearch.techweb_designs)
 		var/datum/design/found_design = SSresearch.techweb_design_by_id(design_id)
 		if((found_design.build_type & LIMBGROWER) && ("emagged" in found_design.category))
@@ -312,3 +312,4 @@
 	to_chat(user, span_warning("A warning flashes onto the screen, stating that safety overrides have been deactivated!"))
 	obj_flags |= EMAGGED
 	update_static_data(user)
+	return TRUE

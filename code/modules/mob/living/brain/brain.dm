@@ -5,10 +5,9 @@
 	var/datum/dna/stored/stored_dna // dna var for brain. Used to store dna, brain dna is not considered like actual dna, brain.has_dna() returns FALSE.
 	stat = DEAD //we start dead by default
 	see_invisible = SEE_INVISIBLE_LIVING
-	possible_a_intents = list(INTENT_HELP, INTENT_HARM) //for mechas
 	speech_span = SPAN_ROBOT
 
-/mob/living/brain/Initialize()
+/mob/living/brain/Initialize(mapload)
 	. = ..()
 	create_dna(src)
 	stored_dna.initialize_dna(random_blood_type())
@@ -17,6 +16,11 @@
 		OB.brainmob = src
 		forceMove(OB)
 
+/mob/living/brain/on_changed_z_level(turf/old_turf, turf/new_turf, same_z_layer, notify_contents)
+	var/obj/item/organ/brain/brain_loc = loc
+	if(brain_loc && isnull(new_turf) && brain_loc.owner) //we're actively being put inside a new body.
+		return ..(old_turf, get_turf(brain_loc.owner), same_z_layer, notify_contents)
+	return ..()
 
 /mob/living/brain/proc/create_dna()
 	stored_dna = new /datum/dna/stored(src)
@@ -97,8 +101,6 @@
 		var/obj/mecha/M = container.mecha
 		if(M.mouse_pointer)
 			client.mouse_pointer_icon = M.mouse_pointer
-	if (client && ranged_ability && ranged_ability.ranged_mousepointer)
-		client.mouse_pointer_icon = ranged_ability.ranged_mousepointer
 
 /mob/living/brain/proc/get_traumas()
 	. = list()
@@ -112,7 +114,7 @@
 	if(container)
 		. += "[container.type]"
 
-/mob/living/brain/say(message, bubble_type, var/list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
+/mob/living/brain/say(message, bubble_type, list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
 	if(container && container.rebooting)
 		to_chat(src, span_danger("Speech synthesizers still offine, wait for the reboot process to complete"))
 		return

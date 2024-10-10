@@ -38,7 +38,7 @@
 	///last amount of energy transmitted before being reset by budget cycle, so CE can check if his engine modifications are making more power
 	var/last_accumulated_power = 0
 
-obj/item/energy_harvester/Initialize()
+obj/item/energy_harvester/Initialize(mapload)
 	. = ..()
 	///links this to SSeconomy so it can be added to the budget cycle calculations
 	SSeconomy.moneysink = src
@@ -73,8 +73,8 @@ obj/item/energy_harvester/Initialize()
 	STOP_PROCESSING(SSobj, src)
 	set_light(0)
 
-/obj/item/energy_harvester/attack_hand(mob/user, params)
-	if(anchored && user.a_intent != INTENT_HARM)
+/obj/item/energy_harvester/attack_hand(mob/living/user, params)
+	if(anchored && !user.combat_mode)
 		ui_interact(user)
 	return ..()
 

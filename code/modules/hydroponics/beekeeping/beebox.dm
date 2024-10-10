@@ -16,7 +16,7 @@
 
 
 /mob/living/carbon/human/bee_friendly()
-	if(dna && dna.species && dna.species.id == "pod") //bees pollinate plants, duh.
+	if(ispodperson(src)) //bees pollinate plants, duh.
 		return TRUE
 	if (wear_suit && head && istype(wear_suit, /obj/item/clothing) && istype(head, /obj/item/clothing))
 		var/obj/item/clothing/CS = wear_suit
@@ -40,7 +40,7 @@
 	var/bee_resources = 0
 
 
-/obj/structure/beebox/Initialize()
+/obj/structure/beebox/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 
@@ -58,7 +58,7 @@
 	var/random_reagent = FALSE
 
 
-/obj/structure/beebox/premade/Initialize()
+/obj/structure/beebox/premade/Initialize(mapload)
 	. = ..()
 
 	icon_state = "beebox"
@@ -125,7 +125,7 @@
 	for(var/mob/living/simple_animal/hostile/poison/bees/B in bees)
 		B.toggle_angery(angery)
 	if(angery)
-		addtimer(CALLBACK(src, .proc/toggle_angery, FALSE), 300, TIMER_UNIQUE|TIMER_OVERRIDE)
+		addtimer(CALLBACK(src, PROC_REF(toggle_angery), FALSE), 300, TIMER_UNIQUE|TIMER_OVERRIDE)
 
 /obj/structure/beebox/examine(mob/user)
 	. = ..()

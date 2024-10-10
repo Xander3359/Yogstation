@@ -1,7 +1,7 @@
 /obj/structure/closet/secure_closet/personal
 	desc = "It's a secure locker for personnel. The first card swiped gains control."
 	name = "personal closet"
-	req_access = list(ACCESS_ALL_PERSONAL_LOCKERS)
+	req_access = list(ACCESS_PERSONAL_LOCKERS)
 	var/registered_name = null
 
 /obj/structure/closet/secure_closet/personal/PopulateContents()
@@ -57,7 +57,7 @@
 		if(allowed(user) || !registered_name || (istype(I) && (registered_name == I.registered_name)))
 			//they can open all lockers, or nobody owns this, or they own this locker
 			locked = !locked
-			update_icon()
+			update_appearance(UPDATE_ICON)
 
 			if(!registered_name)
 				registered_name = I.registered_name

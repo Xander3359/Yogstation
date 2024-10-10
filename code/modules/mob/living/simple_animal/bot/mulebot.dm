@@ -18,7 +18,8 @@
 	health = 50
 	maxHealth = 50
 	damage_coeff = list(BRUTE = 0.5, BURN = 0.7, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
-	a_intent = INTENT_HARM //No swapping
+	combat_mode = TRUE //No swapping
+	can_toggle_combat = FALSE // I SAID NO SWAPPING
 	buckle_lying = 0
 	mob_size = MOB_SIZE_LARGE
 
@@ -52,7 +53,7 @@
 	///The amount of steps we should take until we rest for a time.
 	var/num_steps = 0
 	
-/mob/living/simple_animal/bot/mulebot/Initialize()
+/mob/living/simple_animal/bot/mulebot/Initialize(mapload)
 	. = ..()
 	wires = new /datum/wires/mulebot(src)
 	var/datum/job/cargo_tech/J = new/datum/job/cargo_tech
@@ -64,10 +65,6 @@
 	mulebot_count += 1
 	set_id(suffix || id || "#[mulebot_count]")
 	suffix = null
-
-/mob/living/simple_animal/bot/mulebot/ComponentInitialize()
-	. = ..()
-	AddComponent(/datum/component/ntnet_interface)
 
 /mob/living/simple_animal/bot/mulebot/Destroy()
 	unload(0)
@@ -86,7 +83,7 @@
 	..()
 	reached_target = 0
 
-/mob/living/simple_animal/bot/mulebot/attackby(obj/item/I, mob/user, params)
+/mob/living/simple_animal/bot/mulebot/attackby(obj/item/I, mob/living/user, params)
 	if(I.tool_behaviour == TOOL_SCREWDRIVER)
 		..()
 		if(open)
@@ -115,10 +112,10 @@
 			..()
 	else
 		..()
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	return
 
-/mob/living/simple_animal/bot/mulebot/emag_act(mob/user)
+/mob/living/simple_animal/bot/mulebot/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(emagged < 1)
 		emagged = TRUE
 	if(!open)
@@ -127,18 +124,20 @@
 	flick("mulebot-emagged", src)
 	playsound(src, "sparks", 100, 0)
 
-/mob/living/simple_animal/bot/mulebot/update_icon()
+/mob/living/simple_animal/bot/mulebot/update_icon_state()
+	. = ..()
 	if(open)
 		icon_state="mulebot-hatch"
 	else
 		icon_state = "mulebot[wires.is_cut(WIRE_AVOIDANCE)]"
-	cut_overlays()
+
+/mob/living/simple_animal/bot/mulebot/update_overlays()
+	. = ..()
 	if(load && !ismob(load))//buckling handles the mob offsets
 		load.pixel_y = initial(load.pixel_y) + 9
 		if(load.layer < layer)
 			load.layer = layer + 0.01
-		add_overlay(load)
-	return
+		. += load
 
 /mob/living/simple_animal/bot/mulebot/ex_act(severity)
 	unload(0)
@@ -152,7 +151,7 @@
 			wires.cut_random()
 	return
 
-/mob/living/simple_animal/bot/mulebot/bullet_act(obj/item/projectile/Proj)
+/mob/living/simple_animal/bot/mulebot/bullet_act(obj/projectile/Proj)
 	. = ..()
 	if(.)
 		if(prob(50) && !isnull(load))
@@ -190,6 +189,7 @@
 		if(BOT_NO_ROUTE)
 			data["modeStatus"] = "bad"
 		else
+			data["modeStatus"] = "unknown"
 	data["load"] = load ? load.name : null
 	data["destination"] = destination ? destination : null
 	data["home"] = home_destination
@@ -389,7 +389,7 @@
 
 	load = AM
 	mode = BOT_IDLE
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /mob/living/simple_animal/bot/mulebot/proc/load_mob(mob/living/M)
 	can_buckle = TRUE
@@ -427,7 +427,7 @@
 		load.forceMove(loc)
 		load.pixel_y = initial(load.pixel_y)
 		load.layer = initial(load.layer)
-		load.plane = initial(load.plane)
+		SET_PLANE_IMPLICIT(load, initial(load.plane))
 		if(dirn)
 			var/turf/T = loc
 			var/turf/newT = get_step(T,dirn)
@@ -463,7 +463,7 @@
 	num_steps--
 	if(!on || client)
 		return
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 	switch(mode)
 		if(BOT_IDLE) // idle
@@ -572,7 +572,7 @@
 		mode = BOT_GO_HOME
 	else
 		mode = BOT_DELIVER
-	update_icon()
+	update_appearance(UPDATE_ICON)
 	get_nav()
 
 // starts bot moving to home
@@ -583,7 +583,7 @@
 	spawn(0)
 		set_destination(home_destination)
 		mode = BOT_BLOCKED
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 // called when bot reaches current target
 /mob/living/simple_animal/bot/mulebot/proc/at_target()
@@ -645,7 +645,7 @@
 					L.Knockdown(8 SECONDS)
 	return ..()
 
-// called from mob/living/carbon/human/Crossed()
+// called from mob/living/carbon/human/proc/on_entered()
 // when mulebot is in the same loc
 /mob/living/simple_animal/bot/mulebot/proc/RunOver(mob/living/carbon/human/H)
 	log_combat(src, H, "run over", null, "(DAMTYPE: [uppertext(BRUTE)])")
@@ -691,7 +691,7 @@
 				loaddir = text2num(direction)
 			else
 				loaddir = 0
-			update_icon()
+			update_appearance(UPDATE_ICON)
 			if(destination) // No need to calculate a path if you do not have a destination set!
 				calc_path()
 
@@ -713,7 +713,7 @@
 	new /obj/item/stack/cable_coil/cut(Tsec)
 	if(cell)
 		cell.forceMove(Tsec)
-		cell.update_icon()
+		cell.update_appearance(UPDATE_ICON)
 		cell = null
 
 	do_sparks(3, TRUE, src)
@@ -726,6 +726,11 @@
 		return loc.remove_air(amount)
 	else
 		return null
+
+/mob/living/simple_animal/bot/mulebot/remove_air_ratio(ratio)
+	if(loc)
+		return loc.remove_air_ratio(ratio)
+	return null
 
 /mob/living/simple_animal/bot/mulebot/resist()
 	..()

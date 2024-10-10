@@ -66,10 +66,6 @@ ENABLE_LOCALHOST_RANK
 ## The default value assumes youtube-dl is in your system PATH
 # INVOKE_YOUTUBEDL youtube-dl
 
-## Defines the ticklimit for subsystem initialization (In percents of a byond tick). Lower makes world start smoother. Higher makes it faster.
-##This is currently a testing optimized setting. A good value for production would be 98.
-TICK_LIMIT_MC_INIT 500
-
 ## Should SQL be enabled? Uncomment to enable
 #SQL_ENABLED
 
@@ -86,3 +82,17 @@ FEEDBACK_TABLEPREFIX SS13_
 
 VOICE_ANNOUNCE_URL_BASE http://localhost/voice_announce/
 VOICE_ANNOUNCE_DIR ../Yogstation.net/voice_announce_tmp
+
+## Enable the demo subsystem
+#DEMOS_ENABLED
+
+## Enable automatic profiling - Byond 513.1506 and newer only.
+#AUTO_PROFILE
+
+
+## Assets can opt-in to caching their results into `tmp`.
+## This is important, as preferences assets take upwards of 30 seconds (without sleeps) to collect.
+## The cache is assumed to be cleared by TGS recompiling, which deletes `tmp`.
+## This should be disabled (through `CACHE_ASSETS 0`) on development,
+## but enabled on production (the default).
+CACHE_ASSETS 0

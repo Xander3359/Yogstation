@@ -6,7 +6,10 @@
 	adjacency code.
 */
 
-/mob/living/silicon/robot/ClickOn(var/atom/A, var/params)
+/mob/living/silicon/robot/ClickOn(atom/A, params)
+	if(HAS_TRAIT(src, TRAIT_NOINTERACT)) // INTERCEPTED
+		to_chat(src, span_danger("You can't interact with anything right now!"))
+		return
 	if(world.time <= next_click)
 		return
 	next_click = world.time + 1
@@ -33,11 +36,13 @@
 	if(modifiers["alt"]) // alt and alt-gr (rightalt)
 		AltClickOn(A)
 		return
-	if(modifiers["ctrl"])
-		CtrlClickOn(A)
+	if(modifiers["ctrl"] && CtrlClickOn(A))
 		return
 
 	if(next_move >= world.time)
+		return
+
+	if(grab_mode && pulled(A))
 		return
 
 	face_atom(A) // change direction to face what you clicked on
@@ -53,19 +58,27 @@
 		aicamera.captureimage(A, usr)
 		return
 
-	var/obj/item/W = get_active_held_item()
+	var/obj/item/W = get_active_held_item(TRUE)
 
 	if(!W && get_dist(src,A) <= interaction_range)
-		A.attack_robot(src)
+		A.attack_robot(src, modifiers)
 		return
 
 	if(W)
-		// buckled cannot prevent machine interlinking but stops arm movement
-		if( buckled || incapacitated())
+		if(incapacitated())
+			return
+
+		//while buckled, you can still connect to and control things like doors, but you can't use your modules
+		if(buckled)
+			to_chat(src, span_warning("You can't use modules while buckled to [buckled]!"))
+			return
+
+		//if your "hands" are blocked you shouldn't be able to use modules
+		if(HAS_TRAIT(src, TRAIT_HANDS_BLOCKED))
 			return
 
 		if(W == A)
-			W.attack_self(src)
+			W.attack_self(src, modifiers)
 			return
 
 		// cyborgs are prohibited from using storage items so we can I think safely remove (A.loc in contents)
@@ -76,14 +89,12 @@
 		if(!isturf(loc))
 			return
 
-		// cyborgs are prohibited from using storage items so we can I think safely remove (A.loc && isturf(A.loc.loc))
+		// Allows for cyborgs to interact with things in storage items & attack stored modules with their active modules.
+		if(CanReach(A,W))
+			W.melee_attack_chain(src, A, params)
+			return
 		if(isturf(A) || isturf(A.loc))
-			if(A.Adjacent(src)) // see adjacent.dm
-				W.melee_attack_chain(src, A, params)
-				return
-			else
-				W.afterattack(A, src, 0, params)
-				return
+			W.afterattack(A, src, 0, params)
 
 //Middle click cycles through selected modules.
 /mob/living/silicon/robot/MiddleClickOn(atom/A)
@@ -97,7 +108,7 @@
 /mob/living/silicon/robot/ShiftClickOn(atom/A)
 	A.BorgShiftClick(src)
 /mob/living/silicon/robot/CtrlClickOn(atom/A)
-	A.BorgCtrlClick(src)
+	return A.BorgCtrlClick(src)
 /mob/living/silicon/robot/AltClickOn(atom/A)
 	A.BorgAltClick(src)
 
@@ -122,25 +133,25 @@
 
 
 /atom/proc/BorgCtrlClick(mob/living/silicon/robot/user) //forward to human click if not overridden
-	CtrlClick(user)
+	return CtrlClick(user)
 
 /obj/machinery/door/airlock/BorgCtrlClick(mob/living/silicon/robot/user) // Bolts doors. Forwards to AI code.
 	if(get_dist(src,user) <= user.interaction_range)
-		AICtrlClick()
+		return AICtrlClick()
 	else
-		..()
+		return ..()
 
 /obj/machinery/power/apc/BorgCtrlClick(mob/living/silicon/robot/user) // turns off/on APCs. Forwards to AI code.
 	if(get_dist(src,user) <= user.interaction_range)
-		AICtrlClick()
+		return AICtrlClick()
 	else
-		..()
+		return ..()
 
 /obj/machinery/turretid/BorgCtrlClick(mob/living/silicon/robot/user) //turret control on/off. Forwards to AI code.
 	if(get_dist(src,user) <= user.interaction_range)
-		AICtrlClick()
+		return AICtrlClick()
 	else
-		..()
+		return ..()
 
 /atom/proc/BorgAltClick(mob/living/silicon/robot/user)
 	AltClick(user)
@@ -167,7 +178,10 @@
 	change attack_robot() above to the proper function
 */
 /mob/living/silicon/robot/UnarmedAttack(atom/A)
+	if(HAS_TRAIT(src, TRAIT_HANDS_BLOCKED))
+		return
 	A.attack_robot(src)
+
 /mob/living/silicon/robot/RangedAttack(atom/A)
 	A.attack_robot(src)
 

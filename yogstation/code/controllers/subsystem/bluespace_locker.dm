@@ -1,6 +1,7 @@
 SUBSYSTEM_DEF(bluespace_locker)
 	name = "Bluespace Locker"
 	flags = SS_NO_FIRE
+	init_order = INIT_ORDER_BLUESPACE_LOCKER
 	var/obj/structure/closet/bluespace/internal/internal_locker = null
 	var/obj/structure/closet/bluespace/external/external_locker = null
 
@@ -16,7 +17,7 @@ SUBSYSTEM_DEF(bluespace_locker)
 	// basically any normal-looking locker that isn't a secure one
 	var/list/valid_lockers = typecacheof(typesof(/obj/structure/closet) - typesof(/obj/structure/closet/body_bag)\
 	- typesof(/obj/structure/closet/secure_closet) - typesof(/obj/structure/closet/cabinet)\
-	- typesof(/obj/structure/closet/cardboard) - typesof(/obj/structure/closet/crate)\
+	- typesof(/obj/structure/closet/cardboard)\
 	- typesof(/obj/structure/closet/supplypod) - typesof(/obj/structure/closet/stasis)\
 	- typesof(/obj/structure/closet/abductor) - typesof(/obj/structure/closet/bluespace), only_root_path = TRUE)
 
@@ -65,8 +66,8 @@ SUBSYSTEM_DEF(bluespace_locker)
 		internal_locker.contents += external_locker.contents
 		internal_locker.open()
 		internal_locker.dump_contents()
-	internal_locker.update_icon()
-	external_locker.update_icon()
+	internal_locker.update_appearance()
+	external_locker.update_appearance()
 
 /datum/controller/subsystem/bluespace_locker/proc/redistribute_locker()
 	if(!internal_locker)
@@ -76,6 +77,8 @@ SUBSYSTEM_DEF(bluespace_locker)
 		if(M == internal_locker)
 			continue
 		if(istype(M, /obj/machinery/light))
+			continue
+		if(istype(M, /obj/machinery/power))
 			continue
 		M.forceMove(find_safe_turf())
 	bluespaceify_random_locker()

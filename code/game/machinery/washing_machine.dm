@@ -10,17 +10,19 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		DYE_BLACK = /obj/item/clothing/under/color/black,
 		DYE_WHITE = /obj/item/clothing/under/color/white,
 		DYE_RAINBOW = /obj/item/clothing/under/color/rainbow,
-		DYE_MIME = /obj/item/clothing/under/rank/mime,
-		DYE_CLOWN = /obj/item/clothing/under/rank/clown,
-		DYE_QM = /obj/item/clothing/under/rank/chief_medical_officer,
-		DYE_LAW = /obj/item/clothing/under/lawyer/blacksuit,
-		DYE_CAPTAIN = /obj/item/clothing/under/rank/captain,
-		DYE_HOP = /obj/item/clothing/under/rank/head_of_personnel,
-		DYE_HOS = /obj/item/clothing/under/rank/head_of_security,
-		DYE_CE = /obj/item/clothing/under/rank/chief_engineer,
-		DYE_RD = /obj/item/clothing/under/rank/research_director,
-		DYE_CMO = /obj/item/clothing/under/rank/chief_medical_officer,
-		DYE_REDCOAT = /obj/item/clothing/under/redcoat
+		DYE_MIME = /obj/item/clothing/under/rank/civilian/mime,
+		DYE_CLOWN = /obj/item/clothing/under/rank/civilian/clown,
+		DYE_LAW = /obj/item/clothing/under/rank/civilian/lawyer/blacksuit,
+		DYE_CAPTAIN = /obj/item/clothing/under/rank/command/captain,
+		DYE_HOP = /obj/item/clothing/under/rank/command/head_of_personnel,
+		DYE_HOS = /obj/item/clothing/under/rank/security/head_of_security,
+		DYE_CE = /obj/item/clothing/under/rank/engineering/chief_engineer,
+		DYE_RD = /obj/item/clothing/under/rank/rnd/research_director,
+		DYE_CMO = /obj/item/clothing/under/rank/medical/chief_medical_officer,
+		DYE_REDCOAT = /obj/item/clothing/under/costume/redcoat,
+		DYE_SYNDI = /obj/item/clothing/under/syndicate/tacticool,
+		DYE_CENT = /obj/item/clothing/under/rank/centcom/officer,
+		DYE_QM = /obj/item/clothing/under/rank/cargo/qm
 	),
 	DYE_REGISTRY_JUMPSKIRT = list(
 		DYE_RED = /obj/item/clothing/under/skirt/color/red,
@@ -30,7 +32,16 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		DYE_BLUE = /obj/item/clothing/under/skirt/color/blue,
 		DYE_PURPLE = /obj/item/clothing/under/skirt/color/lightpurple,
 		DYE_BLACK = /obj/item/clothing/under/skirt/color/black,
-		DYE_WHITE = /obj/item/clothing/under/skirt/color/white
+		DYE_WHITE = /obj/item/clothing/under/skirt/color/white,
+		DYE_MIME = /obj/item/clothing/under/rank/civilian/mime/skirt,
+		DYE_LAW = /obj/item/clothing/under/rank/civilian/lawyer/blacksuit/skirt,
+		DYE_CAPTAIN = /obj/item/clothing/under/rank/command/captain/skirt,
+		DYE_HOP = /obj/item/clothing/under/rank/command/head_of_personnel/skirt,
+		DYE_HOS = /obj/item/clothing/under/rank/security/head_of_security/skirt,
+		DYE_CE = /obj/item/clothing/under/rank/engineering/chief_engineer/skirt,
+		DYE_RD = /obj/item/clothing/under/rank/rnd/research_director/skirt,
+		DYE_CMO = /obj/item/clothing/under/rank/medical/chief_medical_officer/skirt,
+		DYE_QM = /obj/item/clothing/under/rank/cargo/qm/skirt
 	),
 	DYE_REGISTRY_GLOVES = list(
 		DYE_RED = /obj/item/clothing/gloves/color/red,
@@ -51,7 +62,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		DYE_CE = /obj/item/clothing/gloves/color/black,
 		DYE_RD = /obj/item/clothing/gloves/color/grey,
 		DYE_CMO = /obj/item/clothing/gloves/color/latex/nitrile,
-		DYE_REDCOAT = /obj/item/clothing/gloves/color/white
+		DYE_REDCOAT = /obj/item/clothing/gloves/color/white,
+		DYE_CENT = /obj/item/clothing/gloves/color/captain/centcom
 	),
 	DYE_REGISTRY_SNEAKERS = list(
 		DYE_RED = /obj/item/clothing/shoes/sneakers/red,
@@ -101,6 +113,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		DYE_CE = /obj/item/bedsheet/ce,
 		DYE_RD = /obj/item/bedsheet/rd,
 		DYE_CMO = /obj/item/bedsheet/cmo,
+		DYE_CENT = /obj/item/bedsheet/centcom,
+		DYE_SYNDI = /obj/item/bedsheet/syndie,
 		DYE_COSMIC = /obj/item/bedsheet/cosmos
 	)
 ))
@@ -132,8 +146,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		to_chat(user, span_warning("[src] must be cleaned up first."))
 		return
 	busy = TRUE
-	update_icon()
-	addtimer(CALLBACK(src, .proc/wash_cycle), 200)
+	update_appearance(UPDATE_ICON)
+	addtimer(CALLBACK(src, PROC_REF(wash_cycle)), 200)
 
 	START_PROCESSING(SSfastprocess, src)
 
@@ -158,7 +172,7 @@ GLOBAL_LIST_INIT(dye_registry, list(
 	. = ..()
 	if(!busy && bloody_mess && (clean_types & CLEAN_TYPE_BLOOD))
 		bloody_mess = FALSE
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		. = TRUE
 
 /obj/machinery/washing_machine/proc/wash_cycle()
@@ -171,7 +185,7 @@ GLOBAL_LIST_INIT(dye_registry, list(
 	if(color_source)
 		qdel(color_source)
 		color_source = null
-	update_icon()
+	update_appearance(UPDATE_ICON)
 
 /obj/item/proc/dye_item(dye_color) 
 	if(undyeable)
@@ -187,7 +201,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 			lefthand_file = initial(target_type.lefthand_file)
 			righthand_file = initial(target_type.righthand_file)
 			item_state = initial(target_type.item_state)
-			mob_overlay_icon = initial(target_type.mob_overlay_icon)
+			worn_icon = initial(target_type.worn_icon)
+			worn_icon_state = initial(target_type.worn_icon_state)
 			inhand_x_dimension = initial(target_type.inhand_x_dimension)
 			inhand_y_dimension = initial(target_type.inhand_y_dimension)
 			name = initial(target_type.name)
@@ -244,8 +259,8 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		add_fingerprint(user)
 		open_machine()
 
-/obj/machinery/washing_machine/update_icon()
-	cut_overlays()
+/obj/machinery/washing_machine/update_icon_state()
+	. = ..()
 	if(busy)
 		icon_state = "wm_running_[bloody_mess]"
 	else if(bloody_mess)
@@ -253,18 +268,21 @@ GLOBAL_LIST_INIT(dye_registry, list(
 	else
 		var/full = contents.len ? 1 : 0
 		icon_state = "wm_[state_open]_[full]"
-	if(panel_open)
-		add_overlay("wm_panel")
 
-/obj/machinery/washing_machine/attackby(obj/item/W, mob/user, params)
+/obj/machinery/washing_machine/update_overlays()
+	. = ..()
+	if(panel_open)
+		. += "wm_panel"
+
+/obj/machinery/washing_machine/attackby(obj/item/W, mob/living/user, params)
 	if(panel_open && !busy && default_unfasten_wrench(user, W))
 		return
 
 	if(default_deconstruction_screwdriver(user, null, null, W))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 		return
 
-	else if(user.a_intent != INTENT_HARM)
+	else if(!user.combat_mode)
 
 		if (!state_open)
 			to_chat(user, span_warning("Open the door first!"))
@@ -284,12 +302,12 @@ GLOBAL_LIST_INIT(dye_registry, list(
 
 		if(W.dye_color)
 			color_source = W
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 	else
 		return ..()
 
-/obj/machinery/washing_machine/attack_hand(mob/user)
+/obj/machinery/washing_machine/attack_hand(mob/living/user, modifiers)
 	. = ..()
 	if(.)
 		return
@@ -297,21 +315,21 @@ GLOBAL_LIST_INIT(dye_registry, list(
 		to_chat(user, span_warning("[src] is busy."))
 		return
 
-	if(user.pulling && user.a_intent == INTENT_GRAB && isliving(user.pulling))
-		var/mob/living/L = user.pulling
-		if(L.buckled || L.has_buckled_mobs())
-			return
-		if(state_open)
-			if(iscorgi(L))
-				L.forceMove(src)
-				update_icon()
-		return
-
 	if(!state_open)
 		open_machine()
 	else
 		state_open = FALSE //close the door
-		update_icon()
+		update_appearance(UPDATE_ICON)
+
+/obj/machinery/washing_machine/MouseDrop_T(mob/living/dropped, mob/living/user)
+	. = ..()
+	if(!isliving(dropped))
+		return
+	if(dropped.buckled || dropped.has_buckled_mobs())
+		return
+	if(state_open && iscorgi(dropped))
+		dropped.forceMove(src)
+		update_appearance(UPDATE_ICON)
 
 /obj/machinery/washing_machine/deconstruct(disassembled = TRUE)
 	new /obj/item/stack/sheet/metal(drop_location(), 2)

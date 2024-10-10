@@ -10,7 +10,7 @@ LINEN BINS
 	icon = 'icons/obj/bedsheets.dmi'
 	lefthand_file = 'icons/mob/inhands/misc/bedsheet_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/misc/bedsheet_righthand.dmi'
-	mob_overlay_icon = 'icons/mob/clothing/neck/sheets.dmi'
+	worn_icon = 'icons/mob/clothing/neck/sheets.dmi'
 	icon_state = "sheetwhite"
 	item_state = "sheetwhite"
 	slot_flags = ITEM_SLOT_NECK
@@ -22,13 +22,15 @@ LINEN BINS
 	resistance_flags = FLAMMABLE
 	dying_key = DYE_REGISTRY_BEDSHEET
 	var/newbedpath = null
+	var/randomizable = TRUE //can appear via random bedsheets
 
 	dog_fashion = /datum/dog_fashion/head/ghost
 	var/list/dream_messages = list("white")
 
-/obj/item/bedsheet/attack(mob/living/M, mob/user)
-	if(!attempt_initiate_surgery(src, M, user))
-		..()
+/obj/item/bedsheet/attack(mob/living/M, mob/user, params)
+	var/list/modifiers = params2list(params)
+	if(!attempt_initiate_surgery(src, M, user, modifiers))
+		return ..()
 
 /obj/item/bedsheet/attack_self(mob/user)
 	if(newbedpath)
@@ -240,7 +242,7 @@ LINEN BINS
 
 /obj/item/bedsheet/cult
 	name = "cultist's bedsheet"
-	desc = "You might dream of Nar'Sie if you sleep with this. It seems rather tattered and glows of an eldritch presence."
+	desc = "You might dream of Nar'sie if you sleep with this. It seems rather tattered and glows of an eldritch presence."
 	icon_state = "sheetcult"
 	item_state = "sheetcult"
 	dream_messages = list("a tome", "a floating red crystal", "a glowing sword", "a bloody symbol", "a massive humanoid figure")
@@ -278,10 +280,18 @@ LINEN BINS
 	name = "random bedsheet"
 	desc = "If you're reading this description ingame, something has gone wrong! Honk!"
 
-/obj/item/bedsheet/random/Initialize()
+/obj/item/bedsheet/random/Initialize(mapload)
 	..()
-	var/type = pick(typesof(/obj/item/bedsheet) - /obj/item/bedsheet/random)
-	new type(loc)
+	var/list/sheets = list(typesof(/obj/item/bedsheet) - /obj/item/bedsheet/random)
+	sheets = shuffle(sheets)
+	var/obj/item/bedsheet/actualsheet
+	for(var/obj/item/bedsheet/sheet as anything in sheets)
+		if(initial(sheet.randomizable))
+			actualsheet = new sheet(loc)
+			break
+	
+	if(!actualsheet)
+		log_game("Random bedsheet failed to spawn")
 	return INITIALIZE_HINT_QDEL
 
 /obj/item/bedsheet/dorms
@@ -289,7 +299,7 @@ LINEN BINS
 	name = "random dorms bedsheet"
 	desc = "If you're reading this description ingame, something has gone wrong! Honk!"
 
-/obj/item/bedsheet/dorms/Initialize()
+/obj/item/bedsheet/dorms/Initialize(mapload)
 	..()
 	var/type = pickweight(list("Colors" = 80, "Special" = 20))
 	switch(type)
@@ -341,7 +351,8 @@ LINEN BINS
 		. += "There are [amount] bed sheets in the bin."
 
 
-/obj/structure/bedsheetbin/update_icon()
+/obj/structure/bedsheetbin/update_icon_state()
+	. = ..()
 	switch(amount)
 		if(0)
 			icon_state = "linenbin-empty"
@@ -353,7 +364,7 @@ LINEN BINS
 /obj/structure/bedsheetbin/fire_act(exposed_temperature, exposed_volume)
 	if(amount)
 		amount = 0
-		update_icon()
+		update_appearance(UPDATE_ICON)
 	..()
 
 /obj/structure/bedsheetbin/attackby(obj/item/I, mob/user, params)
@@ -363,7 +374,7 @@ LINEN BINS
 		sheets.Add(I)
 		amount++
 		to_chat(user, span_notice("You put [I] in [src]."))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 	else if(default_unfasten_wrench(user, I, 5))
 		return
@@ -412,7 +423,7 @@ LINEN BINS
 		B.forceMove(drop_location())
 		user.put_in_hands(B)
 		to_chat(user, span_notice("You take [B] out of [src]."))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 		if(hidden)
 			hidden.forceMove(drop_location())
@@ -435,7 +446,7 @@ LINEN BINS
 
 		B.forceMove(drop_location())
 		to_chat(user, span_notice("You telekinetically remove [B] from [src]."))
-		update_icon()
+		update_appearance(UPDATE_ICON)
 
 		if(hidden)
 			hidden.forceMove(drop_location())

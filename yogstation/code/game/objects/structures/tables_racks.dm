@@ -1,6 +1,6 @@
 /obj/structure/table/bananium
 	name = "bananium table"
-	desc = "A table made out of bananium very squeaky."
+	desc = "A table made out of bananium. Very squeaky."
 	icon = 'yogstation/icons/obj/smooth_structures/bananium_table.dmi'
 	icon_state = "bananium_table"
 	resistance_flags = FIRE_PROOF | ACID_PROOF
@@ -9,7 +9,8 @@
 	buildstack = /obj/item/stack/sheet/mineral/bananium
 	framestackamount = 1
 	buildstackamount = 1
-	canSmoothWith = list(/obj/structure/table/bananium)
+	smoothing_groups = SMOOTH_GROUP_BANANIUM_TABLES //Don't smooth with SMOOTH_GROUP_TABLES
+	canSmoothWith = SMOOTH_GROUP_BANANIUM_TABLES
 	var/spam_flag = 0
 
 /obj/structure/table/bananium/attackby(obj/item/W, mob/user, params)

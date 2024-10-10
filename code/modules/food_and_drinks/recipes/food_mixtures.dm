@@ -1,10 +1,27 @@
 /datum/crafting_recipe/food
+	time = 1.5 SECONDS //this is closer to assembly than mechanical crafting
 	var/real_parts
-	category = CAT_FOOD
+	/// A rough equivilance for how much nutrition this recipe's result will provide
+	var/total_nutriment_factor = 0
 
 /datum/crafting_recipe/food/New()
+	if(ispath(result, /obj/item/reagent_containers/food))
+		var/obj/item/reagent_containers/food/result_food = new result()
+		for(var/datum/reagent/consumable/nutriment as anything in result_food.list_reagents)
+			total_nutriment_factor += initial(nutriment.nutriment_factor) * result_food.list_reagents[nutriment]
+		qdel(result_food)
 	real_parts = parts.Copy()
 	parts |= reqs
+
+/datum/crafting_recipe/food/crafting_ui_data()
+	var/list/data = list()
+
+	if(ispath(result, /obj/item/reagent_containers/food))
+		var/obj/item/reagent_containers/food/item = result
+		data["foodtypes"] = bitfield_to_list(initial(item.foodtype), FOOD_FLAGS)
+	data["nutriments"] = total_nutriment_factor
+
+	return data
 
 //////////////////////////////////////////FOOD MIXTURES////////////////////////////////////
 
@@ -32,7 +49,6 @@
 		new /obj/item/reagent_containers/food/snacks/chocolatebar(location)
 	return
 
-
 /datum/chemical_reaction/chocolate_bar2
 	name = "Chocolate Bar"
 	id = "chocolate_bar"
@@ -54,14 +70,14 @@
 
 /datum/chemical_reaction/coffee
 	name = "Coffee"
-	id = /datum/reagent/consumable/coffee
-	results = list(/datum/reagent/consumable/coffee = 5)
+	id = /datum/reagent/consumable/coffee/hot
+	results = list(/datum/reagent/consumable/coffee/hot = 5)
 	required_reagents = list(/datum/reagent/toxin/coffeepowder = 1, /datum/reagent/water = 5)
 
 /datum/chemical_reaction/tea
 	name = "Tea"
-	id = /datum/reagent/consumable/tea
-	results = list(/datum/reagent/consumable/tea = 5)
+	id = /datum/reagent/consumable/tea/hot
+	results = list(/datum/reagent/consumable/tea/hot = 5)
 	required_reagents = list(/datum/reagent/toxin/teapowder = 1, /datum/reagent/water = 5)
 
 /datum/chemical_reaction/soysauce
@@ -174,6 +190,12 @@
 	new /obj/item/reagent_containers/food/snacks/salad/ricebowl(location)
 	if(holder && holder.my_atom)
 		qdel(holder.my_atom)
+
+/datum/chemical_reaction/bbqsauce
+	name = "BBQ Sauce"
+	id = /datum/reagent/consumable/bbqsauce
+	results = list(/datum/reagent/consumable/bbqsauce = 5)
+	required_reagents = list(/datum/reagent/ash = 1, /datum/reagent/consumable/tomatojuice = 1, /datum/reagent/medicine/salglu_solution = 3, /datum/reagent/consumable/blackpepper = 1)
 
 ////////////////////////////////////////////CHEESEMILK////////////////////////////////////////////
 /datum/chemical_reaction/bluemilk

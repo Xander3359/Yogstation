@@ -5,19 +5,25 @@
 	required_shit_list = "A piece of trash and a knife."
 
 /datum/eldritch_transmutation/armor
-	name = "Create Eldritch Armor"
+	name = "Eldritch Armor"
 	required_atoms = list(/obj/structure/table,/obj/item/clothing/mask/gas)
 	result_atoms = list(/obj/item/clothing/suit/hooded/cultrobes/eldritch)
 	required_shit_list = "A table and a gas mask."
 
+/datum/eldritch_transmutation/armor/upgrade
+	name = "Enhanced Eldritch Armor"
+	required_atoms = list(/obj/item/clothing/suit/hooded/cultrobes/eldritch,/obj/item/stack/sheet/mineral/diamond)
+	result_atoms = list(/obj/item/clothing/suit/hooded/cultrobes/eldritch/upgraded)
+	required_shit_list = "An existing ominous armor, and a diamond."
+
 /datum/eldritch_transmutation/water
-	name = "Create Eldritch Essence"
+	name = "Eldritch Essence"
 	required_atoms = list(/obj/structure/reagent_dispensers/watertank)
 	result_atoms = list(/obj/item/reagent_containers/glass/beaker/eldritch)
 	required_shit_list = "A tank of water."
 
 /datum/eldritch_transmutation/final/rust_final
-	name = "Rustbringer's Oath"
+	name = "Fallen Empress' Pathology"
 	required_atoms = list(/mob/living/carbon/human)
 	required_shit_list = "Three dead bodies."
 
@@ -27,11 +33,17 @@
 	H.physiology.burn_mod *= 0.5
 	H.physiology.stamina_mod = 0
 	H.physiology.stun_mod = 0
-	priority_announce("$^@&#*$^@(#&$(@&#^$&#^@# Fear the decay, for Rustbringer [user.real_name] has come! $^@&#*$^@(#&$(@&#^$&#^@#","#$^@&#*$^@(#&$(@&#^$&#^@#", ANNOUNCER_SPANOMALIES)
-	set_security_level(SEC_LEVEL_GAMMA)
+	priority_announce(
+		text = "[generate_heretic_text()] Fear the decay, for the Rustbringer, [user.real_name] has ascended! None shall escape the corrosion! [generate_heretic_text()]",
+		title = "[generate_heretic_text()]",
+		sound = 'sound/ambience/antag/heretic/ascend_rust.ogg',
+		color_override = "pink",
+	)
+
 	new /datum/rust_spread(loc)
 	var/datum/antagonist/heretic/ascension = H.mind.has_antag_datum(/datum/antagonist/heretic)
 	ascension.ascended = TRUE
+	
 	return ..()
 
 /datum/eldritch_transmutation/final/rust_final/on_life(mob/user)

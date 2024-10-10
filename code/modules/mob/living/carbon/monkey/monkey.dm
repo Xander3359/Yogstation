@@ -8,7 +8,7 @@
 	gender = NEUTER
 	pass_flags = PASSTABLE
 	ventcrawler = VENTCRAWLER_NUDE
-	mob_biotypes = list(MOB_ORGANIC, MOB_HUMANOID)
+	mob_biotypes = MOB_ORGANIC|MOB_HUMANOID
 	mob_size = MOB_SIZE_HUMAN //monkeeeee
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/slab/monkey = 5, /obj/item/stack/sheet/animalhide/monkey = 1)
 	type_of_meat = /obj/item/reagent_containers/food/snacks/meat/slab/monkey
@@ -20,6 +20,17 @@
 	hud_type = /datum/hud/monkey
 	blood_volume = BLOOD_VOLUME_MONKEY // Yogs -- Makes monkeys/xenos have different amounts of blood from normal carbonbois
 	can_be_held = TRUE
+
+GLOBAL_LIST_INIT(strippable_monkey_items, create_strippable_list(list(
+	/datum/strippable_item/mob_item_slot/head,
+	/datum/strippable_item/mob_item_slot/back,
+	/datum/strippable_item/mob_item_slot/mask,
+	/datum/strippable_item/mob_item_slot/neck,
+	/datum/strippable_item/hand/left,
+	/datum/strippable_item/hand/right,
+	/datum/strippable_item/mob_item_slot/handcuffs,
+	/datum/strippable_item/mob_item_slot/legcuffs,
+)))
 
 /mob/living/carbon/monkey/Initialize(mapload, cubespawned=FALSE, mob/spawner)
 	add_verb(src, /mob/living/proc/mob_sleep)
@@ -45,6 +56,8 @@
 
 	create_dna(src)
 	dna.initialize_dna(random_blood_type())
+	AddComponent(/datum/component/bloodysoles/feet)
+	AddElement(/datum/element/strippable, GLOB.strippable_monkey_items)
 
 /mob/living/carbon/monkey/Destroy()
 	SSmobs.cubemonkeys -= src
@@ -68,7 +81,7 @@
 	var/amount
 	if(reagents.has_reagent(/datum/reagent/medicine/morphine))
 		amount = -1
-	if(reagents.has_reagent(/datum/reagent/consumable/nuka_cola))
+	if(reagents.has_reagent(/datum/reagent/consumable/energy_drink/nuka_cola))
 		amount = -1
 	if(amount)
 		add_movespeed_modifier(MOVESPEED_ID_MONKEY_REAGENT_SPEEDMOD, TRUE, 100, override = TRUE, multiplicative_slowdown = amount)
@@ -91,7 +104,7 @@
 
 /mob/living/carbon/monkey/get_status_tab_items()
 	. = ..()
-	. += "Intent: [a_intent]"
+	. += "Combat Mode: [combat_mode ? "On" : "Off"]"
 	. += "Move Mode: [m_intent]"
 	if(client && mind)
 		var/datum/antagonist/changeling/changeling = mind.has_antag_datum(/datum/antagonist/changeling)
@@ -99,13 +112,6 @@
 			. += ""
 			. += "Chemical Storage: [changeling.chem_charges]/[changeling.chem_storage]"
 			. += "Absorbed DNA: [changeling.absorbedcount]"
-
-/mob/living/carbon/monkey/verb/removeinternal()
-	set name = "Remove Internals"
-	set category = "IC"
-	internal = null
-	return
-
 
 /mob/living/carbon/monkey/IsAdvancedToolUser()//Unless its monkey mode monkeys cant use advanced tools
 	if(mind && is_monkey(mind))
@@ -165,9 +171,9 @@
 /mob/living/carbon/monkey/angry
 	aggressive = TRUE
 
-/mob/living/carbon/monkey/angry/Initialize()
+/mob/living/carbon/monkey/angry/Initialize(mapload)
 	. = ..()
 	if(prob(10))
 		var/obj/item/clothing/head/helmet/justice/escape/helmet = new(src)
-		equip_to_slot_or_del(helmet,SLOT_HEAD)
+		equip_to_slot_or_del(helmet,ITEM_SLOT_HEAD)
 		helmet.attack_self(src) // todo encapsulate toggle

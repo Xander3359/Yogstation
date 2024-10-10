@@ -26,8 +26,9 @@ GLOBAL_LIST_EMPTY(silo_access_logs)
 		/datum/material/bananium,
 		/datum/material/titanium,
 		/datum/material/bluespace,
-		/datum/material/plastic,
-		/datum/material/dilithium
+		/datum/material/dilithium,
+		/datum/material/plastic
+		
 		)
 	AddComponent(/datum/component/material_container, materials_list, INFINITY, allowed_types=/obj/item/stack, _disable_attackby=TRUE)
 	if (!GLOB.ore_silo_default && mapload && is_station_level(z))
@@ -46,10 +47,10 @@ GLOBAL_LIST_EMPTY(silo_access_logs)
 
 	return ..()
 
-/obj/machinery/ore_silo/proc/remote_attackby(obj/machinery/M, mob/user, obj/item/stack/I)
+/obj/machinery/ore_silo/proc/remote_attackby(obj/machinery/M, mob/living/user, obj/item/stack/I)
 	var/datum/component/material_container/materials = GetComponent(/datum/component/material_container)
 	// stolen from /datum/component/material_container/proc/OnAttackBy
-	if(user.a_intent != INTENT_HELP)
+	if(user.combat_mode)
 		return
 	if(I.item_flags & ABSTRACT)
 		return
@@ -66,8 +67,8 @@ GLOBAL_LIST_EMPTY(silo_access_logs)
 	silo_log(M, "deposited", amount, "sheets", item_mats)
 	return TRUE
 
-/obj/machinery/ore_silo/attackby(obj/item/W, mob/user, params)
-	if(user.a_intent == INTENT_HARM) //so we can hit the machine
+/obj/machinery/ore_silo/attackby(obj/item/W, mob/living/user, params)
+	if(user.combat_mode) //so we can hit the machine
 		return ..()
 	
 	if(default_deconstruction_screwdriver(user, "icon_state", "icon_state", W))
@@ -180,10 +181,9 @@ GLOBAL_LIST_EMPTY(silo_access_logs)
 		return TRUE
 
 /obj/machinery/ore_silo/multitool_act(mob/living/user, obj/item/multitool/I)
-	if (istype(I))
-		to_chat(user, span_notice("You log [src] in the multitool's buffer."))
-		I.buffer = src
-		return TRUE
+	to_chat(user, span_notice("You log [src] in the multitool's buffer."))
+	multitool_set_buffer(user, I, src)
+	return TRUE
 
 /obj/machinery/ore_silo/proc/silo_log(obj/machinery/M, action, amount, noun, list/mats)
 	if (!length(mats))

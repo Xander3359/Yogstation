@@ -15,9 +15,9 @@
 	var/obj/effect/clockwork/spatial_gateway/linked_gateway //The gateway linked to this one
 	var/timerid
 
-/obj/effect/clockwork/spatial_gateway/Initialize()
+/obj/effect/clockwork/spatial_gateway/Initialize(mapload)
 	. = ..()
-	addtimer(CALLBACK(src, .proc/check_setup), 1)
+	addtimer(CALLBACK(src, PROC_REF(check_setup)), 1)
 
 /obj/effect/clockwork/spatial_gateway/Destroy()
 	deltimer(timerid)
@@ -64,10 +64,10 @@
 	..()
 
 //ATTACK HAND IGNORING PARENT RETURN VALUE
-/obj/effect/clockwork/spatial_gateway/attack_hand(mob/living/user)
+/obj/effect/clockwork/spatial_gateway/attack_hand(mob/living/user, modifiers)
 	if(!uses)
 		return FALSE
-	if(user.pulling && user.a_intent == INTENT_GRAB && isliving(user.pulling))
+	if(user.pulling && isliving(user.pulling))
 		var/mob/living/L = user.pulling
 		if(L.buckled || L.anchored || L.has_buckled_mobs())
 			return FALSE
@@ -135,7 +135,7 @@
 		return FALSE
 	var/area/gate1 = get_area(src)
 	var/area/gate2 = get_area(linked_gateway)
-	var/reebeport = (gate1 && gate2) && ((is_reebe(src.z) && is_reebe(linked_gateway.z)) || (is_reebe(src.z) && !gate2.noteleport) || (is_reebe(linked_gateway.z) && !gate1.noteleport)) //reebe is noteleport so we have to check if either side is on reebe or otherwise teleport-accessible to force do_teleport
+	var/reebeport = (gate1 && gate2) && ((is_reebe(src.z) && is_reebe(linked_gateway.z)) || (is_reebe(src.z) && !(gate2.area_flags & NOTELEPORT)) || (is_reebe(linked_gateway.z) && !(gate1.area_flags & NOTELEPORT))) //reebe is noteleport so we have to check if either side is on reebe or otherwise teleport-accessible to force do_teleport
 	if(!do_teleport(A, get_turf(linked_gateway), forceMove = TRUE, channel = TELEPORT_CHANNEL_CULT, forced = reebeport))
 		visible_message(span_warning("[A] bounces off [src]!"))
 		return FALSE
@@ -159,7 +159,7 @@
 	else
 		animate(src, transform = matrix() / 1.5, time = 1 SECONDS, flags = ANIMATION_END_NOW)
 		animate(linked_gateway, transform = matrix() / 1.5, time = 1 SECONDS, flags = ANIMATION_END_NOW)
-	addtimer(CALLBACK(src, .proc/check_uses), 1 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(check_uses)), 1 SECONDS)
 	return TRUE
 
 /obj/effect/clockwork/spatial_gateway/proc/check_uses()

@@ -5,7 +5,7 @@
 	icon_living = "stickman"
 	icon_dead = "stickman_dead"
 	icon_gib = "syndicate_gib"
-	mob_biotypes = list(MOB_INORGANIC, MOB_HUMANOID)
+	mob_biotypes = MOB_INORGANIC|MOB_HUMANOID
 	gender = MALE
 	speak_chance = 0
 	turns_per_move = 5
@@ -24,7 +24,7 @@
 	melee_damage_upper = 10
 	attacktext = "punches"
 	attack_sound = 'sound/weapons/punch1.ogg'
-	a_intent = INTENT_HARM
+	combat_mode = TRUE
 	atmos_requirements = list("min_oxy" = 5, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 1, "min_co2" = 0, "max_co2" = 5, "min_n2" = 0, "max_n2" = 0)
 	unsuitable_atmos_damage = 15
 	faction = list("hostile","stickman")
@@ -50,9 +50,9 @@
 	icon_state = "stickdog"
 	icon_living = "stickdog"
 	icon_dead = "stickdog_dead"
-	mob_biotypes = list(MOB_INORGANIC, MOB_BEAST)
+	mob_biotypes = MOB_INORGANIC|MOB_BEAST
 
-/mob/living/simple_animal/hostile/stickman/Initialize(mapload, var/wizard_summoned)
+/mob/living/simple_animal/hostile/stickman/Initialize(mapload, wizard_summoned)
 	. = ..()
 	new /obj/effect/temp_visual/paper_scatter(src)
 	summoned_by_wizard = wizard_summoned

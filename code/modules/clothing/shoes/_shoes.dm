@@ -1,6 +1,8 @@
 /obj/item/clothing/shoes
 	name = "shoes"
 	icon = 'icons/obj/clothing/shoes.dmi'
+	lefthand_file = 'icons/mob/inhands/clothing/shoes_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/clothing/shoes_righthand.dmi'
 	desc = "Comfortable-looking shoes."
 	gender = PLURAL //Carn: for grammarically correct text-parsing
 	var/chained = 0
@@ -8,16 +10,13 @@
 	body_parts_covered = FEET
 	slot_flags = ITEM_SLOT_FEET
 
-	permeability_coefficient = 0.5
 	slowdown = SHOES_SLOWDOWN
-	var/blood_state = BLOOD_STATE_NOT_BLOODY
-	var/list/bloody_shoes = list(BLOOD_STATE_HUMAN = 0,BLOOD_STATE_XENO = 0, BLOOD_STATE_OIL = 0, BLOOD_STATE_NOT_BLOODY = 0)
+	var/footprint_sprite = FOOTPRINT_SPRITE_SHOES
 	var/offset = 0
 	var/equipped_before_drop = FALSE
-	var/can_be_bloody = TRUE
 	var/xenoshoe = NO_DIGIT  // Check for if shoes can be worn by straight legs (NO_DIGIT) which is default, both / hybrid (EITHER_STYLE), or digitigrade only (YES_DIGIT)
-	var/mutantrace_variation = NO_MUTANTRACE_VARIATION // Assigns shoes to have variations for if worn clothing doesn't enforce straight legs (such as cursed jumpskirts)
-	var/adjusted = NORMAL_STYLE // Default needed to make the above work
+	var/mutantrace_variation = NONE // Assigns shoes to have variations for if worn clothing doesn't enforce straight legs (such as cursed jumpskirts)
+	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 15, RAD = 0, FIRE = 0, ACID = 0)
 
 /obj/item/clothing/shoes/suicide_act(mob/living/carbon/user)
 	if(rand(2)>1)
@@ -38,35 +37,39 @@
 			playsound(user, 'sound/weapons/genhit2.ogg', 50, 1)
 		return(BRUTELOSS)
 
-/obj/item/clothing/shoes/worn_overlays(isinhands = FALSE)
-	. = list()
-	if(!isinhands)
-		var/bloody = FALSE
-		if(HAS_BLOOD_DNA(src))
-			bloody = TRUE
-		else
-			bloody = bloody_shoes[BLOOD_STATE_HUMAN]
+/obj/item/clothing/shoes/worn_overlays(mutable_appearance/standing, isinhands = FALSE, icon_file)
+	. = ..()
+	if(isinhands)
+		return
 
-		if(damaged_clothes)
-			. += mutable_appearance('icons/effects/item_damage.dmi', "damagedshoe")
-		if(bloody)
-			. += mutable_appearance('icons/effects/blood.dmi', "shoeblood")
+	if(damaged_clothes)
+		. += mutable_appearance('icons/effects/item_damage.dmi', "damagedshoe")
+
+	if(!HAS_BLOOD_DNA(src))
+		return
+
+	var/mutable_appearance/bloody_shoes
+	if(clothing_flags & LARGE_WORN_ICON)
+		bloody_shoes = mutable_appearance('icons/effects/64x64.dmi', "shoeblood_large")
+	else
+		bloody_shoes = mutable_appearance('icons/effects/blood.dmi', "shoeblood")
+		if(species_fitted && icon_exists(bloody_shoes.icon, "shoeblood_[species_fitted]")) 
+			bloody_shoes.icon_state = "shoeblood_[species_fitted]"
+	bloody_shoes.color = get_blood_dna_color(return_blood_DNA())
+	. += bloody_shoes
 
 /obj/item/clothing/shoes/equipped(mob/user, slot)
-	if(adjusted)
-		adjusted = NORMAL_STYLE
-	if(mutantrace_variation && ishuman(user))
-		var/mob/living/carbon/human/H = user
-		if(DIGITIGRADE in H.dna.species.species_traits)
-			for(var/X in H.bodyparts)
-				var/obj/item/bodypart/O = X
-				if(!O.use_digitigrade)
-					continue
-				if(O.use_digitigrade == FULL_DIGITIGRADE)
-					adjusted = DIGITIGRADE_STYLE
-		user.update_inv_shoes()
+	if(!(mutantrace_variation & DIGITIGRADE_VARIATION) && ishuman(user))
+		if(slot_flags & slot)
+			ADD_TRAIT(user, TRAIT_DIGI_SQUISH, REF(src))
+		else
+			REMOVE_TRAIT(user, TRAIT_DIGI_SQUISH, REF(src))
+		var/mob/living/carbon/human/human_user = user
+		human_user.update_inv_w_uniform()
+		human_user.update_inv_wear_suit()
+		human_user.update_body_parts()
 	. = ..()
-	if(offset && slot_flags & slotdefine2slotbit(slot))
+	if(offset && slot_flags & slot)
 		user.pixel_y += offset
 		worn_y_dimension -= (offset * 2)
 		equipped_before_drop = TRUE
@@ -79,6 +82,12 @@
 	worn_y_dimension = world.icon_size
 
 /obj/item/clothing/shoes/dropped(mob/user)
+	if(!(mutantrace_variation & DIGITIGRADE_VARIATION) && ishuman(user))
+		REMOVE_TRAIT(user, TRAIT_DIGI_SQUISH, REF(src))
+		var/mob/living/carbon/human/human_user = user
+		human_user.update_inv_w_uniform()
+		human_user.update_inv_wear_suit()
+		human_user.update_body_parts()
 	if(offset && equipped_before_drop)
 		restore_offsets(user)
 	. = ..()
@@ -88,17 +97,6 @@
 	if(ismob(loc))
 		var/mob/M = loc
 		M.update_inv_shoes()
-
-/obj/item/clothing/shoes/wash(clean_types)
-	. = ..()
-	if(!(clean_types & CLEAN_TYPE_BLOOD) || blood_state == BLOOD_STATE_NOT_BLOODY)
-		return
-	bloody_shoes = list(BLOOD_STATE_HUMAN = 0,BLOOD_STATE_XENO = 0, BLOOD_STATE_OIL = 0, BLOOD_STATE_NOT_BLOODY = 0)
-	blood_state = BLOOD_STATE_NOT_BLOODY
-	if(ismob(loc))
-		var/mob/M = loc
-		M.update_inv_shoes()
-	return TRUE
 
 /obj/item/proc/negates_gravity()
 	return FALSE

@@ -59,7 +59,10 @@ Key procs
 		var/datum/mind/M = owner
 		if(M.current)
 			update_atom_languages(M.current)
-	get_selected_language()
+
+	// If we have an owner, we'll set a default selected language
+	if(owner)
+		get_selected_language()
 
 /datum/language_holder/Destroy()
 	QDEL_NULL(language_menu)
@@ -210,7 +213,7 @@ Key procs
 
 /// Copies all languages from the supplied atom/language holder. Source should be overridden when you
 /// do not want the language overwritten by later atom updates or want to avoid blocked languages.
-/datum/language_holder/proc/copy_languages(var/datum/language_holder/from_holder, source_override)
+/datum/language_holder/proc/copy_languages(datum/language_holder/from_holder, source_override)
 	if(source_override)	//No blocked languages here, for now only used by ling absorb.
 		for(var/language in from_holder.understood_languages)
 			grant_language(language, TRUE, FALSE, source_override)
@@ -250,9 +253,9 @@ Key procs
 
 /datum/language_holder/drone
 	understood_languages = list(/datum/language/drone = list(LANGUAGE_ATOM),
-								/datum/language/machine = list(LANGUAGE_ATOM))
+								/datum/language/machine = list(LANGUAGE_ATOM),
+                                /datum/language/common = list(LANGUAGE_ATOM))
 	spoken_languages = list(/datum/language/drone = list(LANGUAGE_ATOM))
-	blocked_languages = list(/datum/language/common = list(LANGUAGE_ATOM))
 
 /datum/language_holder/drone/syndicate
 	blocked_languages = list()
@@ -275,6 +278,10 @@ Key procs
 							/datum/language/draconic = list(LANGUAGE_ATOM))
 
 /datum/language_holder/lizard/ash
+	understood_languages = list(/datum/language/draconic = list(LANGUAGE_ATOM))
+	spoken_languages = list(/datum/language/draconic = list(LANGUAGE_ATOM))
+
+/datum/language_holder/lizard/shaman
 	selected_language = /datum/language/draconic
 
 /datum/language_holder/monkey
@@ -329,7 +336,7 @@ Key procs
 	spoken_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
 							/datum/language/sylvan = list(LANGUAGE_ATOM))
 
-/datum/language_holder/preternis
+/datum/language_holder/machine
 	understood_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
 								/datum/language/machine = list(LANGUAGE_ATOM),)
 	spoken_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
@@ -365,6 +372,16 @@ Key procs
 	spoken_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
 							/datum/language/felinid = list(LANGUAGE_ATOM))
 
+/datum/language_holder/darkspawn
+	understood_languages = list(
+		/datum/language/common = list(LANGUAGE_ATOM),
+		/datum/language/darkspawn = list(LANGUAGE_ATOM)
+		)
+	spoken_languages = list(
+		/datum/language/common = list(LANGUAGE_ATOM),
+		/datum/language/darkspawn = list(LANGUAGE_ATOM)
+		)
+
 /datum/language_holder/spiderbot
 	understood_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
 								/datum/language/felinid = list(LANGUAGE_ATOM), ///Spiderbots, I am sorry for making you understand this shit
@@ -375,6 +392,7 @@ Key procs
 								/datum/language/bonespeak = list(LANGUAGE_ATOM),
 								/datum/language/sylvan = list(LANGUAGE_ATOM),
 								/datum/language/draconic = list(LANGUAGE_ATOM),
+								/datum/language/vox = list(LANGUAGE_ATOM),
 								/datum/language/machine = list(LANGUAGE_ATOM))
 	spoken_languages = list(/datum/language/common = list(LANGUAGE_ATOM),
 							/datum/language/felinid = list(LANGUAGE_ATOM),
@@ -385,6 +403,7 @@ Key procs
 							/datum/language/bonespeak = list(LANGUAGE_ATOM),
 							/datum/language/sylvan = list(LANGUAGE_ATOM),
 							/datum/language/draconic = list(LANGUAGE_ATOM),
+							/datum/language/vox = list(LANGUAGE_ATOM),
 							/datum/language/machine = list(LANGUAGE_ATOM))
 
 /datum/language_holder/empty

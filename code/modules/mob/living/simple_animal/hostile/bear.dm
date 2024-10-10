@@ -6,7 +6,7 @@
 	icon_living = "bear"
 	icon_dead = "bear_dead"
 	icon_gib = "bear_gib"
-	mob_biotypes = list(MOB_ORGANIC, MOB_BEAST)
+	mob_biotypes = MOB_ORGANIC|MOB_BEAST
 	speak = list("RAWR!","Rawr!","GRR!","Growl!")
 	speak_emote = list("growls", "roars")
 	emote_hear = list("rawrs.","grumbles.","grawls.")
@@ -14,7 +14,6 @@
 	speak_chance = 1
 	taunt_chance = 25
 	turns_per_move = 5
-	see_in_dark = 6
 	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/slab/bear = 5, /obj/item/clothing/head/bearpelt = 1)
 	response_help  = "pets"
 	response_disarm = "gently pushes aside"
@@ -42,8 +41,7 @@
 
 	faction = list("russian")
 	gold_core_spawnable = HOSTILE_SPAWN
-
-	do_footstep = TRUE
+	footstep_type = FOOTSTEP_MOB_CLAW
 
 /mob/living/simple_animal/hostile/bear/loan
 	faction = list("hostile")
@@ -60,7 +58,7 @@
 	icon_living = "snowbear"
 	icon_dead = "snowbear_dead"
 	desc = "It's a polar bear, in space, but not actually in space."
-	weather_immunities = list(WEATHER_SNOW)
+	weather_immunities = WEATHER_STORM
 
 /mob/living/simple_animal/hostile/bear/russian
 	name = "combat bear"

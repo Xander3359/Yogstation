@@ -40,10 +40,12 @@
 #define AI_DETECT_HUD	"19"
 #define NANITE_HUD "20"
 #define DIAG_NANITE_FULL_HUD "21"
+/// Shows mech overheating status.
+#define DIAG_OVERHEAT_HUD "22"
 /// Displays launchpads' targeting reticle
-#define DIAG_LAUNCHPAD_HUD "22"
+#define DIAG_LAUNCHPAD_HUD "23"
 //for antag huds. these are used at the /mob level
-#define ANTAG_HUD		"23"
+#define ANTAG_HUD		"24"
 
 //by default everything in the hud_list of an atom is an image
 //a value in hud_list with one of these will change that behavior
@@ -62,36 +64,6 @@
 #define DATA_HUD_SENTIENT_DISEASE			8
 #define DATA_HUD_AI_DETECT					9
 #define DATA_HUD_SECURITY_MEDICAL			10
-
-//antag HUD defines
-#define ANTAG_HUD_CULT			11
-#define ANTAG_HUD_REV			12
-#define ANTAG_HUD_OPS			13
-#define ANTAG_HUD_WIZ			14
-#define ANTAG_HUD_SHADOW		15
-#define ANTAG_HUD_TRAITOR		16
-#define ANTAG_HUD_NINJA			17
-#define ANTAG_HUD_CHANGELING	18
-#define ANTAG_HUD_ABDUCTOR		19
-#define ANTAG_HUD_DEVIL			20
-#define ANTAG_HUD_SINTOUCHED	21
-#define ANTAG_HUD_SOULLESS		22
-#define ANTAG_HUD_CLOCKWORK		23
-#define ANTAG_HUD_BROTHER		24
-#define ANTAG_HUD_HIVE			25
-#define ANTAG_HUD_OBSESSED		26
-#define ANTAG_HUD_FUGITIVE		27
-#define ANTAG_HUD_VAMPIRE		28
-#define ANTAG_HUD_DARKSPAWN		29
-#define ANTAG_HUD_CAPITALIST	30
-#define ANTAG_HUD_COMMUNIST		31
-#define ANTAG_HUD_HERETIC		32
-#define ANTAG_HUD_MINDSLAVE		33
-#define ANTAG_HUD_ZOMBIE		34
-#define ANTAG_HUD_INFILTRATOR	35
-#define ANTAG_HUD_BLOODSUCKER	36
-#define ANTAG_HUD_MHUNTER		37
-#define ANTAG_HUD_BRAINWASHED	38
 
 // Notification action types
 #define NOTIFY_JUMP "jump"

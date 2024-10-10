@@ -1,13 +1,13 @@
 /obj/item/clothing/head/yogs/goatpelt
 	name = "goat pelt hat"
-	desc = "Fuzzy and Warm!"
+	desc = "Fuzzy and warm!"
 	icon_state = "goatpelt"
 	item_state = "goatpelt"
 
 
 /obj/item/clothing/head/yogs/goatpelt/king
 	name = "king goat pelt hat"
-	desc = "Fuzzy, Warm and Robust!"
+	desc = "Fuzzy, warm and robust!"
 	icon_state = "goatpelt"
 	item_state = "goatpelt"
 	color = "#ffd700"
@@ -18,7 +18,7 @@
 
 /obj/item/clothing/head/yogs/goatpelt/king/equipped(mob/living/carbon/human/user, slot)
 	..()
-	if (slot == SLOT_HEAD)
+	if (slot == ITEM_SLOT_HEAD)
 		user.faction |= "goat"
 
 /obj/item/clothing/head/yogs/goatpelt/king/dropped(mob/living/carbon/human/user)
@@ -29,7 +29,7 @@
 /obj/item/clothing/head/helmet/juggernaut
 	name = "Juggernaut Helmet"
 	desc = "I...am...the...JUGGERNAUT!!!."
-	mob_overlay_icon = 'yogstation/icons/mob/clothing/head/head.dmi'
+	worn_icon = 'yogstation/icons/mob/clothing/head/head.dmi'
 	icon = 'yogstation/icons/obj/clothing/hats.dmi'
 	icon_state = "juggernauthelm"
 	item_state = "juggernauthelm"
@@ -50,14 +50,15 @@
 /obj/item/clothing/head/yogs/goatpope
 	name = "goat pope hat"
 	desc = "And on the seventh day King Goat said there will be cabbage!"
-	mob_overlay_icon = 'yogstation/icons/mob/large-worn-icons/64x64/head.dmi'
+	worn_icon = 'yogstation/icons/mob/large-worn-icons/64x64/head.dmi'
 	icon_state = "goatpope"
 	item_state = "goatpope"
 	worn_x_dimension = 64
 	worn_y_dimension = 64
 	resistance_flags = FLAMMABLE
+	clothing_flags = LARGE_WORN_ICON
 
 /obj/item/clothing/head/yogs/goatpope/equipped(mob/living/carbon/human/user, slot)
 	..()
-	if (slot == SLOT_HEAD)
+	if (slot == ITEM_SLOT_HEAD)
 		user.faction |= "goat"

@@ -11,19 +11,30 @@
 	interaction_flags_machine = INTERACT_MACHINE_OPEN | INTERACT_MACHINE_WIRES_IF_OPEN | INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN_SILICON
 	obj_flags = CAN_BE_HIT | USES_TGUI
 	flags_1 = RAD_PROTECT_CONTENTS_1 | RAD_NO_CONTAMINATE_1
-	var/datum/gas_mixture/air_contents	// internal reservoir
+	/// The internal air reservoir of the disposal
+	var/datum/gas_mixture/air_contents
+	/// Is the disposal at full pressure
 	var/full_pressure = FALSE
+	/// Is the pressure charging
 	var/pressure_charging = TRUE
-	var/flush = 0	// true if flush handle is pulled
-	var/obj/structure/disposalpipe/trunk/trunk = null // the attached pipe trunk
-	var/flushing = 0	// true if flushing in progress
-	var/flush_every_ticks = 30 //Every 30 ticks it will look whether it is ready to flush
-	var/flush_count = 0 //this var adds 1 once per tick. When it reaches flush_every_ticks it resets and tries to flush.
+	// True if flush handle is pulled
+	var/flush = FALSE
+	
+	/// The attached pipe trunk
+	var/obj/structure/disposalpipe/trunk/trunk = null
+	/// True if flushing in progress
+	var/flushing = FALSE
+	/// Every 30 ticks it will look whether it is ready to flush
+	var/flush_every_ticks = 30
+	/// This var adds 1 once per tick. When it reaches flush_every_ticks it resets and tries to flush.
+	var/flush_count = 0
+	/// The last time a sound was played
 	var/last_sound = 0
+	/// The stored disposal construction pipe
 	var/obj/structure/disposalconstruct/stored
-	// create a new disposal
-	// find the attached trunk (if present) and init gas resvr.
 
+// create a new disposal
+// find the attached trunk (if present) and init gas resvr.
 /obj/machinery/disposal/Initialize(mapload, obj/structure/disposalconstruct/make_from)
 	. = ..()
 
@@ -39,7 +50,7 @@
 
 	air_contents = new /datum/gas_mixture()
 	//gas.volume = 1.05 * CELLSTANDARD
-	update_icon()
+	update_appearance()
 
 	return INITIALIZE_HINT_LATELOAD //we need turfs to have air
 
@@ -68,10 +79,13 @@
 /obj/machinery/disposal/LateInitialize()
 	//this will get a copy of the air turf and take a SEND PRESSURE amount of air from it
 	var/atom/L = loc
+	var/datum/gas_mixture/loc_air = L.return_air()
 	var/datum/gas_mixture/env = new
-	env.copy_from(L.return_air())
-	var/datum/gas_mixture/removed = env.remove(SEND_PRESSURE + 1)
-	air_contents.merge(removed)
+	if(loc_air)
+		env.copy_from(loc_air)
+		var/datum/gas_mixture/removed = env.remove(SEND_PRESSURE + 1)
+		if(removed)
+			air_contents.merge(removed)
 	trunk_check()
 
 /obj/machinery/disposal/attackby(obj/item/I, mob/user, params)
@@ -92,12 +106,12 @@
 				deconstruct()
 			return
 
-	if(user.a_intent != INTENT_HARM)
+	if(!user.combat_mode)
 		if((I.item_flags & ABSTRACT) || !user.temporarilyRemoveItemFromInventory(I))
 			return
 		place_item_in_disposal(I, user)
-		update_icon()
-		return 1 //no afterattack
+		update_appearance()
+		return TRUE //no afterattack
 	else
 		return ..()
 
@@ -130,7 +144,7 @@
 		user.visible_message("[user] starts climbing into [src].", span_notice("You start climbing into [src]..."))
 	else
 		target.visible_message(span_danger("[user] starts putting [target] into [src]."), span_userdanger("[user] starts putting you into [src]!"))
-	if(do_mob(user, target, 20))
+	if(do_after(user, 2 SECONDS, target))
 		if (!loc)
 			return
 		target.forceMove(src)
@@ -139,8 +153,8 @@
 		else
 			target.visible_message(span_danger("[user] has placed [target] in [src]."), span_userdanger("[user] has placed [target] in [src]."))
 			log_combat(user, target, "stuffed", addition="into [src]")
-			target.LAssailant = user
-		update_icon()
+			target.LAssailant = WEAKREF(user)
+		update_appearance()
 
 /obj/machinery/disposal/relaymove(mob/user)
 	attempt_escape(user)
@@ -157,14 +171,14 @@
 // leave the disposal
 /obj/machinery/disposal/proc/go_out(mob/user)
 	user.forceMove(loc)
-	update_icon()
+	update_appearance()
 
 // monkeys and xenos can only pull the flush lever
 /obj/machinery/disposal/attack_paw(mob/user)
 	if(stat & BROKEN)
 		return
 	flush = !flush
-	update_icon()
+	update_appearance()
 
 
 // eject the contents of the disposal unit
@@ -173,15 +187,11 @@
 	for(var/atom/movable/AM in src)
 		AM.forceMove(T)
 		AM.pipe_eject(0)
-	update_icon()
-
-// update the icon & overlays to reflect mode & status
-/obj/machinery/disposal/update_icon()
-	return
+	update_appearance()
 
 /obj/machinery/disposal/proc/flush()
 	flushing = TRUE
-	flushAnimation()
+	flick("[icon_state]-flush", src)
 	sleep(1 SECONDS)
 	if(last_sound < world.time + 1)
 		playsound(src, 'sound/machines/disposalflush.ogg', 50, 0, 0)
@@ -198,12 +208,10 @@
 	flush = FALSE
 
 /obj/machinery/disposal/proc/newHolderDestination(obj/structure/disposalholder/H)
+	H.destinationTag = SORT_TYPE_DISPOSALS
 	for(var/obj/item/smallDelivery/O in src)
 		H.tomail = TRUE
 		return
-
-/obj/machinery/disposal/proc/flushAnimation()
-	flick("[icon_state]-flush", src)
 
 // called when holder is expelled from a disposal
 /obj/machinery/disposal/proc/expel(obj/structure/disposalholder/H)
@@ -233,7 +241,7 @@
 			src.transfer_fingerprints_to(stored)
 			stored.anchored = FALSE
 			stored.density = TRUE
-			stored.update_icon()
+			stored.update_appearance()
 	for(var/atom/movable/AM in src) //out, out, darned crowbar!
 		AM.forceMove(T)
 	..()
@@ -264,28 +272,87 @@
 	name = "disposal unit"
 	desc = "A pneumatic waste disposal unit."
 	icon_state = "disposal"
+	base_icon_state = "disposal"
+	/// Reference to the mounted destination tagger for disposal bins with one mounted.
+	var/obj/item/destTagger/mounted_tagger
 
 // attack by item places it in to disposal
 /obj/machinery/disposal/bin/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/storage/bag/trash))	//Not doing component overrides because this is a specific type.
-		var/obj/item/storage/bag/trash/T = I
-		var/datum/component/storage/STR = T.GetComponent(/datum/component/storage)
+	if(istype(I, /obj/item/storage/bag/trash)) //Not doing component overrides because this is a specific type.
+		var/obj/item/storage/bag/trash/b = I
+		var/datum/component/storage/STR = b.GetComponent(/datum/component/storage)
 		to_chat(user, span_warning("You empty the bag."))
-		for(var/obj/item/O in T.contents)
+		for(var/obj/item/O in b.contents)
 			STR.remove_from_storage(O,src)
-		T.update_icon()
-		update_icon()
+		b.update_appearance()
+		update_appearance()
+	else if(istype(I, /obj/item/destTagger))
+		return
 	else
 		return ..()
 
 // handle machine interaction
+
+/obj/machinery/disposal/bin/attackby_secondary(obj/item/I, mob/user, params)
+	if(istype(I, /obj/item/destTagger))
+		var/obj/item/destTagger/new_tagger = I
+		if(mounted_tagger)
+			balloon_alert(user, "already has a tagger!")
+			return
+		if(HAS_TRAIT(new_tagger, TRAIT_NODROP) || !user.transferItemToLoc(new_tagger, src))
+			balloon_alert(user, "stuck to your hand!")
+			return
+		new_tagger.moveToNullspace()
+		user.visible_message(span_notice("[user] snaps \the [new_tagger] onto [src]!"))
+		balloon_alert(user, "tagger returned")
+		playsound(src, 'sound/machines/click.ogg', 50, TRUE)
+		mounted_tagger = new_tagger
+		update_appearance()
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	else
+		return ..()
+
+/obj/machinery/disposal/bin/attack_hand_secondary(mob/user, list/modifiers)
+	. = ..()
+	if(!mounted_tagger)
+		balloon_alert(user, "no destination tagger!")
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(!user.put_in_hands(mounted_tagger))
+		balloon_alert(user, "destination tagger falls!")
+		mounted_tagger = null
+		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	user.visible_message(span_notice("[user] unhooks the [mounted_tagger] from [src]."))
+	balloon_alert(user, "tagger pulled")
+	playsound(src, 'sound/machines/click.ogg', 60, TRUE)
+	mounted_tagger = null
+	update_appearance(UPDATE_OVERLAYS)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+
+/obj/machinery/disposal/bin/examine(mob/user)
+	. = ..()
+	if(isnull(mounted_tagger))
+		. += span_notice("The destination tagger mount is empty.")
+	else
+		. += span_notice("\The [mounted_tagger] is hanging on the side. Right Click to remove.")
+
+/obj/machinery/disposal/bin/Destroy()
+	if(!isnull(mounted_tagger))
+		QDEL_NULL(mounted_tagger)
+	return ..()
+
+/obj/machinery/disposal/bin/on_deconstruction(disassembled)
+	. = ..()
+	if(!isnull(mounted_tagger))
+		mounted_tagger.forceMove(drop_location())
+		mounted_tagger = null
 
 /obj/machinery/disposal/bin/AltClick(mob/user)
 	. = ..()
 	if(!user.canUseTopic(src, TRUE))
 		return
 	flush = !flush
-	update_icon()
+	update_appearance()
 
 /obj/machinery/disposal/bin/ui_state(mob/user)
 	return GLOB.notcontained_state
@@ -315,22 +382,22 @@
 	switch(action)
 		if("handle-0")
 			flush = FALSE
-			update_icon()
+			update_appearance()
 			. = TRUE
 		if("handle-1")
 			if(!panel_open)
 				flush = TRUE
-				update_icon()
+				update_appearance()
 			. = TRUE
 		if("pump-0")
 			if(pressure_charging)
 				pressure_charging = FALSE
-				update_icon()
+				update_appearance()
 			. = TRUE
 		if("pump-1")
 			if(!pressure_charging)
 				pressure_charging = TRUE
-				update_icon()
+				update_appearance()
 			. = TRUE
 		if("eject")
 			eject()
@@ -343,10 +410,10 @@
 			AM.forceMove(src)
 			if(ismob(AM))
 				do_flush()
-				visible_message(span_notice("[AM] lands in [src] and triggers the flush system!."))
+				visible_message(span_notice("[AM] lands in [src] and triggers the flush system!"))
 			else
 				visible_message(span_notice("[AM] lands in [src]."))
-			update_icon()
+			update_appearance()
 		else
 			visible_message(span_notice("[AM] bounces off of [src]'s rim!"))
 			return ..()
@@ -357,10 +424,10 @@
 	..()
 	full_pressure = FALSE
 	pressure_charging = TRUE
-	update_icon()
+	update_appearance()
 
-/obj/machinery/disposal/bin/update_icon()
-	cut_overlays()
+/obj/machinery/disposal/bin/update_overlays()
+	. = ..()
 	if(stat & BROKEN)
 		pressure_charging = FALSE
 		flush = FALSE
@@ -368,7 +435,10 @@
 
 	//flush handle
 	if(flush)
-		add_overlay("dispover-handle")
+		. += "[base_icon_state]-dispover-handle"
+
+	if(mounted_tagger)
+		. += "tagger_mount"
 
 	//only handle is shown if no power
 	if(stat & NOPOWER || panel_open)
@@ -376,17 +446,24 @@
 
 	//check for items in disposal - occupied light
 	if(contents.len > 0)
-		add_overlay("dispover-full")
+		. += "[base_icon_state]-dispover-full"
+		. += emissive_appearance(icon, "[base_icon_state]-dispover-full", src, alpha = src.alpha)
 
 	//charging and ready light
 	if(pressure_charging)
-		add_overlay("dispover-charge")
+		. += "[base_icon_state]-dispover-charge"
+		. += emissive_appearance(icon, "[base_icon_state]-dispover-charge-glow", src, alpha = src.alpha)
 	else if(full_pressure)
-		add_overlay("dispover-ready")
+		. += "[base_icon_state]-dispover-ready"
+		. += emissive_appearance(icon, "[base_icon_state]-dispover-ready-glow", src, alpha = src.alpha)
 
 /obj/machinery/disposal/bin/proc/do_flush()
 	set waitfor = FALSE
 	flush()
+
+/obj/machinery/disposal/bin/tagger/Initialize(mapload, obj/structure/disposalconstruct/make_from)
+	mounted_tagger = new /obj/item/destTagger(null)
+	return ..()
 
 //timed process
 //charge the gas reservoir and perform flush if ready
@@ -422,20 +499,18 @@
 	var/datum/gas_mixture/env = L.return_air()
 	var/pressure_delta = (SEND_PRESSURE*1.01) - air_contents.return_pressure()
 
-	if(env.return_temperature() > 0)
+	if(env?.return_temperature() > 0)
 		var/transfer_moles = 0.05 * delta_time * pressure_delta*air_contents.return_volume()/(env.return_temperature() * R_IDEAL_GAS_EQUATION)
 
 		//Actually transfer the gas
 		var/datum/gas_mixture/removed = env.remove(transfer_moles)
 		air_contents.merge(removed)
-		air_update_turf()
-
 
 	//if full enough, switch to ready mode
 	if(air_contents.return_pressure() >= SEND_PRESSURE)
 		full_pressure = TRUE
 		pressure_charging = FALSE
-		update_icon()
+		update_appearance()
 	return
 
 /obj/machinery/disposal/bin/get_remote_view_fullscreens(mob/user)
@@ -493,7 +568,7 @@
 /atom/movable/proc/CanEnterDisposals()
 	return TRUE
 
-/obj/item/projectile/CanEnterDisposals()
+/obj/projectile/CanEnterDisposals()
 	return
 
 /obj/effect/CanEnterDisposals()
@@ -502,8 +577,5 @@
 /obj/mecha/CanEnterDisposals()
 	return
 
-/obj/machinery/disposal/bin/newHolderDestination(obj/structure/disposalholder/H)
-	H.destinationTag = 1
 
-/obj/machinery/disposal/deliveryChute/newHolderDestination(obj/structure/disposalholder/H)
-	H.destinationTag = 1
+

@@ -1,15 +1,16 @@
 //Subtype of human
 /datum/species/human/felinid
 	name = "Felinid Human"
-	id = "felinid"
-	limbs_id = "human"
-	attack_verb = "slash"
+	id = SPECIES_FELINE
+	limbs_id = SPECIES_HUMAN
+	attack_verbs = list("slash")
+	attack_effect = ATTACK_EFFECT_CLAW
 	attack_sound = 'sound/weapons/slash.ogg'
 	miss_sound = 'sound/weapons/slashmiss.ogg'
 
 	species_traits = list(EYECOLOR,HAIR,FACEHAIR,LIPS,HAS_FLESH,HAS_BONE,HAS_TAIL)
 	mutant_bodyparts = list("ears", "tail_human")
-	default_features = list("mcolor" = "FFF", "tail_human" = "Cat", "ears" = "Cat", "wings" = "None")
+	default_features = list("mcolor" = "#FFFFFF", "tail_human" = "Cat", "ears" = "Cat", "wings" = "None")
 	rare_say_mod = list("meows"= 10)
 	liked_food = SEAFOOD | DAIRY | MICE
 	disliked_food = GROSS | RAW
@@ -48,6 +49,8 @@
 			tail.Insert(H, drop_if_replaced = FALSE)
 		else
 			mutanttail = initial(old_species.mutanttail)
+		H.dna.update_uf_block(DNA_HUMAN_TAIL_BLOCK)
+		H.dna.update_uf_block(DNA_EARS_BLOCK)
 
 /datum/species/human/felinid/on_species_loss(mob/living/carbon/H, datum/species/new_species, pref_load)
 	var/obj/item/organ/ears/cat/ears = H.getorgan(/obj/item/organ/ears/cat)
@@ -64,7 +67,7 @@
 			// Go with default ears
 			NE = new /obj/item/organ/ears
 		NE.Insert(H, drop_if_replaced = FALSE)
-
+		H.dna.update_uf_block(DNA_EARS_BLOCK)
 	if(tail)
 		var/obj/item/organ/tail/NT
 		if(new_species && new_species.mutanttail)
@@ -76,6 +79,8 @@
 			NT.Insert(H, drop_if_replaced = FALSE)
 		else
 			tail.Remove(H)
+		H.dna.update_uf_block(DNA_HUMAN_TAIL_BLOCK)
+
 
 ///turn everyone into catgirls. Technically not girls specifically but you get the point.
 /proc/mass_purrbation()
@@ -108,7 +113,7 @@
 		purrbation_remove(H, silent)
 		. = FALSE
 
-/proc/purrbation_toggle_onlyhumans(mob/living/carbon/human/H, silent = FALSE) //same as above but doesn't work on nonhumans - used by donor purrbation to reduce *accidental* double-cursed double-mutants
+/proc/purrbation_toggle_onlyhumans(mob/living/carbon/human/H, silent = FALSE) //same as above but doesn't work on nonhumans - used by donor purrbation to reduce *accidental* double-cursed double-mutants //accidental my ASS they knew what they signed up for and they LIKED IT
 	if(!ishumanbasic(H))
 		return
 	if(!iscatperson(H))
@@ -130,7 +135,8 @@
 		var/obj/item/organ/cattification = new /obj/item/organ/tail/cat()
 		var/old_part = H.getorganslot(ORGAN_SLOT_TAIL)
 		cattification.Insert(H)
-		qdel(old_part)
+		if(istype(old_part, /obj/item/organ/tail/cat))	//Won't delete non-cat tails
+			qdel(old_part)								//No duplicate tails allowed, but different tails can share because it's funny
 		cattification = new /obj/item/organ/ears/cat()
 		old_part = H.getorganslot(ORGAN_SLOT_EARS)
 		cattification.Insert(H)
@@ -170,13 +176,13 @@
 
 /datum/species/human/felinid/spec_life(mob/living/carbon/human/H)
 	. = ..()
-	if((H.client && H.client.prefs.mood_tail_wagging) && !is_wagging_tail() && H.mood_enabled)
+	if((H.client && H.client.prefs.read_preference(/datum/preference/toggle/mood_tail_wagging)) && !is_wagging_tail() && H.mood_enabled)
 		var/datum/component/mood/mood = H.GetComponent(/datum/component/mood)
-		if(!istype(mood) || !(mood.shown_mood >= MOOD_LEVEL_HAPPY2)) 
+		if(!istype(mood) || !(mood.shown_mood >= MOOD_LEVEL_HAPPY2))
 			return
 		var/chance = 0
 		switch(mood.shown_mood)
-			if(0 to MOOD_LEVEL_SAD4)
+			if(-INFINITY to MOOD_LEVEL_SAD4)
 				chance = -0.1
 			if(MOOD_LEVEL_SAD4 to MOOD_LEVEL_SAD3)
 				chance = -0.01
@@ -192,3 +198,79 @@
 					H.emote("wag")
 				if(-1)
 					stop_wagging_tail(H)
+
+/datum/species/human/felinid/prepare_human_for_preview(mob/living/carbon/human/human)
+	human.hair_style = "Hime Cut"
+	human.hair_color = "fcc" // pink
+	human.update_hair()
+
+	var/obj/item/organ/ears/cat/cat_ears = human.getorgan(/obj/item/organ/ears/cat)
+	if (cat_ears)
+		cat_ears.color = human.hair_color
+		human.update_body()
+
+/datum/species/human/felinid/get_species_description()
+	return "Felinids are one of the many types of bespoke genetic \
+		modifications to come of humanity's mastery of genetic science, and are \
+		also one of the most common. Meow?"
+
+/datum/species/human/felinid/get_species_lore()
+	return list(
+		"Bio-engineering at its felinest, Felinids are the peak example of humanity's mastery of genetic code. \
+			One of many \"Animalid\" variants, Felinids are the most popular and common, as well as one of the \
+			biggest points of contention in genetic-modification.",
+
+		"Body modders were eager to splice human and feline DNA in search of the holy trifecta: ears, eyes, and tail. \
+			These traits were in high demand, with the corresponding side effects of vocal and neurochemical changes being seen as a minor inconvenience.",
+
+		"Sadly for the Felinids, they were not minor inconveniences. Shunned as subhuman and monstrous by many, Felinids (and other Animalids) \
+			sought their greener pastures out in the colonies, cloistering in communities of their own kind. \
+			As a result, outer Human space has a high Animalid population.",
+	)
+
+/datum/species/human/felinid/get_laugh_sound(mob/living/carbon/human/felinid)
+	if(felinid.gender == FEMALE)
+		return 'sound/voice/human/womanlaugh.ogg'
+	return pick(
+		'sound/voice/human/manlaugh1.ogg',
+		'sound/voice/human/manlaugh2.ogg',
+	)
+
+
+/datum/species/human/felinid/get_cough_sound(mob/living/carbon/human/felinid)
+	if(felinid.gender == FEMALE)
+		return pick(
+			'sound/voice/human/female_cough1.ogg',
+			'sound/voice/human/female_cough2.ogg',
+			'sound/voice/human/female_cough3.ogg',
+			'sound/voice/human/female_cough4.ogg',
+			'sound/voice/human/female_cough5.ogg',
+			'sound/voice/human/female_cough6.ogg',
+		)
+	return pick(
+		'sound/voice/human/male_cough1.ogg',
+		'sound/voice/human/male_cough2.ogg',
+		'sound/voice/human/male_cough3.ogg',
+		'sound/voice/human/male_cough4.ogg',
+		'sound/voice/human/male_cough5.ogg',
+		'sound/voice/human/male_cough6.ogg',
+	)
+
+
+/datum/species/human/felinid/get_cry_sound(mob/living/carbon/human/felinid)
+	if(felinid.gender == FEMALE)
+		return pick(
+			'sound/voice/human/female_cry1.ogg',
+			'sound/voice/human/female_cry2.ogg',
+		)
+	return pick(
+		'sound/voice/human/male_cry1.ogg',
+		'sound/voice/human/male_cry2.ogg',
+		'sound/voice/human/male_cry3.ogg',
+	)
+
+
+/datum/species/human/felinid/get_sneeze_sound(mob/living/carbon/human/felinid)
+	if(felinid.gender == FEMALE)
+		return 'sound/voice/human/female_sneeze1.ogg'
+	return 'sound/voice/human/male_sneeze1.ogg'

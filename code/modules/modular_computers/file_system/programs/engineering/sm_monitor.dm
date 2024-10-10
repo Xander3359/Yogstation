@@ -1,12 +1,12 @@
 /datum/computer_file/program/supermatter_monitor
 	filename = "smmonitor"
 	filedesc = "Supermatter Monitoring"
-	category = PROGRAM_CATEGORY_ENGI
+	category = PROGRAM_CATEGORY_ENGINEERING
 	ui_header = "smmon_0.gif"
 	program_icon_state = "smmon_0"
 	extended_desc = "This program connects to specially calibrated supermatter sensors to provide information on the status of supermatter-based engines."
 	requires_ntnet = TRUE
-	transfer_access = ACCESS_ENGINE
+	transfer_access = ACCESS_ENGINEERING
 	network_destination = "supermatter monitoring system"
 	size = 5
 	tgui_id = "NtosSupermatterMonitor"
@@ -31,7 +31,7 @@
 		ui_header = "smmon_[last_status].gif"
 		program_icon_state = "smmon_[last_status]"
 		if(istype(computer))
-			computer.update_icon()
+			computer.update_appearance(UPDATE_ICON)
 
 /datum/computer_file/program/supermatter_monitor/run_program(mob/living/user)
 	. = ..(user)
@@ -72,8 +72,8 @@
  */
 /datum/computer_file/program/supermatter_monitor/proc/set_signals()
 	if(active)
-		RegisterSignal(active, COMSIG_SUPERMATTER_DELAM_ALARM, .proc/send_alert, override = TRUE)
-		RegisterSignal(active, COMSIG_SUPERMATTER_DELAM_START_ALARM, .proc/send_start_alert, override = TRUE)
+		RegisterSignal(active, COMSIG_SUPERMATTER_DELAM_ALARM, PROC_REF(send_alert), override = TRUE)
+		RegisterSignal(active, COMSIG_SUPERMATTER_DELAM_START_ALARM, PROC_REF(send_start_alert), override = TRUE)
 
 /**
   * Removes the signal listener for Supermatter delaminations from the selected supermatter.
@@ -128,11 +128,14 @@
 		if(!air)
 			active = null
 			return
-		if(active.corruptor_attached)
-			data_corrupted = TRUE
 
 		data["active"] = TRUE
-		if(data_corrupted) //yes it goes negative, that's even more funny
+		data["powerData"] = active.powerData
+		data["radsData"] = active.radsData
+		data["tempData"] = active.tempData
+		data["kpaData"] = active.kpaData
+		data["molesData"] = active.molesData
+		if(active.corruptor_attached) //yes it goes negative, that's even more funny
 			data["SM_integrity"] = active.get_fake_integrity()
 			data["SM_power"] = active.power + round((rand()-0.5)*12000,1) 
 			data["SM_radiation"] = active.last_rads + round((rand()-0.5)*12000,1) 
@@ -154,18 +157,21 @@
 			for(var/gasid in air.get_gases())
 				if(data_corrupted)
 					gasdata.Add(list(list(
-					"name"= GLOB.meta_gas_info[gasid][META_GAS_NAME],
-					"amount" = round(rand()*100,0.01))))
+					"name"= GLOB.gas_data.names[gasid],
+					"amount" = round(rand()*100,0.01),
+					"ui_color" = GLOB.gas_data.ui_colors[gasid])))
 				else
 					gasdata.Add(list(list(
-					"name"= GLOB.meta_gas_info[gasid][META_GAS_NAME],
-					"amount" = round(100*air.get_moles(gasid)/air.total_moles(),0.01))))
+					"name"= GLOB.gas_data.names[gasid],
+					"amount" = round(100*air.get_moles(gasid)/air.total_moles(),0.01),
+					"ui_color" = GLOB.gas_data.ui_colors[gasid])))
 
 		else
 			for(var/gasid in air.get_gases())
 				gasdata.Add(list(list(
-					"name"= GLOB.meta_gas_info[gasid][META_GAS_NAME],
-					"amount" = 0)))
+					"name"= GLOB.gas_data.names[gasid],
+					"amount" = 0,
+					"ui_color" = GLOB.gas_data.ui_colors[gasid])))
 
 		data["gases"] = gasdata
 	else

@@ -35,6 +35,12 @@
 	/// Whether or not dynamic should hijack this event
 	var/dynamic_should_hijack = FALSE
 
+/datum/round_event_control/vv_edit_var(var_name, var_value)
+	if(var_name == NAMEOF(src, random) && var_value) // CAN'T LET YOU DO THAT, STAR FOX
+		message_admins("No, [key_name_admin(usr)], you cannot fake force a random event.")
+		return FALSE
+	. = ..()
+
 /datum/round_event_control/New()
 	if(config && !wizardevent) // Magic is unaffected by configs
 		earliest_start = CEILING(earliest_start * CONFIG_GET(number/events_min_time_mul), 1)
@@ -45,7 +51,7 @@
 
 // Checks if the event can be spawned. Used by event controller and "false alarm" event.
 // Admin-created events override this.
-/datum/round_event_control/proc/canSpawnEvent(var/players_amt, var/gamemode)
+/datum/round_event_control/proc/canSpawnEvent(players_amt, gamemode)
 	if(occurrences >= max_occurrences)
 		return FALSE
 	if(earliest_start >= world.time-SSticker.round_start_time)
@@ -62,9 +68,9 @@
 		return FALSE
 	if(ispath(typepath, /datum/round_event/ghost_role) && !(GLOB.ghost_role_flags & GHOSTROLE_MIDROUND_EVENT))
 		return FALSE
-	if(GLOB.security_level > max_alert)
+	if(SSsecurity_level.get_current_level_as_number() > max_alert)
 		return FALSE
-	if(GLOB.security_level < min_alert)
+	if(SSsecurity_level.get_current_level_as_number() < min_alert)
 		return FALSE
 
 	var/datum/game_mode/dynamic/dynamic = SSticker.mode
@@ -102,7 +108,7 @@
 		return
 	if(href_list["cancel"])
 		if(!triggering)
-			to_chat(usr, span_admin("You are too late to cancel that event"))
+			to_chat(usr, span_admin("You are too late to cancel that event."))
 			return
 		triggering = FALSE
 		message_admins("[key_name_admin(usr)] cancelled event [name].")

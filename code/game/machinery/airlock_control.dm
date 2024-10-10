@@ -2,6 +2,9 @@
 
 // This code allows for airlocks to be controlled externally by setting an id_tag and comm frequency (disables ID access)
 /obj/machinery/door/airlock
+	opens_with_door_remote = TRUE
+	/// The current state of the airlock, used to construct the airlock overlays
+	var/airlock_state
 	var/id_tag
 	var/frequency
 	var/datum/radio_frequency/radio_connection
@@ -16,36 +19,36 @@
 
 	switch(signal.data["command"])
 		if("open")
-			open(1)
+			open(TRUE)
 
 		if("close")
-			close(1)
+			close(TRUE)
 
 		if("unlock")
 			locked = FALSE
-			update_icon()
+			update_appearance()
 
 		if("lock")
 			locked = TRUE
-			update_icon()
+			update_appearance()
 
 		if("secure_open")
 			locked = FALSE
-			update_icon()
+			update_appearance()
 
 			sleep(0.2 SECONDS)
-			open(1)
+			open(TRUE)
 
 			locked = TRUE
-			update_icon()
+			update_appearance()
 
 		if("secure_close")
 			locked = FALSE
-			close(1)
+			close(TRUE)
 
 			locked = TRUE
 			sleep(0.2 SECONDS)
-			update_icon()
+			update_appearance()
 
 	send_status()
 
@@ -113,7 +116,8 @@
 	id_tag = INCINERATOR_SYNDICATELAVA_AIRLOCK_SENSOR
 	master_tag = INCINERATOR_SYNDICATELAVA_AIRLOCK_CONTROLLER
 
-/obj/machinery/airlock_sensor/update_icon()
+/obj/machinery/airlock_sensor/update_icon_state()
+	. = ..()
 	if(on)
 		if(alert)
 			icon_state = "airlock_sensor_alert"
@@ -148,14 +152,14 @@
 
 		radio_connection.post_signal(src, signal, range = AIRLOCK_CONTROL_RANGE, filter = RADIO_AIRLOCK)
 
-	update_icon()
+	update_appearance()
 
 /obj/machinery/airlock_sensor/proc/set_frequency(new_frequency)
 	SSradio.remove_object(src, frequency)
 	frequency = new_frequency
 	radio_connection = SSradio.add_object(src, frequency, RADIO_AIRLOCK)
 
-/obj/machinery/airlock_sensor/Initialize()
+/obj/machinery/airlock_sensor/Initialize(mapload)
 	. = ..()
 	set_frequency(frequency)
 

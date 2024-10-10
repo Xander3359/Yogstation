@@ -198,7 +198,7 @@
 	pixel_x = 2;
 	pixel_y = 8
 	},
-/obj/item/twohanded/required/pool/pool_noodle{
+/obj/item/pool/pool_noodle{
 	pixel_x = 8;
 	pixel_y = -7
 	},
@@ -243,7 +243,7 @@
 	name = "Transfer Area Lockdown";
 	pixel_x = 25;
 	pixel_y = -5;
-	req_access_txt = "2"
+	req_access = list("brig")
 	},
 /obj/machinery/button/flasher{
 	id = "executionflash";

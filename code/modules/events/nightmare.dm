@@ -12,7 +12,7 @@
 	fakeable = FALSE
 
 /datum/round_event/ghost_role/nightmare/spawn_role()
-	var/list/candidates = get_candidates(ROLE_ALIEN, null, ROLE_ALIEN)
+	var/list/candidates = get_candidates(ROLE_NIGHTMARE, null, ROLE_NIGHTMARE)
 	if(!candidates.len)
 		return NOT_ENOUGH_PLAYERS
 
@@ -25,7 +25,7 @@
 	for(var/X in GLOB.xeno_spawn)
 		var/turf/T = X
 		var/light_amount = T.get_lumcount()
-		if(light_amount < SHADOW_SPECIES_LIGHT_THRESHOLD)
+		if(light_amount < SHADOW_SPECIES_DIM_LIGHT)
 			spawn_locs += T
 
 	if(!spawn_locs.len)
