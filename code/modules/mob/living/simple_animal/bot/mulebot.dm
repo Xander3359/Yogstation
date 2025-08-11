@@ -67,9 +67,13 @@
 	suffix = null
 
 /mob/living/simple_animal/bot/mulebot/Destroy()
+	if(!isnull(wires))
+		QDEL_NULL(wires)
 	unload(0)
-	qdel(wires)
-	wires = null
+	return ..()
+
+/mob/living/simple_animal/bot/mulebot/death(gibbed)
+	QDEL_NULL(wires)
 	return ..()
 
 /mob/living/simple_animal/bot/mulebot/proc/set_id(new_id)
@@ -743,7 +747,7 @@
 	else
 		..()
 
-/mob/living/simple_animal/bot/mulebot/insertpai(mob/user, obj/item/paicard/card)
+/mob/living/simple_animal/bot/mulebot/insertpai(mob/user, obj/item/computer_hardware/paicard/card)
 	if(..())
 		visible_message("[src] safeties are locked on.")
 

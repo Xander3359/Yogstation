@@ -482,7 +482,7 @@ SUBSYSTEM_DEF(mapping)
 	else if (!isnull(config.minetype) && config.minetype != "none")
 		INIT_ANNOUNCE("WARNING: An unknown minetype '[config.minetype]' was set! This is being ignored! Update the maploader code!")
 
-	LoadGroup(FailedZs, "Automated Exploration Hub", "RandomZLevels/VR", "netmin_hub.dmm", default_traits = ZTRAITS_AWAY_SECRET)
+	LoadGroup(FailedZs, "Automated Exploration Hub", "RandomZLevels", "netmin_hub.dmm", default_traits = ZTRAITS_AWAY_SECRET)
 #endif
 
 	if(LAZYLEN(FailedZs))	//but seriously, unless the server's filesystem is messed up this will never happen
@@ -572,6 +572,14 @@ GLOBAL_LIST_EMPTY(the_station_areas)
 	if (. && VM.map_name != config.map_name)
 		to_chat(world, span_boldannounce("Map rotation has chosen [VM.map_name] for next round!"))
 
+/datum/controller/subsystem/mapping/proc/mapvote()
+	if(map_voted || SSmapping.next_map_config) //If voted or set by other means.
+		return
+	if(SSvote.current_vote) //Theres already a vote running, default to rotation.
+		maprotate()
+		return
+	SSvote.initiate_vote(/datum/vote/map_vote, "automatic map rotation", forced = TRUE)
+	
 /datum/controller/subsystem/mapping/proc/changemap(datum/map_config/change_to)
 	if(!change_to.MakeNextMap())
 		next_map_config = load_default_map_config()

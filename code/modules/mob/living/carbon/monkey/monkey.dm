@@ -16,7 +16,7 @@
 	unique_name = TRUE
 	blocks_emissive = EMISSIVE_BLOCK_UNIQUE
 	bodyparts = list(/obj/item/bodypart/chest/monkey, /obj/item/bodypart/head/monkey, /obj/item/bodypart/l_arm/monkey,
-					 /obj/item/bodypart/r_arm/monkey, /obj/item/bodypart/r_leg/monkey, /obj/item/bodypart/l_leg/monkey)
+					 /obj/item/bodypart/r_arm/monkey, /obj/item/bodypart/leg/right/monkey, /obj/item/bodypart/leg/left/monkey)
 	hud_type = /datum/hud/monkey
 	blood_volume = BLOOD_VOLUME_MONKEY // Yogs -- Makes monkeys/xenos have different amounts of blood from normal carbonbois
 	can_be_held = TRUE
@@ -112,11 +112,6 @@ GLOBAL_LIST_INIT(strippable_monkey_items, create_strippable_list(list(
 			. += ""
 			. += "Chemical Storage: [changeling.chem_charges]/[changeling.chem_storage]"
 			. += "Absorbed DNA: [changeling.absorbedcount]"
-
-/mob/living/carbon/monkey/IsAdvancedToolUser()//Unless its monkey mode monkeys cant use advanced tools
-	if(mind && is_monkey(mind))
-		return TRUE
-	return FALSE
 
 /mob/living/carbon/monkey/reagent_check(datum/reagent/R) //can metabolize all reagents
 	return FALSE

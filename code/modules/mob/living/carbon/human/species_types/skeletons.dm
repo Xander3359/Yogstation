@@ -2,6 +2,8 @@
 	// 2spooky
 	name = "Spooky Scary Skeleton"
 	id = SPECIES_SKELETON
+	monitor_icon = "skull"
+	monitor_color = "#fffcfa"
 	say_mod = "rattles"
 	possible_genders = list(NEUTER)
 	meat = /obj/item/reagent_containers/food/snacks/meat/slab/human/mutant/skeleton
@@ -26,7 +28,7 @@
 	limbs_id = SPECIES_SKELETON //they are just normal skeletons but weaker
 
 /datum/species/skeleton/lowcalcium/check_roundstart_eligible()
-	if(SSevents.holidays && SSevents.holidays[HALLOWEEN])
+	if(SSgamemode.holidays && SSgamemode.holidays[HALLOWEEN])
 		return TRUE
 	return ..()
 

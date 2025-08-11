@@ -9,8 +9,8 @@
 	. = ..()
 	ADD_TRAIT(src, TRAIT_EMPPROOF_SELF, "innate_empproof")
 	ADD_TRAIT(src, TRAIT_EMPPROOF_CONTENTS, "innate_empproof")
-	var/datum/component/uplink/uplink = AddComponent(/datum/component/uplink, _owner, TRUE, FALSE, null, 20)
-	uplink.set_gamemode(/datum/game_mode/infiltration)
+	var/datum/component/uplink/uplink = AddComponent(/datum/component/uplink, _owner, TRUE, FALSE, null, 10)
+	uplink.set_antagonist(ROLE_INFILTRATOR)
 	alert_radio = new(src)
 	alert_radio.make_syndie()
 	alert_radio.listening = FALSE

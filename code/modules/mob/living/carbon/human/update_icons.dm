@@ -153,8 +153,8 @@ There are several things that need to be remembered:
 		//Friendly reminder that icon_exists(file, state, scream = TRUE) is your friend when debugging this code.
 		var/icon_file
 		var/target_overlay = RESOLVE_ICON_STATE(uniform) //Selects proper icon from the vars the clothing has (Search define for more.)
-		var/obj/item/bodypart/l_leg = get_bodypart(BODY_ZONE_L_LEG)
-		var/obj/item/bodypart/r_leg = get_bodypart(BODY_ZONE_R_LEG)
+		var/obj/item/bodypart/leg/left/l_leg = get_bodypart(BODY_ZONE_L_LEG)
+		var/obj/item/bodypart/leg/right/r_leg = get_bodypart(BODY_ZONE_R_LEG)
 		var/obj/item/bodypart/chest/chest = get_bodypart(BODY_ZONE_CHEST)
 		uniform.species_fitted = null	
 		if(uniform.adjusted)
@@ -381,8 +381,8 @@ There are several things that need to be remembered:
 
 	if(shoes)
 		var/target_overlay = RESOLVE_ICON_STATE(shoes)
-		var/obj/item/bodypart/l_leg = get_bodypart(BODY_ZONE_L_LEG)
-		var/obj/item/bodypart/r_leg = get_bodypart(BODY_ZONE_R_LEG)
+		var/obj/item/bodypart/leg/left/l_leg = get_bodypart(BODY_ZONE_L_LEG)
+		var/obj/item/bodypart/leg/right/r_leg = get_bodypart(BODY_ZONE_R_LEG)
 		shoes.species_fitted = null
 		if(istype(shoes, /obj/item/clothing/shoes))
 			var/obj/item/clothing/shoes/real_shoes = shoes
@@ -508,8 +508,8 @@ There are several things that need to be remembered:
 		var/obj/item/bodypart/chest/chest = get_bodypart(BODY_ZONE_CHEST)
 		var/icon_to_use = DEFAULT_SUIT_FILE
 		suit.species_fitted = null
-		var/obj/item/bodypart/l_leg = get_bodypart(BODY_ZONE_L_LEG)
-		var/obj/item/bodypart/r_leg = get_bodypart(BODY_ZONE_R_LEG)
+		var/obj/item/bodypart/leg/left/l_leg = get_bodypart(BODY_ZONE_L_LEG)
+		var/obj/item/bodypart/leg/right/r_leg = get_bodypart(BODY_ZONE_R_LEG)
 		if(l_leg?.species_id == r_leg?.species_id == SPECIES_VOX)//for Vox, it's the Vox legs that make regular sprites not fit
 			if(icon_exists(suit.sprite_sheets[l_leg.species_id], suit.icon_state))
 				icon_to_use = suit.sprite_sheets[l_leg.species_id]
@@ -614,11 +614,11 @@ There are several things that need to be remembered:
 			overlays_standing[BACK_LAYER] = back_overlay
 		apply_overlay(BACK_LAYER)
 
-/proc/wear_female_version(t_color, icon, layer, type, greyscale_colors)
-	var/index = "[t_color]-[greyscale_colors]"
+/proc/wear_female_version(t_color, icon, layer, type, greyscale_colors, flat)
+	var/index = "[t_color]-[greyscale_colors]-[flat]"
 	var/icon/female_clothing_icon = GLOB.female_clothing_icons[index]
 	if(!female_clothing_icon) 	//Create standing/laying icons if they don't exist
-		generate_female_clothing(index, t_color, icon, type)
+		generate_female_clothing(index, t_color, icon, type, flat)
 	return mutable_appearance(GLOB.female_clothing_icons[index], layer = -layer) //Grab the standing/laying icons once/if they do exist
 
 /proc/wear_skinny_version(t_color, icon, layer, type, greyscale_colors)
@@ -726,7 +726,7 @@ generate/load female uniform sprites matching all previously decided variables
 		if(HAS_TRAIT(H, TRAIT_SKINNY) && (H.underwear == "Nude"))
 			standing = wear_skinny_version(t_state, file2use, layer2use, femaleuniform, greyscale_colors)
 		else
-			standing = wear_female_version(t_state, file2use, layer2use, femaleuniform, greyscale_colors)
+			standing = wear_female_version(t_state, file2use, layer2use, femaleuniform, greyscale_colors, !!(H.mob_biotypes & MOB_REPTILE)) // lizards 
 	if(!standing)
 		standing = mutable_appearance(file2use, t_state, -layer2use)
 

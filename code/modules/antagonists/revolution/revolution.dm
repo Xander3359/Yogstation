@@ -1,5 +1,7 @@
 //How often to check for promotion possibility
 #define HEAD_UPDATE_PERIOD 300
+#define REVOLUTION_VICTORY 1
+#define STATION_VICTORY 2
 
 /datum/antagonist/rev
 	name = "Revolutionary"
@@ -8,6 +10,7 @@
 	job_rank = ROLE_REV
 	antag_moodlet = /datum/mood_event/revolution
 	antag_hud_name = "rev"
+	count_towards_antag_cap = TRUE
 	var/datum/team/revolution/rev_team
 
 /datum/antagonist/rev/can_be_owned(datum/mind/new_owner)
@@ -350,6 +353,14 @@
 			return FALSE
 	return TRUE
 
+/datum/team/revolution/proc/round_result(finished)
+	if (finished == REVOLUTION_VICTORY)
+		SSticker.mode_result = "win - heads killed"
+		SSticker.news_report = REVS_WIN
+	else if (finished == STATION_VICTORY)
+		SSticker.mode_result = "loss - rev heads killed"
+		SSticker.news_report = REVS_LOSE
+		
 /datum/team/revolution/roundend_report()
 	if(!members.len && !ex_headrevs.len)
 		return
@@ -364,7 +375,7 @@
 		if(survivor.ckey)
 			num_survivors++
 			if(survivor.mind)
-				if(is_revolutionary(survivor))
+				if(IS_REVOLUTIONARY(survivor))
 					num_revs++
 	if(num_survivors)
 		result += "Command's Approval Rating: <B>[100 - round((num_revs/num_survivors)*100, 0.1)]%</B><br>"
@@ -439,19 +450,19 @@
 	for(var/datum/mind/N in SSjob.get_living_heads())
 		var/mob/M = N.current
 		if(M)
-			heads_report += "<tr><td><a href='?_src_=holder;[HrefToken()];adminplayeropts=[REF(M)]'>[M.real_name]</a>[M.client ? "" : " <i>(No Client)</i>"][M.stat == DEAD ? " <b><font color=red>(DEAD)</font></b>" : ""]</td>"
-			heads_report += "<td><A href='?priv_msg=[M.ckey]'>PM</A></td>"
-			heads_report += "<td><A href='?_src_=holder;[HrefToken()];adminplayerobservefollow=[REF(M)]'>FLW</a></td>"
+			heads_report += "<tr><td><a href='byond://?_src_=holder;[HrefToken()];adminplayeropts=[REF(M)]'>[M.real_name]</a>[M.client ? "" : " <i>(No Client)</i>"][M.stat == DEAD ? " <b><font color=red>(DEAD)</font></b>" : ""]</td>"
+			heads_report += "<td><A href='byond://?priv_msg=[M.ckey]'>PM</A></td>"
+			heads_report += "<td><A href='byond://?_src_=holder;[HrefToken()];adminplayerobservefollow=[REF(M)]'>FLW</a></td>"
 			var/turf/mob_loc = get_turf(M)
 			heads_report += "<td>[mob_loc.loc]</td></tr>"
 		else
-			heads_report += "<tr><td><a href='?_src_=vars;[HrefToken()];Vars=[REF(N)]'>[N.name]([N.key])</a><i>Head body destroyed!</i></td>"
-			heads_report += "<td><A href='?priv_msg=[N.key]'>PM</A></td></tr>"
+			heads_report += "<tr><td><a href='byond://?_src_=vars;[HrefToken()];Vars=[REF(N)]'>[N.name]([N.key])</a><i>Head body destroyed!</i></td>"
+			heads_report += "<td><A href='byond://?priv_msg=[N.key]'>PM</A></td></tr>"
 	heads_report += "</table>"
 	return common_part + heads_report
 
 /datum/team/revolution/is_gamemode_hero()
-	return SSticker.mode.name == "revolution"
+	return SSgamemode.name == "revolution"
 
 /datum/outfit/revolutionary
 	name = "Revolutionary (Preview only)"

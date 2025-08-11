@@ -37,15 +37,25 @@
 	QDEL_LIST(surgeries)
 	return ..()
 
-/mob/living/onZImpact(turf/T, levels)
-	ZImpactDamage(T, levels)
-	return ..()
+/mob/living/onZImpact(turf/impacted_turf, levels, impact_flags = NONE)
+	impact_flags |= SEND_SIGNAL(impacted_turf, COMSIG_TURF_MOB_FALL, src, levels, impact_flags)
+	if(!isgroundlessturf(impacted_turf))
+		impact_flags |= ZImpactDamage(impacted_turf, levels, impact_flags)
 
-/mob/living/proc/ZImpactDamage(turf/T, levels)
-	SEND_SIGNAL(T, COMSIG_TURF_MOB_FALL, src)
-	visible_message(span_danger("[src] crashes into [T] with a sickening noise!"))
+	return ..(impacted_turf, levels, impact_flags)
+
+/mob/living/proc/ZImpactDamage(turf/impacted_turf, levels, impact_flags)
+	impact_flags |= SEND_SIGNAL(src, COMSIG_LIVING_Z_IMPACT, levels, impacted_turf)
+	if(impact_flags & ZIMPACT_CANCEL_DAMAGE)
+		return impact_flags
+	if(!(impact_flags & ZIMPACT_NO_MESSAGE))
+		visible_message(
+			span_danger("[src] crashes into [impacted_turf] with a sickening noise!"),
+			span_userdanger("You crash into [impacted_turf] with a sickening noise!"),
+		)
 	adjustBruteLoss((levels * 5) ** 1.5)
-	Knockdown(levels * 50)
+	Knockdown(levels * 3 SECONDS)
+	return impact_flags
 
 /mob/living/proc/OpenCraftingMenu()
 	return
@@ -356,7 +366,7 @@
 
 	if(istype(AM) && Adjacent(AM))
 		start_pulling(AM)
-	else if(!combat_mode)
+	else if(!in_throw_mode)
 		stop_pulling()
 	return TRUE
 
@@ -1039,7 +1049,7 @@
 		mind.soulOwner = mind
 
 /mob/living/proc/has_bane(banetype)
-	var/datum/antagonist/devil/devilInfo = is_devil(src)
+	var/datum/antagonist/devil/devilInfo = IS_DEVIL(src)
 	return devilInfo && banetype == devilInfo.bane
 
 /mob/living/proc/check_weakness(obj/item/weapon, mob/living/attacker)
@@ -1537,15 +1547,15 @@ GLOBAL_LIST_EMPTY(fire_appearances)
 	. = ..()
 	var/refid = REF(src)
 	. += {"
-		<br><font size='1'><a href='?_src_=vars;[HrefToken()];datumedit=[refid];varnameedit=ckey' id='ckey'>[ckey || "No ckey"]</a> / [VV_HREF_TARGETREF_1V(refid, VV_HK_BASIC_EDIT, "[real_name || "no real name"]", NAMEOF(src, real_name))]</font>
+		<br><font size='1'><a href='byond://?_src_=vars;[HrefToken()];datumedit=[refid];varnameedit=ckey' id='ckey'>[ckey || "No ckey"]</a> / [VV_HREF_TARGETREF_1V(refid, VV_HK_BASIC_EDIT, "[real_name || "no real name"]", NAMEOF(src, real_name))]</font>
 		<br><font size='1'>
-			BRUTE:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BRUTE]' id='brute'>[getBruteLoss()]</a>
-			BURN:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BURN]' id='burn'>[getFireLoss()]</a>
-			TOXIN:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[TOX]' id='toxin'>[getToxLoss()]</a>
-			OXY:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[OXY]' id='oxygen'>[getOxyLoss()]</a>
-			CLONE:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[CLONE]' id='clone'>[getCloneLoss()]</a>
-			BRAIN:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BRAIN]' id='brain'>[getOrganLoss(ORGAN_SLOT_BRAIN)]</a>
-			STAMINA:<font size='1'><a href='?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[STAMINA]' id='stamina'>[getStaminaLoss()]</a>
+			BRUTE:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BRUTE]' id='brute'>[getBruteLoss()]</a>
+			BURN:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BURN]' id='burn'>[getFireLoss()]</a>
+			TOXIN:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[TOX]' id='toxin'>[getToxLoss()]</a>
+			OXY:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[OXY]' id='oxygen'>[getOxyLoss()]</a>
+			CLONE:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[CLONE]' id='clone'>[getCloneLoss()]</a>
+			BRAIN:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[BRAIN]' id='brain'>[getOrganLoss(ORGAN_SLOT_BRAIN)]</a>
+			STAMINA:<font size='1'><a href='byond://?_src_=vars;[HrefToken()];mobToDamage=[refid];adjustDamage=[STAMINA]' id='stamina'>[getStaminaLoss()]</a>
 		</font>
 	"}
 

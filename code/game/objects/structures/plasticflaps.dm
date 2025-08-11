@@ -3,7 +3,7 @@
 	desc = "Heavy duty, airtight, plastic flaps. Definitely can't get past those. No way."
 	icon = 'icons/obj/stationobjs.dmi'
 	icon_state = "plasticflaps"
-	armor = list(MELEE = 100, BULLET = 80, LASER = 80, ENERGY = 100, BOMB = 50, BIO = 100, RAD = 100, FIRE = 50, ACID = 50)
+	armor = list(MELEE = 100, BULLET = 80, LASER = 80, ENERGY = 80, BOMB = 50, BIO = 100, RAD = 100, FIRE = 50, ACID = 50, ELECTRIC = 100)
 	density = FALSE
 	anchored = TRUE
 	can_atmos_pass = ATMOS_PASS_NO
@@ -15,6 +15,7 @@
 	. = ..()
 	alpha = 0
 	gen_overlay()
+	air_update_turf()
 
 /obj/structure/plasticflaps/on_changed_z_level(turf/old_turf, turf/new_turf, same_z_layer, notify_contents)
 	if(same_z_layer)
@@ -40,14 +41,19 @@
 		return TRUE
 	add_fingerprint(user)
 	var/action = anchored ? "unscrews [src] from" : "screws [src] to"
-	var/uraction = anchored ? "unscrew [src] from " : "screw [src] to"
+	var/uraction = anchored ? "unscrew [src] from" : "screw [src] to"
 	user.visible_message(span_warning("[user] [action] the floor."), span_notice("You start to [uraction] the floor..."), "You hear rustling noises.")
-	if(W.use_tool(src, user, 100, volume=100, extra_checks = CALLBACK(src, PROC_REF(check_anchored_state), anchored)))
-		setAnchored(!anchored)
-		to_chat(user, span_notice(" You [anchored ? "unscrew" : "screw"] [src] from the floor."))
+	if(!W.use_tool(src, user, 100, volume=100, extra_checks = CALLBACK(src, PROC_REF(check_anchored_state), anchored)))
 		return TRUE
-	else
-		return TRUE
+	setAnchored(!anchored)
+	update_atmos_behaviour()
+	air_update_turf()
+	to_chat(user, span_notice(" You [anchored ? "unscrew" : "screw"] [src] from the floor."))
+	return TRUE
+
+///Update the flaps behaviour to gases, if not anchored will let air pass through
+/obj/structure/plasticflaps/proc/update_atmos_behaviour()
+	can_atmos_pass = anchored ? ATMOS_PASS_YES : ATMOS_PASS_NO
 
 /obj/structure/plasticflaps/wirecutter_act(mob/living/user, obj/item/W)
 	if(!anchored)
@@ -68,15 +74,15 @@
 		return FALSE
 	return TRUE
 
-/obj/structure/plasticflaps/CanAStarPass(ID, to_dir, caller)
-	if(isliving(caller))
-		if(isbot(caller))
+/obj/structure/plasticflaps/CanAStarPass(ID, to_dir, caller_but_not_a_byond_built_in_proc)
+	if(isliving(caller_but_not_a_byond_built_in_proc))
+		if(isbot(caller_but_not_a_byond_built_in_proc))
 			return TRUE
 
-		var/mob/living/M = caller
+		var/mob/living/M = caller_but_not_a_byond_built_in_proc
 		if(!M.ventcrawler && M.mob_size != MOB_SIZE_TINY)
 			return FALSE
-	var/atom/movable/M = caller
+	var/atom/movable/M = caller_but_not_a_byond_built_in_proc
 	if(M && M.pulling)
 		return CanAStarPass(ID, to_dir, M.pulling)
 	return TRUE //diseases, stings, etc can pass
@@ -112,10 +118,6 @@
 	if(!(flags_1 & NODECONSTRUCT_1))
 		new /obj/item/stack/sheet/plastic/five(loc)
 	qdel(src)
-
-/obj/structure/plasticflaps/Initialize(mapload)
-	. = ..()
-	air_update_turf()
 
 /obj/structure/plasticflaps/Destroy()
 	var/atom/oldloc = loc

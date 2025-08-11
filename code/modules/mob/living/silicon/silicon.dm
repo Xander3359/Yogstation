@@ -45,7 +45,6 @@
 	var/interaction_range = 7			//wireless control range
 	///The reference to the built-in tablet that borgs carry.
 	var/obj/item/modular_computer/tablet/integrated/modularInterface
-	var/obj/item/pda/aiPDA
 
 /mob/living/silicon/Initialize(mapload)
 	. = ..()
@@ -122,7 +121,7 @@
 				if(alarm_types_show["Camera"])
 					msg += "CAMERA: [alarm_types_show["Camera"]] alarms detected. - "
 
-				msg += "<A href=?src=[REF(src)];showalerts=1'>\[Show Alerts\]</a>"
+				msg += "<A href=byond://?src=[REF(src)];showalerts=1'>\[Show Alerts\]</a>"
 				to_chat(src, msg)
 
 			if(alarms_to_clear.len < 3)
@@ -147,7 +146,7 @@
 				if(alarm_types_show["Camera"])
 					msg += "CAMERA: [alarm_types_clear["Camera"]] alarms cleared. - "
 
-				msg += "<A href=?src=[REF(src)];showalerts=1'>\[Show Alerts\]</a>"
+				msg += "<A href=byond://?src=[REF(src)];showalerts=1'>\[Show Alerts\]</a>"
 				to_chat(src, msg)
 
 

@@ -32,7 +32,7 @@
 	var/window_name = "Protobot 1.0" //Popup title
 	var/window_width = 0 //0 for default size
 	var/window_height = 0
-	var/obj/item/paicard/paicard // Inserted pai card.
+	var/obj/item/computer_hardware/paicard/paicard // Inserted pai card.
 	var/allow_pai = 1 // Are we even allowed to insert a pai card.
 	var/bot_name
 
@@ -300,7 +300,7 @@
 			to_chat(user, span_warning("The maintenance panel is locked."))
 	else if(W.GetID())
 		togglelock(user)
-	else if(istype(W, /obj/item/paicard))
+	else if(istype(W, /obj/item/computer_hardware/paicard))
 		insertpai(user, W)
 	else if(istype(W, /obj/item/hemostat) && paicard)
 		if(open)
@@ -535,7 +535,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 	if(mode != BOT_SUMMON && mode != BOT_RESPONDING)
 		access_card.access = prev_access
 
-/mob/living/simple_animal/bot/proc/call_bot(caller, turf/waypoint, message=TRUE)
+/mob/living/simple_animal/bot/proc/call_bot(caller_but_not_a_byond_built_in_proc, turf/waypoint, message=TRUE)
 	bot_reset() //Reset a bot before setting it to call mode.
 
 	//For giving the bot temporary all-access.
@@ -544,7 +544,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 	all_access.access = All.get_access()
 
 	set_path(get_path_to(src, waypoint, /turf/proc/Distance_cardinal, 0, 200, id=all_access))
-	calling_ai = caller //Link the AI to the bot!
+	calling_ai = caller_but_not_a_byond_built_in_proc //Link the AI to the bot!
 	ai_waypoint = waypoint
 
 	if(path && path.len) //Ensures that a valid path is calculated!
@@ -554,7 +554,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 		access_card = all_access //Give the bot all-access while under the AI's command.
 		if(client)
 			reset_access_timer_id = addtimer(CALLBACK (src, PROC_REF(bot_reset)), 600, TIMER_UNIQUE|TIMER_OVERRIDE|TIMER_STOPPABLE) //if the bot is player controlled, they get the extra access for a limited time
-			to_chat(src, span_notice("<span class='big'>Priority waypoint set by [icon2html(calling_ai, src)] <b>[caller]</b>. Proceed to <b>[end_area]</b>.</span><br>[path.len-1] meters to destination. You have been granted additional door access for 60 seconds."))
+			to_chat(src, span_notice("<span class='big'>Priority waypoint set by [icon2html(calling_ai, src)] <b>[caller_but_not_a_byond_built_in_proc]</b>. Proceed to <b>[end_area]</b>.</span><br>[path.len-1] meters to destination. You have been granted additional door access for 60 seconds."))
 		if(message)
 			to_chat(calling_ai, span_notice("[icon2html(src, calling_ai)] [name] called to [end_area]. [path.len-1] meters to destination."))
 		pathset = 1
@@ -676,27 +676,32 @@ Pass a positive integer as an argument to override a bot's default speed.
 
 /mob/living/simple_animal/bot/proc/get_next_patrol_target()
 	// search the beacon list for the next target in the list.
-	for(var/obj/machinery/navbeacon/NB in GLOB.navbeacons["[z]"])
-		if(NB.location == next_destination) //Does the Beacon location text match the destination?
-			destination = new_destination //We now know the name of where we want to go.
-			patrol_target = NB.loc //Get its location and set it as the target.
-			next_destination = NB.codes["next_patrol"] //Also get the name of the next beacon in line.
-			return TRUE
+	var/list/connected_levels = SSmapping.get_connected_levels(z)
+	for(var/level in connected_levels)
+		for(var/obj/machinery/navbeacon/NB in GLOB.navbeacons["[level]"])
+			if(NB.location == next_destination) //Does the Beacon location text match the destination?
+				destination = new_destination //We now know the name of where we want to go.
+				patrol_target = NB.loc //Get its location and set it as the target.
+				next_destination = NB.codes["next_patrol"] //Also get the name of the next beacon in line.
+				return TRUE
 
 /mob/living/simple_animal/bot/proc/find_nearest_beacon()
-	for(var/obj/machinery/navbeacon/NB in GLOB.navbeacons["[z]"])
-		var/dist = get_dist(src, NB)
-		if(nearest_beacon) //Loop though the beacon net to find the true closest beacon.
-			//Ignore the beacon if were are located on it.
-			if(dist>1 && dist<get_dist(src,nearest_beacon_loc))
+	var/list/connected_levels = SSmapping.get_connected_levels(z)
+	for(var/level in connected_levels)
+		for(var/obj/machinery/navbeacon/NB in GLOB.navbeacons["[level]"])
+
+			var/dist = get_dist(src, NB)
+			if(nearest_beacon) //Loop though the beacon net to find the true closest beacon.
+				//Ignore the beacon if were are located on it.
+				if(dist>1 && dist<get_dist(src,nearest_beacon_loc))
+					nearest_beacon = NB.location
+					nearest_beacon_loc = NB.loc
+					next_destination = NB.codes["next_patrol"]
+				else
+					continue
+			else if(dist > 1) //Begin the search, save this one for comparison on the next loop.
 				nearest_beacon = NB.location
 				nearest_beacon_loc = NB.loc
-				next_destination = NB.codes["next_patrol"]
-			else
-				continue
-		else if(dist > 1) //Begin the search, save this one for comparison on the next loop.
-			nearest_beacon = NB.location
-			nearest_beacon_loc = NB.loc
 	patrol_target = nearest_beacon_loc
 	destination = nearest_beacon
 
@@ -894,9 +899,9 @@ Pass a positive integer as an argument to override a bot's default speed.
 	var/hack
 	if(issilicon(user) || IsAdminGhost(user)) //Allows silicons or admins to toggle the emag status of a bot.
 		hack += "[emagged == 2 ? "Software compromised! Unit may exhibit dangerous or erratic behavior." : "Unit operating normally. Release safety lock?"]<BR>"
-		hack += "Harm Prevention Safety System: <A href='?src=[REF(src)];operation=hack'>[emagged ? span_bad("DANGER") : "Engaged"]</A><BR>"
+		hack += "Harm Prevention Safety System: <A href='byond://?src=[REF(src)];operation=hack'>[emagged ? span_bad("DANGER") : "Engaged"]</A><BR>"
 	else if(!locked) //Humans with access can use this option to hide a bot from the AI's remote control panel and PDA control.
-		hack += "Remote network control radio: <A href='?src=[REF(src)];operation=remote'>[remote_disabled ? "Disconnected" : "Connected"]</A><BR>"
+		hack += "Remote network control radio: <A href='byond://?src=[REF(src)];operation=remote'>[remote_disabled ? "Disconnected" : "Connected"]</A><BR>"
 	return hack
 
 /mob/living/simple_animal/bot/proc/showpai(mob/user)
@@ -906,9 +911,9 @@ Pass a positive integer as an argument to override a bot's default speed.
 			eject += "Personality card status: "
 			if(paicard)
 				if(client)
-					eject += "<A href='?src=[REF(src)];operation=ejectpai'>Active</A>"
+					eject += "<A href='byond://?src=[REF(src)];operation=ejectpai'>Active</A>"
 				else
-					eject += "<A href='?src=[REF(src)];operation=ejectpai'>Inactive</A>"
+					eject += "<A href='byond://?src=[REF(src)];operation=ejectpai'>Inactive</A>"
 			else if(!allow_pai || key)
 				eject += "Unavailable"
 			else
@@ -917,7 +922,7 @@ Pass a positive integer as an argument to override a bot's default speed.
 		eject += "<BR>"
 	return eject
 
-/mob/living/simple_animal/bot/proc/insertpai(mob/user, obj/item/paicard/card)
+/mob/living/simple_animal/bot/proc/insertpai(mob/user, obj/item/computer_hardware/paicard/card)
 	if(paicard)
 		to_chat(user, span_warning("A [paicard] is already inserted!"))
 	else if(allow_pai && !key)

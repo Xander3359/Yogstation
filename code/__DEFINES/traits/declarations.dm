@@ -59,7 +59,7 @@
 /// This person is crying
 #define TRAIT_CRYING "crying"
 /// you cannot put this in any container, backpack, box etc
-#define TRAIT_NO_STORAGE		"no-storage" 
+#define TRAIT_NO_STORAGE		"no-storage"
 /// Crafts items using the crafting menu faster
 #define TRAIT_CRAFTY			"crafty"
 /// Gets a more detailed reagent breakdown when examining
@@ -74,7 +74,7 @@
 #define TRAIT_EAT_MORE			"eat_more"
 /// Can never be full
 #define TRAIT_BOTTOMLESS_STOMACH "bottomless_stomach"
-/// Randomly passes out
+/// Randomly makes nearby lights flicker
 #define RANDOM_BLACKOUTS "random_blackouts"
 /// Provides the cultist red eyes overlay
 #define CULT_EYES "cult_eyes"
@@ -109,6 +109,8 @@
 #define TRAIT_IGNOREDAMAGESLOWDOWN "ignoredamageslowdown"
 /// Makes the screen go black and white while illuminating all mobs based on their body temperature
 #define TRAIT_INFRARED_VISION	"infrared_vision"
+/// Punches don't stun. Use this instead of setting punchstunchance to zero.
+#define TRAIT_NO_PUNCH_STUN "no-punch-stun"
 
 ////////////////////////////////////////////////////////////////////////////////////
 //-------------------------Species Specific defines-------------------------------//
@@ -130,6 +132,7 @@
 #define TRAIT_DIGITIGRADE		"digitigrade" // the funny lizard legs
 /// If the legs are to be displayed like regular legs
 #define TRAIT_DIGI_SQUISH       "didi_squish"
+#define TRAIT_IGNORE_SHAREDFOOD "ignore_shared_food" // don't get negative moodlet from sharing a plate
 
 ////////////////////////////////////////////////////////////////////////////////////
 //---------------------------------Quirk defines----------------------------------//
@@ -201,6 +204,8 @@
 #define TRAIT_PUSHIMMUNE "push_immunity"
 /// Are we immune to shocks?
 #define TRAIT_SHOCKIMMUNE "shock_immunity"
+/// Completely ignored by tesla zaps
+#define TRAIT_TESLA_IGNORE "tesla_ignore"
 /// Immunity to low temperature damage
 #define TRAIT_RESISTCOLD "resist_cold"
 /// Immunity to high temperature damage
@@ -440,6 +445,10 @@
 #define TRAIT_PRESENT_VISION "present-vision"
 #define TRAIT_DISK_VERIFIER "disk-verifier"
 #define TRAIT_NOMOBSWAP "no-mob-swap"
+/// Can allocate 5 points into one skill instead of the usual 4
+#define TRAIT_EXCEPTIONAL_SKILL "exceptional-skill"
+/// Acts as an additional skill point for piloting mechs, up to EXP_MASTER.
+#define TRAIT_SKILLED_PILOT "skilled-pilot"
 /// Can examine IDs to see if they are roundstart.
 #define TRAIT_ID_APPRAISER "id_appraiser"
 /// Gives us turf, mob and object vision through walls
@@ -1003,6 +1012,9 @@
 /// this object has been frozen
 #define TRAIT_FROZEN "frozen"
 
+/// Is runechat for this atom/movable currently disabled, regardless of prefs or anything?
+#define TRAIT_RUNECHAT_HIDDEN "runechat_hidden"
+
 /// Currently fishing
 #define TRAIT_GONE_FISHING "fishing"
 
@@ -1014,9 +1026,6 @@
 
 /// Makes a species be better/worse at defending against tackling depending on their tail's status
 #define TRAIT_TACKLING_TAILED_DEFENDER "tackling_tailed_defender"
-
-/// Is runechat for this atom/movable currently disabled, regardless of prefs or anything?
-#define TRAIT_RUNECHAT_HIDDEN "runechat_hidden"
 
 /// the object has a label applied
 #define TRAIT_HAS_LABEL "labeled"

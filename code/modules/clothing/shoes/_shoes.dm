@@ -21,8 +21,8 @@
 /obj/item/clothing/shoes/suicide_act(mob/living/carbon/user)
 	if(rand(2)>1)
 		user.visible_message(span_suicide("[user] begins tying \the [src] up waaay too tightly! It looks like [user.p_theyre()] trying to commit suicide!"))
-		var/obj/item/bodypart/l_leg = user.get_bodypart(BODY_ZONE_L_LEG)
-		var/obj/item/bodypart/r_leg = user.get_bodypart(BODY_ZONE_R_LEG)
+		var/obj/item/bodypart/leg/left/l_leg = user.get_bodypart(BODY_ZONE_L_LEG)
+		var/obj/item/bodypart/leg/right/r_leg = user.get_bodypart(BODY_ZONE_R_LEG)
 		if(l_leg)
 			l_leg.dismember()
 			playsound(user,pick('sound/misc/desceration-01.ogg','sound/misc/desceration-02.ogg','sound/misc/desceration-01.ogg') ,50, 1, -1)
@@ -55,6 +55,8 @@
 		bloody_shoes = mutable_appearance('icons/effects/blood.dmi', "shoeblood")
 		if(species_fitted && icon_exists(bloody_shoes.icon, "shoeblood_[species_fitted]")) 
 			bloody_shoes.icon_state = "shoeblood_[species_fitted]"
+		else if(HAS_TRAIT(loc, TRAIT_DIGITIGRADE) && !HAS_TRAIT(loc, TRAIT_DIGI_SQUISH))
+			bloody_shoes.icon_state = "shoeblood_digi"
 	bloody_shoes.color = get_blood_dna_color(return_blood_DNA())
 	. += bloody_shoes
 

@@ -244,6 +244,9 @@
 		return TRUE
 	if(unrestricted_side(M))
 		return TRUE
+	if(ispAI(M))
+		var/mob/living/silicon/pai/P = M
+		return check_access(P.access_card)
 	return ..()
 
 /// Returns the opposite of '/allowed', but makes exceptions for things like IsAdminGhost().
@@ -290,9 +293,6 @@
 
 	var/list/modifiers = params2list(params)
 	if((!user.combat_mode || (modifiers && modifiers[RIGHT_CLICK])) && (I.tool_behaviour == TOOL_CROWBAR || istype(I, /obj/item/fireaxe))) // right click always opens
-		try_to_crowbar(I, user)
-		return TRUE
-	else if(istype(I, /obj/item/zombie_hand/gamemode))
 		try_to_crowbar(I, user)
 		return TRUE
 	else if(I.tool_behaviour == TOOL_WELDER)

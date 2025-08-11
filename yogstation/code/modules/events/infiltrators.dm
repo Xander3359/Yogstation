@@ -2,15 +2,17 @@
 	name = "Infiltrators"
 	typepath = /datum/round_event/ghost_role/infiltrators
 
-	weight = 0
+	weight = 5
 	max_occurrences = 1
-	earliest_start = 30 MINUTES
+	earliest_start = 50 MINUTES
+	track = EVENT_TRACK_MAJOR
+	tags = list(TAG_COMBAT, TAG_EXTERNAL)
+	description = "Infiltrators will... infiltrate."
+	map_flags = EVENT_SPACE_ONLY
 
-	min_players = 23
+	min_players = 15 //Temporary, only for testmerge
 
-	gamemode_blacklist = list("nuclear","wizard","revolution","abduction","infiltration","gang","cult","clockcult","darkspawn","dynamic")
-
-/datum/round_event_control/infiltrators/canSpawnEvent(players_amt, gamemode)
+/datum/round_event_control/infiltrators/canSpawnEvent(players_amt, allow_magic = FALSE, fake_check = FALSE)
 	. = ..()
 	if(!.)
 		return .

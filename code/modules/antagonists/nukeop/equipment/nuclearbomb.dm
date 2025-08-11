@@ -66,14 +66,18 @@
 	icon = 'icons/obj/machines/nuke_terminal.dmi'
 	anchored = TRUE //stops it being moved
 
+/obj/machinery/nuclearbomb/selfdestruct/examine(mob/user)
+	. = ..()
+	. += span_boldnotice("Self-destruct sequence requires the disk to remain inside until detonation. Ejection will cancel detonation.")
+
 /obj/machinery/nuclearbomb/syndicate
 	//ui_style = "syndicate" // actually the nuke op bomb is a stole nt bomb
 
 /obj/machinery/nuclearbomb/syndicate/get_cinematic_type(off_station)
-	var/datum/game_mode/nuclear/NM = SSticker.mode
 	switch(off_station)
 		if(0)
-			if(istype(NM) && !NM.nuke_team.syndies_escaped())
+			var/datum/team/nuclear/NM = locate() in GLOB.antagonist_teams
+			if(istype(NM) && !NM.syndies_escaped())
 				return CINEMATIC_ANNIHILATION
 			else
 				return CINEMATIC_NUKE_WIN
@@ -316,6 +320,8 @@
 					playsound(src, 'sound/machines/nuke/general_beep.ogg', 50, FALSE)
 					auth = I
 					. = TRUE
+			if(istype(src, /obj/machinery/nuclearbomb/selfdestruct) && timing)
+				set_active() // Disarm if ejected, selfdestruct requires disk the entire way for balance reasons
 			update_ui_mode()
 		if("keypad")
 			if(auth)
@@ -428,8 +434,8 @@
 		return
 	qdel(src)
 
-/obj/machinery/nuclearbomb/tesla_act(power, tesla_flags, shocked_targets, zap_gib = FALSE)
-	..()
+/obj/machinery/nuclearbomb/tesla_act(source, power, zap_range, tesla_flags, list/shocked_targets)
+	. = ..()
 	if(tesla_flags & TESLA_MACHINE_EXPLOSIVE)
 		qdel(src)//like the singulo, tesla deletes it. stops it from exploding over and over
 
@@ -444,7 +450,7 @@
 	safety = TRUE
 	update_appearance(UPDATE_ICON)
 	sound_to_playing_players('sound/machines/alarm.ogg')
-	if(SSticker && SSticker.mode)
+	if(SSticker)
 		SSticker.roundend_check_paused = TRUE
 	addtimer(CALLBACK(src, PROC_REF(actually_explode)), 100)
 
@@ -476,8 +482,10 @@
 		SSshuttle.registerHostileEnvironment(src)
 		SSshuttle.lockdown = TRUE
 
+	var/is_self_destruct = istype(src, /obj/machinery/nuclearbomb/selfdestruct)
+
 	//Cinematic
-	SSticker.mode.OnNukeExplosion(off_station)
+	SSgamemode.OnNukeExplosion(off_station, is_self_destruct)
 	really_actually_explode(off_station)
 	SSticker.roundend_check_paused = FALSE
 
@@ -532,7 +540,7 @@
 		disarm()
 		return
 	if(is_station_level(bomb_location.z))
-		var/datum/round_event_control/E = locate(/datum/round_event_control/scrubber_overflow/beer) in SSevents.control
+		var/datum/round_event_control/E = locate(/datum/round_event_control/scrubber_overflow/beer) in SSgamemode.control
 		if(E)
 			E.runEvent()
 		addtimer(CALLBACK(src, PROC_REF(really_actually_explode)), 110)
@@ -638,7 +646,7 @@ This is here to make the tiles around the station mininuke change when it's arme
 	var/turf/newturf = get_turf(src)
 	if(newturf && lastlocation == newturf)
 		if(last_disk_move < world.time - 5000 && prob((world.time - 5000 - last_disk_move)*0.0001))
-			var/datum/round_event_control/operative/loneop = locate(/datum/round_event_control/operative) in SSevents.control
+			var/datum/round_event_control/operative/loneop = locate(/datum/round_event_control/operative) in SSgamemode.control
 			if(istype(loneop) && (loneop.occurrences < loneop.max_occurrences) && SSticker.totalPlayers >= 25)
 				loneop.weight += 1
 				if(loneop.weight % 5 == 0 && SSticker.totalPlayers > 1)
@@ -648,7 +656,7 @@ This is here to make the tiles around the station mininuke change when it's arme
 	else
 		lastlocation = newturf
 		last_disk_move = world.time
-		var/datum/round_event_control/operative/loneop = locate(/datum/round_event_control/operative) in SSevents.control
+		var/datum/round_event_control/operative/loneop = locate(/datum/round_event_control/operative) in SSgamemode.control
 		if(istype(loneop) && loneop.occurrences < loneop.max_occurrences && prob(loneop.weight))
 			loneop.weight = max(loneop.weight - 1, 0)
 			if(loneop.weight % 5 == 0 && SSticker.totalPlayers > 1)

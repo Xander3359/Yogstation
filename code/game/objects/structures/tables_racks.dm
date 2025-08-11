@@ -154,10 +154,10 @@
 	if(locate(/obj/structure/table) in get_turf(mover))
 		return TRUE
 
-/obj/structure/table/CanAStarPass(ID, dir, caller)
+/obj/structure/table/CanAStarPass(ID, dir, caller_but_not_a_byond_built_in_proc)
 	. = !density
-	if(ismovable(caller))
-		var/atom/movable/mover = caller
+	if(ismovable(caller_but_not_a_byond_built_in_proc))
+		var/atom/movable/mover = caller_but_not_a_byond_built_in_proc
 		. = . || (mover.pass_flags & PASSTABLE)
 
 /obj/structure/table/proc/tableplace(mob/living/user, mob/living/pushed_mob)
@@ -210,7 +210,7 @@
 			I.pixel_x = clamp(text2num(click_params["icon-x"]) - 16, -(world.icon_size/2), world.icon_size/2)
 			I.pixel_y = clamp(text2num(click_params["icon-y"]) - 16, -(world.icon_size/2), world.icon_size/2)
 			return 1
-	else if(!user.combat_mode) // can't drop the item but not in combat mode, try deconstructing instead
+	else if(!user.combat_mode && !(I.item_flags & ABSTRACT)) // can't drop the item but not in combat mode, try deconstructing instead
 		return attackby_secondary(I, user, params)
 	else
 		return ..()
@@ -459,7 +459,7 @@
 	buildstack = /obj/item/stack/sheet/plasteel
 	max_integrity = 200
 	integrity_failure = 50
-	armor = list(MELEE = 10, BULLET = 30, LASER = 30, ENERGY = 100, BOMB = 20, BIO = 0, RAD = 0, FIRE = 80, ACID = 70)
+	armor = list(MELEE = 10, BULLET = 30, LASER = 30, ENERGY = 30, BOMB = 20, BIO = 0, RAD = 0, FIRE = 80, ACID = 70, ELECTRIC = 100)
 
 /obj/structure/table/reinforced/deconstruction_hints(mob/user)
 	if(deconstruction_ready)
@@ -595,10 +595,10 @@
 	if(istype(mover) && (mover.pass_flags & PASSTABLE))
 		return TRUE
 
-/obj/structure/rack/CanAStarPass(ID, dir, caller)
+/obj/structure/rack/CanAStarPass(ID, dir, caller_but_not_a_byond_built_in_proc)
 	. = !density
-	if(ismovable(caller))
-		var/atom/movable/mover = caller
+	if(ismovable(caller_but_not_a_byond_built_in_proc))
+		var/atom/movable/mover = caller_but_not_a_byond_built_in_proc
 		. = . || (mover.pass_flags & PASSTABLE)
 
 /obj/structure/rack/MouseDrop_T(obj/O, mob/user)

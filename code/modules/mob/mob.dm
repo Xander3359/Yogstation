@@ -23,6 +23,11 @@
   * Returns QDEL_HINT_HARDDEL (don't change this)
   */
 /mob/Destroy()//This makes sure that mobs with clients/keys are not just deleted from the game.
+	if(client)
+		stack_trace("Mob with client has been deleted")
+	else if(ckey)
+		stack_trace("Mob without client but with associated ckey has been deleted.")
+
 	remove_from_mob_list()
 	remove_from_dead_mob_list()
 	remove_from_alive_mob_list()
@@ -87,7 +92,7 @@
 	update_config_movespeed()
 	update_movespeed(TRUE)
 
-/mob/New()
+/mob/New(loc, ...)
 	// This needs to happen IMMEDIATELY. I'm sorry :(
 	GenerateTag()
 	return ..()
@@ -1191,14 +1196,12 @@
 					break
 				search_id = 0
 
-		else if( search_pda && istype(A, /obj/item/pda) )
-			var/obj/item/pda/PDA = A
-			if(PDA.owner == oldname)
-				PDA.owner = newname
-				PDA.update_label()
-				if(!search_id)
-					break
-				search_pda = 0
+		else if( search_pda && istype(A, /obj/item/modular_computer/tablet) )
+			var/obj/item/modular_computer/tablet/PDA_or_phone = A
+			PDA_or_phone.update_label()
+			if(!search_id)
+				break
+			search_pda = 0
 
 /mob/proc/update_stat()
 	return

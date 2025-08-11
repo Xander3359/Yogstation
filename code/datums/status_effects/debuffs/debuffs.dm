@@ -666,10 +666,6 @@
 	var/effect_cooldown = 100
 	var/obj/effect/temp_visual/curse/wasting_effect = new
 
-/datum/status_effect/necropolis_curse/hivemind
-	id = "hivecurse"
-	duration = 600
-
 /datum/status_effect/necropolis_curse/on_creation(mob/living/new_owner, set_curse)
 	. = ..()
 	if(.)
@@ -1087,13 +1083,6 @@
 	desc = "..."
 	icon_state = "broken_will"
 	alerttooltipstyle = "alien" 
-
-//used to prevent the use of devour will on the target
-/datum/status_effect/devoured_will
-	id = "devoured_will"
-	status_type = STATUS_EFFECT_UNIQUE
-	duration = 3 MINUTES
-	alert_type = null
 
 /datum/status_effect/eldritch
 	duration = 15 SECONDS

@@ -286,10 +286,9 @@
 			return
 
 	// OTHER
-	if((istype(I, /obj/item/paper) || istype(I, /obj/item/pda)) && isliving(user))
+	if(istype(I, /obj/item/paper) && isliving(user))
 		var/mob/living/U = user
 		var/obj/item/paper/X = null
-		var/obj/item/pda/P = null
 
 		var/itemname = ""
 		var/info = ""
@@ -297,10 +296,6 @@
 			X = I
 			itemname = X.name
 			info = X.info
-		else
-			P = I
-			itemname = P.name
-			info = P.notehtml
 		to_chat(U, span_notice("You hold \the [itemname] up to the camera..."))
 		U.changeNext_move(CLICK_CD_MELEE)
 		for(var/mob/O in GLOB.player_list)
@@ -309,9 +304,9 @@
 				if(AI.control_disabled || (AI.stat == DEAD))
 					return
 				if(U.name == "Unknown")
-					to_chat(AI, "<b>[U]</b> holds <a href='?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
+					to_chat(AI, "<b>[U]</b> holds <a href='byond://?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
 				else
-					to_chat(AI, "<b><a href='?src=[REF(AI)];track=[html_encode(U.name)]'>[U]</a></b> holds <a href='?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
+					to_chat(AI, "<b><a href='byond://?src=[REF(AI)];track=[html_encode(U.name)]'>[U]</a></b> holds <a href='byond://?_src_=usr;show_paper=1;'>\a [itemname]</a> up to one of your cameras ...")
 				if(istype(X))
 					info = X.render_body(AI)
 				AI.last_paper_seen = "<HTML><HEAD><meta charset='UTF-8'><TITLE>[itemname]</TITLE></HEAD><BODY><TT>[info]</TT></BODY></HTML>"

@@ -261,6 +261,7 @@ GLOBAL_LIST_INIT(special_radio_keys, list(
 	else
 		deaf_message = span_notice("You can't hear yourself!")
 		deaf_type = 2 // Since you should be able to hear yourself without looking
+
 	// Create map text prior to modifying message for goonchat
 	if (client?.prefs.read_preference(/datum/preference/toggle/enable_runechat) && stat != UNCONSCIOUS && (client.prefs.read_preference(/datum/preference/toggle/enable_runechat_non_mobs) || ismob(speaker)) && can_hear())
 		create_chat_message(speaker, message_language, raw_message, spans)
@@ -385,7 +386,10 @@ GLOBAL_LIST_INIT(special_radio_keys, list(
 
 /mob/living/proc/radio(message, list/message_mods = list(), list/spans, language)
 	var/obj/item/implant/radio/imp = locate() in src
+	var/obj/item/radio/radio = get_item_by_slot(ITEM_SLOT_EARS)
 	if(imp && imp.radio.on)
+		if(radio?.use_command)
+			spans |= SPAN_COMMAND
 		if(message_mods[MODE_HEADSET])
 			imp.radio.talk_into(src, message, null, spans, language, message_mods)
 			return ITALICS | REDUCE_RANGE

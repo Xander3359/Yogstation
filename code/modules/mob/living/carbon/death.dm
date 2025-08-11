@@ -14,9 +14,6 @@
 		var/datum/brain_trauma/BT = T
 		BT.on_death()
 
-	if(SSticker.mode)
-		SSticker.mode.check_win() //Calls the rounds wincheck, mainly for wizard, malf, and changeling now
-
 /mob/living/carbon/gib(no_brain, no_organs, no_bodyparts, no_items)
 	var/atom/Tsec = drop_location()
 	for(var/mob/living/M in src)
@@ -75,14 +72,3 @@
 		var/obj/item/bodypart/BP = X
 		BP.drop_limb()
 		BP.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), 5)
-
-/mob/living/carbon/proc/supermatter_tesla_gib() //leave chest behind and vital organs
-	for(var/obj/item/carbon_contents in src)
-		dropItemToGround(carbon_contents)
-		if(prob(50))
-			carbon_contents.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), 5)
-	adjustFireLoss(1000)
-	ADD_TRAIT(src, TRAIT_DISFIGURED, TRAIT_GENERIC)
-	spill_organs()
-	spread_bodyparts()
-	spawn_gibs()

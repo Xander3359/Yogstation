@@ -123,7 +123,6 @@
 #define STATUS_EFFECT_TAMING /datum/status_effect/taming //tames the target after enough tame stacks
 
 #define STATUS_EFFECT_NECROPOLIS_CURSE /datum/status_effect/necropolis_curse
-#define STATUS_EFFECT_HIVEMIND_CURSE /datum/status_effect/necropolis_curse/hivemind
 #define CURSE_BLINDING	1 //makes the edges of the target's screen obscured
 #define CURSE_SPAWNING	2 //spawns creatures that attack the target only
 #define CURSE_WASTING	4 //causes gradual damage
@@ -144,8 +143,6 @@
 #define STATUS_EFFECT_STASIS /datum/status_effect/incapacitating/stasis //Halts biological functions like bleeding, chemical processing, blood regeneration, walking, etc
 
 #define STATUS_EFFECT_BROKEN_WILL /datum/status_effect/broken_will //A 30-second sleep effect, ends instantly upon taking enough damage in a single hit. //Yogs
-
-#define STATUS_EFFECT_DEVOURED_WILL /datum/status_effect/devoured_will //A 3 minute long status effect that prevents using devour will on the owner
 
 #define STATUS_EFFECT_AMOK /datum/status_effect/amok //Makes the target automatically strike out at adjecent non-heretics.
 
@@ -196,6 +193,8 @@
 #define STATUS_EFFECT_PROGENITORCURSE /datum/status_effect/progenitor_curse
 
 #define STATUS_EFFECT_MASQUERADE /datum/status_effect/masquerade
+
+#define STATUS_EFFECT_EXPLOSION_PRIME /datum/status_effect/explosion_prime
 
 /////////////
 //  SLIME  //

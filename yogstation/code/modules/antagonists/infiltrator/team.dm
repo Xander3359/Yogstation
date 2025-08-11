@@ -89,7 +89,7 @@
 	return "<div class='panel redborder'>[parts.Join("<br>")]</div>"
 
 /datum/team/infiltrator/is_gamemode_hero()
-	return SSticker.mode.name == "infiltration"
+	return SSgamemode.name == "infiltration"
 
 /datum/team/infiltrator/proc/forge_single_objective() // Complete traitor copypasta!
 	if(prob(50))
@@ -98,7 +98,15 @@
 		else
 			add_objective(/datum/objective/assassinate)
 	else
-		add_objective(/datum/objective/steal)
+		if(prob(60))
+			add_objective(/datum/objective/steal)
+		else
+			var/datum/objective/break_machinery/break_objective = new
+			break_objective.team = src
+			if(break_objective.finalize())
+				add_objective(break_objective)
+			else
+				forge_single_objective()
 
 /datum/team/infiltrator/proc/add_objective(type)
 	var/datum/objective/O = type
